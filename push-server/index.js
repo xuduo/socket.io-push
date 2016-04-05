@@ -23,6 +23,13 @@ if (cluster.isMaster) {
     }
 } else {
     config.instance = cluster.worker.id;
-    require('./lib/log/index.js')('Main', true, cluster.worker.id, 'log', program.F, program.D, program.V);
+    var args = {
+        workId: cluster.worker.id,
+        dir:'log',
+        foreground:program.F,
+        debug:program.D,
+        verbose:program.V
+    }
+    require('./lib/log/index.js')('Main', args);
     require('./lib/push-server.js')(config);
 }
