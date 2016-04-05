@@ -28,12 +28,11 @@ function PushServer(config) {
         io.adapter(socketIoRedis);
         var packetService = require('./service/packetService.js')(cluster, cluster);
 
-        var uidStore = require('./redis/uidStore.js')(cluster);
         var TtlService = require('./service/ttlService.js');
         var ttlService = new TtlService(cluster);
         var notificationService = require('./service/notificationService.js')(config.apns, cluster, ttlService);
         var ProxyServer = require('./server/proxyServer.js');
-        var proxyServer = new ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService);
+        var proxyServer = new ProxyServer(io, stats, packetService, notificationService, ttlService);
         var ApiThreshold = require('./api/apiThreshold.js');
         var apiThreshold = new ApiThreshold(cluster);
         var AdminCommand = require('./server/adminCommand.js');
@@ -42,7 +41,7 @@ function PushServer(config) {
         if (apiPort) {
             var apnService = require('./service/apnService.js')(config.apns, config.apnsSliceServers, cluster, stats);
             notificationService.apnService = apnService;
-            self.restApi = require('./api/restApi.js')(io, stats, notificationService, apiPort, uidStore, ttlService, cluster, apiThreshold, apnService);
+            self.restApi = require('./api/restApi.js')(io, stats, notificationService, apiPort, ttlService, cluster, apiThreshold, apnService);
         }
     });
 }

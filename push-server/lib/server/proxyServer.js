@@ -2,7 +2,7 @@ module.exports = ProxyServer;
 var logger = require('../log/index.js')('ProxyServer');
 var http = require('http');
 
-function ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService) {
+function ProxyServer(io, stats, packetService, notificationService, ttlService) {
     this.io = io;
 
     io.on('connection', function (socket) {
@@ -53,19 +53,13 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                     ttlService.getPackets(data.id, data.lastUnicastId, socket);
                 }
 
-                uidStore.getUidByPushId(data.id, function (uid) {
-                    var reply = {id: data.id};
-                    if (uid) {
-                        reply.uid = uid;
-                        socket.uid = uid;
-                    }
-                    socket.pushId = data.id;
-                    packetService.publishConnect(socket);
-                    socket.join(data.id);
-                    socket.emit('pushId', reply);
-                    logger.log('debug', 'join room socket.id %s ,pushId %s', socket.id, socket.pushId);
-                    ttlService.onPushId(socket);
-                })
+                var reply = {id: data.id};
+                socket.pushId = data.id;
+                packetService.publishConnect(socket);
+                socket.join(data.id);
+                socket.emit('pushId', reply);
+                logger.log('debug', 'join room socket.id %s ,pushId %s', socket.id, socket.pushId);
+                ttlService.onPushId(socket);
             }
         });
 
@@ -91,9 +85,6 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
 
         socket.on('packetProxy', function (data) {
             data.pushId = socket.pushId;
-            if (socket.uid) {
-                data.uid = socket.uid;
-            }
             packetService.publishPacket(data);
         });
 

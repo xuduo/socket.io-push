@@ -2,9 +2,9 @@ module.exports = RestApi;
 var restify = require('restify');
 var debug = require('debug')('RestApi');
 
-function RestApi(io, stats, notificationService, port, uidStore, ttlService, redis, apiThreshold, apnService, apiAuth) {
+function RestApi(io, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth) {
 
-    if (!(this instanceof RestApi)) return new RestApi(io, stats, notificationService, port, uidStore, ttlService, redis, apiThreshold, apnService, apiAuth);
+    if (!(this instanceof RestApi)) return new RestApi(io, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth);
 
     var self = this;
 
@@ -38,8 +38,6 @@ function RestApi(io, stats, notificationService, port, uidStore, ttlService, red
     server.get(/^\/push\/?.*/, staticConfig);
 
     server.get(/^\/notification\/?.*/, staticConfig);
-
-    server.get(/^\/uid\/?.*/, staticConfig);
 
     server.get(/^\/handleStatsBase\/?.*/, staticConfig);
 
@@ -96,27 +94,8 @@ function RestApi(io, stats, notificationService, port, uidStore, ttlService, red
                     return next();
                 }
             } else {
-                if (uid) {
-                    if (typeof uid === 'string') {
-                        uidStore.getPushIdByUid(uid, function (pushIds) {
-                            pushIds.forEach(function (id) {
-                                ttlService.addPacketAndEmit(id, 'push', timeToLive, pushData, io, true);
-                            });
-                            res.send({code: "success"});
-                            return next();
-                        });
-                    } else {
-                        uid.forEach(function (id, i) {
-                            uidStore.getPushIdByUid(id, function (pushIds) {
-                                pushIds.forEach(function (result) {
-                                    ttlService.addPacketAndEmit(result, 'push', timeToLive, pushData, io, true);
-                                });
-                            });
-                        });
-                        res.send({code: "success"});
-                        return next();
-                    }
-                }
+                res.send({code: "error", message: "pushId is required"});
+                return next();
             }
         }
     };
@@ -152,20 +131,8 @@ function RestApi(io, stats, notificationService, port, uidStore, ttlService, red
                 res.send({code: "success"});
                 return next();
             } else {
-                if (uid) {
-                    var uids;
-                    if (typeof uid === 'string') {
-                        uids = [uid];
-                    } else {
-                        uids = uid;
-                    }
-                    uids.forEach(function (uid, i) {
-                        uidStore.getPushIdByUid(uid, function (pushIds) {
-                            notificationService.sendByPushIds(pushIds, timeToLive, notification, io);
-                        });
-                    });
-                    res.send({code: "success"});
-                }
+                res.send({code: "error", message: "pushId is required"});
+                return next();
             }
         }
     };
@@ -182,14 +149,6 @@ function RestApi(io, stats, notificationService, port, uidStore, ttlService, red
         stats.find(key, function (result) {
             res.send(result);
         });
-        return next();
-    };
-
-    var handleAddPushIdToUid = function (req, res, next) {
-        var uid = req.params.uid;
-        var pushId = req.params.pushId;
-        uidStore.addUid(pushId, uid, 3600 * 1000)
-        res.send({code: "success"});
         return next();
     };
 
@@ -215,8 +174,6 @@ function RestApi(io, stats, notificationService, port, uidStore, ttlService, red
     server.post('/api/push', handlePush);
     server.get('/api/notification', handleNotification);
     server.post('/api/notification', handleNotification);
-    server.get('/api/addPushIdToUid', handleAddPushIdToUid);
-    server.post('/api/addPushIdToUid', handleAddPushIdToUid);
     server.get('api/state/getQueryDataKeys', handleQueryDataKeys)
 
     server.get('/api/topicOnline', function (req, res, next) {

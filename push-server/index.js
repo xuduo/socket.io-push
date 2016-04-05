@@ -21,12 +21,8 @@ if (cluster.isMaster) {
     for (var i = 0; i<program.count; i++){
         cluster.fork();
     }
-    cluster.on('exit', function(worker, code, signal) {
-        cluster.fork();
-    });
 } else {
     config.instance = cluster.worker.id;
     require('./lib/log/index.js')('Main', true, cluster.worker.id, 'log', program.F, program.D, program.V);
     require('./lib/push-server.js')(config);
 }
-
