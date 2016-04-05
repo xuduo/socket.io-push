@@ -25,10 +25,8 @@ if (cluster.isMaster) {
         cluster.fork();
     });
 } else {
-    var Logger = require('./lib/log/index.js')('log' );
-    console.log("starting " + cluster.worker.id);
     config.instance = cluster.worker.id;
-    require('./lib/log/index.js')('Index', cluster.worker.id, 'log');
+    require('./lib/log/index.js')('Main', true, cluster.worker.id, 'log', program.F, program.D, program.V);
     require('./lib/push-server.js')(config);
 }
 

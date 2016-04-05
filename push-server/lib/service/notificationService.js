@@ -1,6 +1,6 @@
 module.exports = NotificationService;
 
-var Logger = require('../log/index.js')('NotificationService');
+var logger = require('../log/index.js')('NotificationService');
 var util = require('../util/util.js');
 var apn = require('apn');
 var apnTokenTTL = 3600 * 24 * 7;
@@ -17,7 +17,7 @@ function NotificationService(apnConfigs, redis, ttlService) {
         }
     });
 
-    Logger.info("defaultBundleId %s", this.defaultBundleId);
+    logger.info("defaultBundleId %s", this.defaultBundleId);
 }
 
 NotificationService.prototype.setApnToken = function (pushId, apnToken, bundleId) {
@@ -28,16 +28,16 @@ NotificationService.prototype.setApnToken = function (pushId, apnToken, bundleId
         try {
             var buffer = new Buffer(apnToken, 'hex');
         } catch (err) {
-            Logger.info("invalid apnToken format %s", apnToken);
+            logger.info("invalid apnToken format %s", apnToken);
             return;
         }
         var apnData = JSON.stringify({bundleId: bundleId, apnToken: apnToken});
         var outerThis = this;
         this.redis.get("apnTokenToPushId#" + apnToken, function (err, oldPushId) {
-            Logger.info("oldPushId %s", oldPushId);
+            logger.info("oldPushId %s", oldPushId);
             if (oldPushId && oldPushId != pushId) {
                 outerThis.redis.del("pushIdToApnData#" + oldPushId);
-                Logger.info("remove old pushId to apnToken %s %s", oldPushId, apnData);
+                logger.info("remove old pushId to apnToken %s %s", oldPushId, apnData);
             }
             outerThis.redis.set("apnTokenToPushId#" + apnToken, pushId);
             outerThis.redis.set("pushIdToApnData#" + pushId, apnData);
@@ -52,12 +52,12 @@ NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, not
     var outerThis = this;
     pushIds.forEach(function (pushId) {
         outerThis.redis.get("pushIdToApnData#" + pushId, function (err, reply) {
-            Logger.info("pushIdToApnData %s %s", pushId, JSON.stringify(reply));
+            logger.info("pushIdToApnData %s %s", pushId, JSON.stringify(reply));
             if (reply) {
                 var apnData = JSON.parse(reply);
                 outerThis.apnService.sendOne(apnData, notification, timeToLive);
             } else {
-                Logger.info("send notification to android %s", pushId);
+                logger.info("send notification to android %s", pushId);
                 outerThis.ttlService.addPacketAndEmit(pushId, 'noti', timeToLive, notification, io, true);
             }
         });

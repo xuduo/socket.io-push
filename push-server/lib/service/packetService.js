@@ -1,6 +1,6 @@
 module.exports = PacketService;
 
-var Logger = require('../log/index.js')('PacketService');
+var logger = require('../log/index.js')('PacketService');
 
 var randomstring = require("randomstring");
 var pathToServer = {};
@@ -21,7 +21,7 @@ function PacketService(redis, subClient) {
     this.redis = redis;
     this.stopped = false;
     subClient.on("message", function (channel, message) {
-        Logger.info("subscribe message " + channel + ": " + message)
+        logger.info("subscribe message " + channel + ": " + message)
         if (channel == "packetServer") {
             var handlerInfo = JSON.parse(message);
             updatePathServer(handlerInfo);
@@ -46,13 +46,13 @@ function updatePathServer(handlerInfo) {
                 updatedServers.push(server);
                 found = true;
             } else if (timestamp - server.timestamp > 10000) {
-                Logger.info("server is dead %s", server.serverId);
+                logger.info("server is dead %s", server.serverId);
             } else {
                 updatedServers.push(server);
             }
         }
         if (!found) {
-            Logger.info("new server is added %s", serverId);
+            logger.info("new server is added %s", serverId);
             updatedServers.push({serverId: serverId, timestamp: timestamp});
         }
         pathToServer[path] = updatedServers;
@@ -81,7 +81,7 @@ PacketService.prototype.publishPacket = function (data) {
             if (servers[idx]) {
                 var serverId = servers[idx]["serverId"];
                 this.redis.publish("packetProxy#" + serverId, strData);
-                Logger.info("publishPacket %s %s", serverId, strData);
+                logger.info("publishPacket %s %s", serverId, strData);
                 return;
             }
         }
@@ -93,13 +93,13 @@ PacketService.prototype.publishDisconnect = function (socket) {
     if (this.stopped) {
         return;
     }
-    Logger.info("publishDisconnect pushId %s", socket.pushId);
+    logger.info("publishDisconnect pushId %s", socket.pushId);
     var outerThis = this;
     this.redis.get("pushIdSocketId#" + socket.pushId, function (err, lastSocketId) {
         // reply is null when the key is missing
-        Logger.info("pushIdSocketId redis %s %s %s", socket.id, lastSocketId, socket.pushId);
+        logger.info("pushIdSocketId redis %s %s %s", socket.id, lastSocketId, socket.pushId);
         if (lastSocketId == socket.id) {
-            Logger.info("publishDisconnect current socket disconnect %s", socket.id);
+            logger.info("publishDisconnect current socket disconnect %s", socket.id);
             outerThis.redis.del("pushIdSocketId#" + socket.pushId);
             var data = {pushId: socket.pushId, path: "/socketDisconnect"};
             if (socket.uid) {
@@ -114,15 +114,15 @@ PacketService.prototype.publishConnect = function (socket) {
     if (this.stopped) {
         return;
     }
-    Logger.info("publishConnect pushId %s", socket.pushId);
+    logger.info("publishConnect pushId %s", socket.pushId);
     var outerThis = this;
     this.redis.get("pushIdSocketId#" + socket.pushId, function (err, lastSocketId) {
         // reply is null when the key is missing
-        Logger.info("publishConnect query redis %s", lastSocketId);
+        logger.info("publishConnect query redis %s", lastSocketId);
         if (lastSocketId) {
-            Logger.info("reconnect do not publish", lastSocketId);
+            logger.info("reconnect do not publish", lastSocketId);
         } else {
-            Logger.info("first connect publish", lastSocketId);
+            logger.info("first connect publish", lastSocketId);
             var data = {pushId: socket.pushId, path: "/socketConnect"};
             if (socket.uid) {
                 data.uid = socket.uid;

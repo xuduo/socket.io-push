@@ -1,6 +1,6 @@
 module.exports = ApnService;
 
-var Logger = require('../log/index.js')('ApnService');
+var logger = require('../log/index.js')('ApnService');
 
 var util = require('../util/util.js');
 var apn = require('apn');
@@ -23,18 +23,18 @@ function ApnService(apnConfigs, sliceServers, redis, stats) {
         apnConfig.errorCallback = function (errorCode, notification, device) {
             if (device && device.token) {
                 var id = device.token.toString('hex');
-                Logger.error("apn errorCallback errorCode %d %s", errorCode, id);
+                logger.error("apn errorCallback errorCode %d %s", errorCode, id);
                 stats.addApnError(1, errorCode);
                 redis.hdel("apnTokens#" + apnConfig.bundleId, id);
                 redis.get("apnTokenToPushId#" + id, function (err, oldPushId) {
-                    Logger.error("apn errorCallback pushId %s", oldPushId);
+                    logger.error("apn errorCallback pushId %s", oldPushId);
                     if (oldPushId) {
                         redis.del("pushIdToApnData#" + oldPushId);
                         redis.del("apnTokenToPushId#" + id);
                     }
                 });
             } else {
-                Logger.error("apn errorCallback no token %s %j", errorCode, device);
+                logger.error("apn errorCallback no token %s %j", errorCode, device);
             }
         }
         var connection = apn.Connection(apnConfig);
@@ -43,12 +43,12 @@ function ApnService(apnConfigs, sliceServers, redis, stats) {
         connection.on("transmitted", function () {
             stats.addApnSuccess(1);
         });
-        Logger.info("apnConnections init for %s maxConnections %s", apnConfig.bundleId, apnConfig.maxConnections);
+        logger.info("apnConnections init for %s maxConnections %s", apnConfig.bundleId, apnConfig.maxConnections);
     });
 
     this.bundleIds = Object.keys(this.apnConnections);
     this.defaultBundleId = this.bundleIds[0];
-    Logger.info("defaultBundleId %s", this.defaultBundleId);
+    logger.info("defaultBundleId %s", this.defaultBundleId);
 
 }
 
@@ -59,7 +59,7 @@ ApnService.prototype.sendOne = function (apnData, notification, timeToLive) {
         this.stats.addApnTotal(1);
         var note = toApnNotification(notification, timeToLive);
         apnConnection.pushNotification(note, apnData.apnToken);
-        Logger.info("send to notification to ios %s %s", apnData.bundleId, apnData.apnToken);
+        logger.info("send to notification to ios %s %s", apnData.bundleId, apnData.apnToken);
     }
 };
 
@@ -85,7 +85,7 @@ ApnService.prototype.sendToApn = function (tokenToTime, bundleId, note) {
                 var token = tokenToTime[i];
                 var time = tokenToTime[i + 1];
                 if (timestamp - time > apnTokenTTL * 1000) {
-                    Logger.info("delete outdated apnToken %s", token);
+                    logger.info("delete outdated apnToken %s", token);
                     this.redis.hdel("apnTokens#" + bundleId, token);
                 } else {
                     tokens.push(token.toString());
@@ -95,7 +95,7 @@ ApnService.prototype.sendToApn = function (tokenToTime, bundleId, note) {
             for (var token in tokenToTime) {
                 var time = tokenToTime[token];
                 if (timestamp - time > apnTokenTTL * 1000) {
-                    Logger.info("delete outdated apnToken %s", token);
+                    logger.info("delete outdated apnToken %s", token);
                     this.redis.hdel("apnTokens#" + bundleId, token);
                 } else {
                     tokens.push(token);
@@ -103,7 +103,7 @@ ApnService.prototype.sendToApn = function (tokenToTime, bundleId, note) {
             }
         }
         if (tokens.length > 0) {
-            Logger.info("send apn %s", tokens);
+            logger.info("send apn %s", tokens);
             apnConnection.pushNotification(note, tokens);
             this.stats.addApnTotal(tokens.length);
         }
@@ -130,7 +130,7 @@ ApnService.prototype.sendAll = function (notification, timeToLive) {
                     .set('Accept', 'application/json')
                     .end(function (err, res) {
                         if (err || res.text != '{"code":"success"}') {
-                            Logger.error("slicing error %s %s %s", pattern, apiUrl, res && res.text);
+                            logger.error("slicing error %s %s %s", pattern, apiUrl, res && res.text);
                         }
                     });
             });

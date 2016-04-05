@@ -3,7 +3,7 @@ module.exports = SimpleRedisHashCluster;
 var commands = require('redis-commands');
 var redis = require('redis');
 var util = require("../util/util.js");
-var Logger = require('../log/index.js')('SimpleRedisHashCluster');
+var logger = require('../log/index.js')('SimpleRedisHashCluster');
 
 function SimpleRedisHashCluster(config, completeCallback) {
     this.masters = [];
@@ -26,7 +26,7 @@ function SimpleRedisHashCluster(config, completeCallback) {
             connect_timeout: 10000000000000000
         });
         subClient.on("error", function (err) {
-            Logger.error("redis slave connect Error %s:%s %s", addr.host, addr.port, err);
+            logger.error("redis slave connect Error %s:%s %s", addr.host, addr.port, err);
         });
         subClient.on("message", function (channel, message) {
             outerThis.messageCallbacks.forEach(function (callback) {
@@ -46,13 +46,13 @@ function SimpleRedisHashCluster(config, completeCallback) {
             connect_timeout: 10000000000000000
         });
         readClient.on("error", function (err) {
-            Logger.error("redis slave connect Error %s:%s %s", addr.host, addr.port, err);
+            logger.error("redis slave connect Error %s:%s %s", addr.host, addr.port, err);
         });
         outerThis.readSlaves.push(readClient);
     });
 
     if (config.sentinels) {
-        Logger.log('info', 'use sentinels %j', config.sentinels)
+        logger.log('info', 'use sentinels %j', config.sentinels)
         var Sentinel = require('./sentinel.js');
         var sentinel = new Sentinel(config.sentinels, config.sentinelMasters, config.ipMap, function () {
             sentinel.masters.forEach(function (addr) {
@@ -65,24 +65,24 @@ function SimpleRedisHashCluster(config, completeCallback) {
                     connect_timeout: 10000000000000000
                 });
                 client.on("error", function (err) {
-                    Logger.error("redis master connect Error %s", err);
+                    logger.error("redis master connect Error %s", err);
                 });
                 outerThis.masters.push(client);
             });
             var defaultPubAddr = util.getByHash(sentinel.masters, "packetProxy#default");
-            Logger.log('debug', "packetProxy#default " + defaultPubAddr.host + ":" + defaultPubAddr.port);
+            logger.log('debug', "packetProxy#default " + defaultPubAddr.host + ":" + defaultPubAddr.port);
             completeCallback(outerThis);
         }, function (newMaster, i) {
             var master = outerThis.masters[i];
-            Logger.log('info', 'current master %j', master.connection_options);
+            logger.log('info', 'current master %j', master.connection_options);
             if (master.connection_options.port != newMaster.port || master.connection_options.host != newMaster.host) {
-                Logger.log('info', "switch master %j", newMaster);
+                logger.log('info', "switch master %j", newMaster);
                 master.connection_options.port = newMaster.port;
                 master.connection_options.host = newMaster.host;
             }
         });
     } else {
-        Logger.info('use masters %s', JSON.stringify(masterAddrs));
+        logger.info('use masters %s', JSON.stringify(masterAddrs));
         masterAddrs.forEach(function (addr) {
             var client = redis.createClient({
                 host: addr.host,
@@ -93,12 +93,12 @@ function SimpleRedisHashCluster(config, completeCallback) {
                 connect_timeout: 10000000000000000
             });
             client.on("error", function (err) {
-                Logger.error("redis master %s", err);
+                logger.error("redis master %s", err);
             });
             outerThis.masters.push(client);
         });
         var defaultPubAddr = util.getByHash(masterAddrs, "packetProxy#default");
-        Logger.log('debug', "packetProxy#default " + defaultPubAddr.host + ":" + defaultPubAddr.port);
+        logger.log('debug', "packetProxy#default " + defaultPubAddr.host + ":" + defaultPubAddr.port);
         completeCallback(outerThis);
     }
 }
@@ -106,7 +106,7 @@ commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         if (Array.isArray(key)) {
-            Logger.log('debug', "multiple key not supported ");
+            logger.log('debug', "multiple key not supported ");
             throw "multiple key not supported";
         }
         var client;
@@ -124,7 +124,7 @@ commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         if (Array.isArray(key)) {
-            Logger.log('debug', "multiple key not supported ");
+            logger.log('debug', "multiple key not supported ");
             throw "multiple key not supported";
         }
         var client;
@@ -142,7 +142,7 @@ commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         if (Array.isArray(key)) {
-            Logger.log('debug', "multiple key not supported ");
+            logger.log('debug', "multiple key not supported ");
             throw "multiple key not supported";
         }
         var client;
@@ -184,7 +184,7 @@ SimpleRedisHashCluster.prototype.on = function (message, callback) {
         this.messageCallbacks.push(callback);
     } else {
         var err = "on " + message + " not supported";
-        Logger.error(error);
+        logger.error(error);
         throw err;
     }
 }

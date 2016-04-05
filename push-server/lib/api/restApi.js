@@ -15,14 +15,14 @@ function RestApi(io, stats, notificationService, port, uidStore, ttlService, red
         version: '1.0.0'
     });
 
-    var Logger = require('../log/index.js')('RestApi');
+    var logger = require('../log/index.js')('RestApi');
 
     server.on('uncaughtException', function (req, res, route, err) {
         try {
-            Logger.log("error", "RestApi uncaughtException " + err.stack + " \n params: \n" + JSON.stringify(req.params));
+            logger.log("error", "RestApi uncaughtException " + err.stack + " \n params: \n" + JSON.stringify(req.params));
             res.send({code: "error", message: "exception " + err.stack});
         } catch (err) {
-            Logger.log("error", "RestApi uncaughtException catch " + err.stack);
+            logger.log("error", "RestApi uncaughtException catch " + err.stack);
         }
     });
 
@@ -67,7 +67,7 @@ function RestApi(io, stats, notificationService, port, uidStore, ttlService, red
         var pushId = req.params.pushId;
         var pushAll = req.params.pushAll;
         var uid = req.params.uid;
-        Logger.log("debug", "push %s", JSON.stringify(req.params));
+        logger.log("debug", "push %s", JSON.stringify(req.params));
         var pushData = {topic: topic, data: data};
 
         var timeToLive = parseInt(req.params.timeToLive);
@@ -134,7 +134,7 @@ function RestApi(io, stats, notificationService, port, uidStore, ttlService, red
         var pushAll = req.params.pushAll;
         var timeToLive = parseInt(req.params.timeToLive);
 
-        Logger.log("debug", "notification %s", JSON.stringify(req.params));
+        logger.log("debug", "notification %s", JSON.stringify(req.params));
 
         if (pushAll === 'true') {
             notificationService.sendAll(notification, timeToLive, io);
@@ -195,7 +195,7 @@ function RestApi(io, stats, notificationService, port, uidStore, ttlService, red
 
     var handleQueryDataKeys = function (req, res, next) {
         stats.getQueryDataKeys(function (result) {
-            Logger.log('debug', "getQueryDataKeys result: " + result)
+            logger.log('debug', "getQueryDataKeys result: " + result)
             res.send({"result": result});
         });
         return next();
@@ -340,7 +340,7 @@ function RestApi(io, stats, notificationService, port, uidStore, ttlService, red
     });
 
     server.listen(port, function () {
-        Logger.log('debug', '%s listening at %s', server.name, server.url);
+        logger.log('debug', '%s listening at %s', server.name, server.url);
     });
 
 }

@@ -1,6 +1,6 @@
 module.exports = Stats;
 
-var Logger = require('../log/index.js')('Stats');
+var logger = require('../log/index.js')('Stats');
 var randomstring = require("randomstring");
 
 function Stats(redis, port) {
@@ -16,7 +16,7 @@ function Stats(redis, port) {
     if (fs.existsSync(ipPath)) {
         ip = fs.readFileSync(ipPath, "utf8").trim() + ":" + port;
     }
-    Logger.info("ip file %s %s", ipPath, ip);
+    logger.info("ip file %s %s", ipPath, ip);
     this.id = ip || randomstring.generate(32);
     var stats = this;
     setInterval(function () {
@@ -35,7 +35,7 @@ function Stats(redis, port) {
 
 Stats.prototype.shouldDrop = function () {
     if (this.packetDropThreshold != 0 && this.packetAverage1 && this.packetAverage1 > this.packetDropThreshold) {
-        Logger.info('threshold exceeded dropping packet %d > %d', this.packetAverage1, this.packetDropThreshold);
+        logger.info('threshold exceeded dropping packet %d > %d', this.packetAverage1, this.packetDropThreshold);
         this.packetDrop++;
         return true;
     } else {
@@ -97,7 +97,7 @@ Stats.prototype.addSession = function (socket, count) {
     var stats = this;
 
     socket.on('stats', function (data) {
-        Logger.info("on stats %s", JSON.stringify(data.requestStats));
+        logger.info("on stats %s", JSON.stringify(data.requestStats));
         var timestamp = Date.now();
         var totalCount = 0;
         if (data.requestStats && data.requestStats.length) {
@@ -128,7 +128,7 @@ Stats.prototype.incr = function (key, timestamp) {
     var hourKey = hourStrip(timestamp);
     key = key + "#" + hourKey;
     this.redisIncrBuffer.incrby(key, 1);
-    Logger.info("incr %s %s", key, hourKey);
+    logger.info("incr %s %s", key, hourKey);
 };
 
 Stats.prototype.incrby = function (key, timestamp, by) {
@@ -136,17 +136,17 @@ Stats.prototype.incrby = function (key, timestamp, by) {
         var hourKey = hourStrip(timestamp);
         key = key + "#" + hourKey;
         this.redisIncrBuffer.incrby(key, by);
-        Logger.info("incrby %s %s by %d ", key, hourKey, by);
+        logger.info("incrby %s %s by %d ", key, hourKey, by);
     }
 };
 
 Stats.prototype.onNotificationReply = function (timestamp) {
     var latency = Date.now() - timestamp;
-    Logger.info('onNotificationReply %s', latency);
+    logger.info('onNotificationReply %s', latency);
     if (latency < 10000) {
         this.incr("stats#notification#successCount", timestamp);
         this.incrby("stats#notification#totalLatency", timestamp, latency);
-        Logger.info("onNotificationReply %d", latency);
+        logger.info("onNotificationReply %d", latency);
     }
 };
 
