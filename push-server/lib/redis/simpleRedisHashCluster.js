@@ -102,6 +102,7 @@ function SimpleRedisHashCluster(config, completeCallback) {
         completeCallback(outerThis);
     }
 }
+
 commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {

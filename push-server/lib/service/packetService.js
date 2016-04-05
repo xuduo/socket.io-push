@@ -114,15 +114,15 @@ PacketService.prototype.publishConnect = function (socket) {
     if (this.stopped) {
         return;
     }
-    logger.info("publishConnect pushId %s", socket.pushId);
+    logger.debug("publishConnect pushId %s", socket.pushId);
     var outerThis = this;
     this.redis.get("pushIdSocketId#" + socket.pushId, function (err, lastSocketId) {
         // reply is null when the key is missing
-        logger.info("publishConnect query redis %s", lastSocketId);
+        logger.verbose("publishConnect query redis %s", lastSocketId);
         if (lastSocketId) {
-            logger.info("reconnect do not publish", lastSocketId);
+            logger.verbose("reconnect do not publish", lastSocketId);
         } else {
-            logger.info("first connect publish", lastSocketId);
+            logger.verbose("first connect publish", lastSocketId);
             var data = {pushId: socket.pushId, path: "/socketConnect"};
             if (socket.uid) {
                 data.uid = socket.uid;
