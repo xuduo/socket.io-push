@@ -3,7 +3,9 @@ var program = require('commander');
 program
     .version('0.0.3')
     .usage('[options] <server>')
-    .option('-d --debug', 'debug output')
+    .option('-d', 'debug output')
+    .option('-f', 'foreground')
+    .option('-v', 'verbose')
     .option('-c, --count <n>', 'process count to start', parseInt)
     .parse(process.argv);
 
@@ -24,6 +26,7 @@ if (cluster.isMaster) {
     });
 } else {
     var Logger = require('./lib/log/index.js')('log' );
+    console.log("starting " + cluster.worker.id);
     config.instance = cluster.worker.id;
     require('./lib/push-server.js')(config);
 }

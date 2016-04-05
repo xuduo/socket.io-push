@@ -7,7 +7,7 @@ ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}' > ip
 
 # A POSIX variable
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
-
+ARGS="$@"
 # Initialize our own variables:
 COUNT=1
 DEBUG=0
@@ -46,7 +46,7 @@ elif [ $VERBOSE = 1 ]; then
     export DEBUG=SimpleRedisHashCluster,apn,Stats,socket.io*,ProxyServer,PacketService,NotificationService,RestApi,TTLService,Sentinel,AdminCommand,ApiThreshold,ApnService
     LOG_FILE=verbose.log
 else
-	export DEBUG=
+	unset DEBUG
 fi
 
 BASEDIR=$(dirname $0)
@@ -54,23 +54,21 @@ BASEDIR=$(dirname $0)
 node_script="$BASEDIR/node-push-server"
 
 if [ $FOREGROUND = 1 ]; then
-    $node_script "$@"
+    $node_script $ARGS
     exit
 fi
 
-for (( c=1; c<=COUNT; c++ ))
-do
-   if [ -f "pid/$c.pid" ]
+
+   if [ -f "pid/pid" ]
    then
-     kill `cat pid/$c.pid`
-     echo "killing #$c"
+     kill `cat pid/pid`
+     echo "killing node"
      while [[ ${?} == 0 ]]      # Repeat until the process has terminated.
      do
         sleep 0.1              # Wait a bit before testing.
-        ps -p `cat pid/$c.pid` >/dev/null  # Check if the process has terminated.
+        ps -p `cat pid/pid` >/dev/null  # Check if the process has terminated.
      done
-     rm pid/$c.pid
+     rm -rf pid/pid
    fi
-   echo "starting instance #$c in background"
-   nohup $node_script "$@" -i $c  >> $LOG_DIR/$c.log 2>&1 & echo $! > pid/$c.pid
-done
+   echo "starting push-server in background"
+   nohup $node_script $ARGS >> $LOG_DIR/console.log 2>&1 & echo $! > pid/pid

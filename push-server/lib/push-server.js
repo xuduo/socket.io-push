@@ -1,6 +1,9 @@
 module.exports = PushServer;
 
 function PushServer(config) {
+    if (!(this instanceof PushServer)) return new PushServer(config);
+
+    var self = this;
     console.log("config " + JSON.stringify(config));
     var instance = config.instance || 1;
     console.log("starting instance #" + instance);
@@ -39,7 +42,7 @@ function PushServer(config) {
         if (apiPort) {
             var apnService = require('./service/apnService.js')(config.apns, config.apnsSliceServers, cluster, stats);
             notificationService.apnService = apnService;
-            var restApi = require('./api/restApi.js')(io, stats, notificationService, apiPort, uidStore, ttlService, cluster, apiThreshold, apnService);
+            self.restApi = require('./api/restApi.js')(io, stats, notificationService, apiPort, uidStore, ttlService, cluster, apiThreshold, apnService);
         }
     });
 }

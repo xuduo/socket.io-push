@@ -1,16 +1,20 @@
 module.exports = RestApi;
+var restify = require('restify');
+var debug = require('debug')('RestApi');
 
-function RestApi(io, stats, notificationService, port, uidStore, ttlService, redis, apiThreshold, apnService) {
+function RestApi(io, stats, notificationService, port, uidStore, ttlService, redis, apiThreshold, apnService, apiAuth) {
 
-    var restify = require('restify');
+    if (!(this instanceof RestApi)) return new RestApi(io, stats, notificationService, port, uidStore, ttlService, redis, apiThreshold, apnService, apiAuth);
+
+    var self = this;
+
+    this.apiAuth = apiAuth;
 
     var server = restify.createServer({
         name: 'myapp',
         version: '1.0.0'
     });
 
-
-    var debug = require('debug')('RestApi');
 
     server.on('uncaughtException', function (req, res, route, err) {
         try {
@@ -45,6 +49,10 @@ function RestApi(io, stats, notificationService, port, uidStore, ttlService, red
     server.get("/", staticConfig);
 
     var handlePush = function (req, res, next) {
+        if (self.apiAuth && !self.apiAuth("/api/push", req)) {
+            res.send({code: "error", message: 'not authorized'});
+            return next();
+        }
         var topic = req.params.topic;
         if (!topic) {
             res.send({code: "error", message: 'topic is required'});
@@ -71,7 +79,6 @@ function RestApi(io, stats, notificationService, port, uidStore, ttlService, red
                 } else {
                     res.send({code: "error", message: "call threshold exceeded"});
                 }
-
             });
             return next();
         } else {
