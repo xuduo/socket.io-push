@@ -8,10 +8,10 @@ var Logger = function Logger(index, dir) {
     var dir =  'log';
     var workerId =  1;
     var foreground, debugLevel, verboseLevel;
-    this.getLogger = function (tag, isInit, index, logDir, f, d, v) {
+    this.getLogger = function (tag, args) {
         var fileTag = tag;
-        if(isInit) {
-            setArgs(index, logDir, f, d, v);
+        if(args) {
+            setArgs(args);
             return;
         }
         var opts = {
@@ -63,19 +63,20 @@ var Logger = function Logger(index, dir) {
         return logger;
     };
 
-    var setArgs = function (index, logDir, f, d, v) {
-        if (index) {
-            workerId = index;
+    var setArgs = function (args) {
+        if (args.workId) {
+            workerId = args.workId;
         }
-        if (logDir) {
-            dir = logDir;
-            if (!fs.existsSync(dir)) {
-                fs.mkdirSync(dir);
-            }
+        if (args.dir) {
+            dir = args.dir;
         }
-        foreground = f;
-        debugLevel = d;
-        verboseLevel = v;
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir);
+        }
+
+        foreground = args.foreground;
+        debugLevel = args.debug;
+        verboseLevel = args.verbose;
     }
 }
 
