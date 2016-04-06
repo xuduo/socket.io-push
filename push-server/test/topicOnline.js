@@ -1,6 +1,5 @@
 var config = require('../config.js');
 
-var pushService = require('../lib/push-server.js')(config);
 var redis = require('redis').createClient({
     host: '127.0.0.1',
     port: 6379,
@@ -21,12 +20,16 @@ describe('api topicOnline', function () {
 
     it('Test topicOnline', function (done) {
         topicOnline.writeTopicOnline(data);
+
         setTimeout(function(){
             topicOnline.getTopicOnline('testTopic1', function(result){
                 expect(result).to.be.equal(2);
-                done();
+                topicOnline.getTopicOnline('xxxx', function(result){
+                    expect(result).to.be.equal(0);
+                    done();
+                });
             });
-        }, 3000);
+        }, 500);
 
     });
 });
