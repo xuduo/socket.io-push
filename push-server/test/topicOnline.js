@@ -1,13 +1,6 @@
 var config = require('../config.js');
 
-var redis = require('redis').createClient({
-    host: '127.0.0.1',
-    port: 6379,
-    return_buffers: true,
-    retry_max_delay: 3000,
-    max_attempts: 0,
-    connect_timeout: 10000000000000000
-});
+var redis = require('redis').createClient();
 var io = require('socket.io');
 var topicOnline = require('../lib/stats/topicOnline.js')(redis, io, 'Ys7Gh2NwDY9Dqti92ZwxJh8ymQL4mmZ2 ');
 
