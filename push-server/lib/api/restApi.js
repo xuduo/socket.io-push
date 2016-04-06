@@ -2,9 +2,9 @@ module.exports = RestApi;
 var restify = require('restify');
 var debug = require('debug')('RestApi');
 
-function RestApi(io, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth) {
+function RestApi(io, topicOnline, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth) {
 
-    if (!(this instanceof RestApi)) return new RestApi(io, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth);
+    if (!(this instanceof RestApi)) return new RestApi(io, topicOnline, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth);
 
     var self = this;
 
@@ -178,17 +178,12 @@ function RestApi(io, stats, notificationService, port, ttlService, redis, apiThr
 
     server.get('/api/topicOnline', function (req, res, next) {
         var topic = req.params.topic;
-        var key = "stats#topicOnline#" + topic;
-        redis.del(key, function () {
-            redis.publish("adminCommand", JSON.stringify({command: "topicOnline", topic: topic}));
-            setTimeout(function () {
-                redis.get(key, function (err, result) {
-                    result = result || "0";
-                    res.send({topic: topic, online: result.toString()});
-                });
-            }, 3000);
+        if(!topic){
+            res.send({code:'error', message: 'topic is required'});
+        }
+        topicOnline.getTopicOnline(topic, function(result){
+            res.send({count:result});
         });
-        return next();
     });
 
     server.get('/api/testApnAll', function (req, res, next) {

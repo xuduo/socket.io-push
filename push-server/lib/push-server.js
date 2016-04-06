@@ -37,11 +37,11 @@ function PushServer(config) {
         var apiThreshold = new ApiThreshold(cluster);
         var AdminCommand = require('./server/adminCommand.js');
         var adminCommand = new AdminCommand(cluster, stats, packetService, proxyServer, apiThreshold);
-
+        var topicOnline = require('./stats/topicOnline.js')(cluster, io, stats.id);
         if (apiPort) {
             var apnService = require('./service/apnService.js')(config.apns, config.apnsSliceServers, cluster, stats);
             notificationService.apnService = apnService;
-            self.restApi = require('./api/restApi.js')(io, stats, notificationService, apiPort, ttlService, cluster, apiThreshold, apnService);
+            self.restApi = require('./api/restApi.js')(io, topicOnline, stats, notificationService, apiPort, ttlService, cluster, apiThreshold, apnService);
         }
     });
 }
