@@ -52,7 +52,7 @@ function SimpleRedisHashCluster(config, completeCallback) {
     });
 
     if (config.sentinels) {
-        logger.log('info', 'use sentinels %j', config.sentinels)
+        logger.info('use sentinels %j', config.sentinels)
         var Sentinel = require('./sentinel.js');
         var sentinel = new Sentinel(config.sentinels, config.sentinelMasters, config.ipMap, function () {
             sentinel.masters.forEach(function (addr) {
@@ -70,13 +70,13 @@ function SimpleRedisHashCluster(config, completeCallback) {
                 outerThis.masters.push(client);
             });
             var defaultPubAddr = util.getByHash(sentinel.masters, "packetProxy#default");
-            logger.log('debug', "packetProxy#default " + defaultPubAddr.host + ":" + defaultPubAddr.port);
+            logger.debug("packetProxy#default " + defaultPubAddr.host + ":" + defaultPubAddr.port);
             completeCallback(outerThis);
         }, function (newMaster, i) {
             var master = outerThis.masters[i];
-            logger.log('info', 'current master %j', master.connection_options);
+            logger.info('current master %j', master.connection_options);
             if (master.connection_options.port != newMaster.port || master.connection_options.host != newMaster.host) {
-                logger.log('info', "switch master %j", newMaster);
+                logger.info("switch master %j", newMaster);
                 master.connection_options.port = newMaster.port;
                 master.connection_options.host = newMaster.host;
             }
@@ -98,7 +98,7 @@ function SimpleRedisHashCluster(config, completeCallback) {
             outerThis.masters.push(client);
         });
         var defaultPubAddr = util.getByHash(masterAddrs, "packetProxy#default");
-        logger.log('debug', "packetProxy#default " + defaultPubAddr.host + ":" + defaultPubAddr.port);
+        logger.info("packetProxy#default " + defaultPubAddr.host + ":" + defaultPubAddr.port);
         completeCallback(outerThis);
     }
 }

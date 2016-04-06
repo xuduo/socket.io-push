@@ -19,15 +19,15 @@ String.prototype.hashCode = function () {
 function PacketService(redis, subClient) {
     if (!(this instanceof PacketService)) return new PacketService(redis, subClient);
     this.redis = redis;
-    this.stopped = false;
-    subClient.on("message", function (channel, message) {
-        logger.info("subscribe message " + channel + ": " + message)
-        if (channel == "packetServer") {
-            var handlerInfo = JSON.parse(message);
-            updatePathServer(handlerInfo);
-        }
-    });
-    subClient.subscribe("packetServer");
+    this.stopped = true;
+    //subClient.on("message", function (channel, message) {
+    //    logger.info("subscribe message " + channel + ": " + message)
+    //    if (channel == "packetServer") {
+    //        var handlerInfo = JSON.parse(message);
+    //        updatePathServer(handlerInfo);
+    //    }
+    //});
+    //subClient.subscribe("packetServer");
 }
 
 function updatePathServer(handlerInfo) {

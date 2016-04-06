@@ -1,6 +1,7 @@
 module.exports = RestApi;
 var restify = require('restify');
 var debug = require('debug')('RestApi');
+var logger = require('../log/index.js')('RestApi');
 
 function RestApi(io, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth) {
 
@@ -14,8 +15,6 @@ function RestApi(io, stats, notificationService, port, ttlService, redis, apiThr
         name: 'myapp',
         version: '1.0.0'
     });
-
-    var logger = require('../log/index.js')('RestApi');
 
     server.on('uncaughtException', function (req, res, route, err) {
         try {
@@ -49,6 +48,7 @@ function RestApi(io, stats, notificationService, port, ttlService, redis, apiThr
 
     var handlePush = function (req, res, next) {
         if (self.apiAuth && !self.apiAuth("/api/push", req)) {
+            logger.error("push denied %j %j", req.params, req.headers, {});
             res.send({code: "error", message: 'not authorized'});
             return next();
         }
@@ -64,8 +64,7 @@ function RestApi(io, stats, notificationService, port, ttlService, redis, apiThr
         }
         var pushId = req.params.pushId;
         var pushAll = req.params.pushAll;
-        var uid = req.params.uid;
-        logger.log("debug", "push %s", JSON.stringify(req.params));
+        logger.info("push %j", req.params, {});
         var pushData = {topic: topic, data: data};
 
         var timeToLive = parseInt(req.params.timeToLive);
@@ -100,8 +99,12 @@ function RestApi(io, stats, notificationService, port, ttlService, redis, apiThr
         }
     };
 
-
     var handleNotification = function (req, res, next) {
+        if (self.apiAuth && !self.apiAuth("/api/notification", req)) {
+            logger.error("notification denied %j %j", req.params, req.headers);
+            res.send({code: "error", message: 'not authorized'});
+            return next();
+        }
         var notification = JSON.parse(req.params.notification);
         if (!notification) {
             res.send({code: "error", message: 'notification is required'});
@@ -109,11 +112,10 @@ function RestApi(io, stats, notificationService, port, ttlService, redis, apiThr
         }
 
         var pushId = req.params.pushId;
-        var uid = req.params.uid;
         var pushAll = req.params.pushAll;
         var timeToLive = parseInt(req.params.timeToLive);
 
-        logger.log("debug", "notification %s", JSON.stringify(req.params));
+        logger.info("notification % j", req.params);
 
         if (pushAll === 'true') {
             notificationService.sendAll(notification, timeToLive, io);
@@ -154,7 +156,7 @@ function RestApi(io, stats, notificationService, port, ttlService, redis, apiThr
 
     var handleQueryDataKeys = function (req, res, next) {
         stats.getQueryDataKeys(function (result) {
-            logger.log('debug', "getQueryDataKeys result: " + result)
+            logger.debug("getQueryDataKeys result: " + result)
             res.send({"result": result});
         });
         return next();
@@ -297,7 +299,7 @@ function RestApi(io, stats, notificationService, port, ttlService, redis, apiThr
     });
 
     server.listen(port, function () {
-        logger.log('debug', '%s listening at %s', server.name, server.url);
+        logger.debug('%s listening at %s', server.name, server.url);
     });
 
 }
