@@ -1,90 +1,86 @@
-var loggerSingleton;
-
 var winston = require('winston-levelonly');
 var fs = require('fs');
 
-var Logger = function Logger(index, dir) {
-    console.log("new singleton");
-    var dir =  'log';
-    var workerId =  1;
-    var foreground, debugLevel, verboseLevel;
-    this.getLogger = function (tag, args) {
-        var fileTag = tag;
-        if(args) {
-            setArgs(args);
-            return;
-        }
-        var opts = {
-            name: 'error',
-            json: false,
-            level: 'error',
-            datePattern: 'yyyy-MM-dd_error.log',
-            filename: dir + "/" + "log",
-            timestamp: function () {
-                return new Date().toLocaleString();
-            },
-            formatter: function (options) {
-                return options.timestamp() + " " + options.level.toUpperCase() + ' ' + ' ' + 'instance:' + workerId + ' '
-                    + fileTag + ' ' + (undefined !== options.message ? options.message : '');
-            }
-        };
-        var logger = new (winston.Logger)({
-            transports: []
-        });
+var dir = 'log';
+var workerId = 1;
+var foreground, debugLevel, verboseLevel, infoLevel, count;
 
-        logger.add(winston.transports.DailyRotateFile, opts);
-
-        opts.name = 'info';
-        opts.level = 'info';
-        opts.filename = dir + "/" + "log";
-        opts.datePattern = 'yyyy-MM-dd_info.log';
-        logger.add(winston.transports.DailyRotateFile, opts);
-
-        var consoleOpts = {
-            level: 'info',
-            levelOnly: false,//if true, will only log the specified level, if false will log from the specified level and above
-            timestamp: function () {
-                return new Date().toLocaleString();
-            },
-            formatter: function (options) {
-                return options.timestamp() + " " + options.level.toUpperCase() + ' ' + ' ' + 'instance:' + workerId + ' '
-                    + fileTag + ' ' + (undefined !== options.message ? options.message : '');
-            }
-        };
-
-        if(foreground){
-            if(debugLevel){
-                consoleOpts.level = 'debug';
-            }else if(verboseLevel){
-                consoleOpts.level = 'verbose';
-            }
-            logger.add(winston.transports.Console, consoleOpts);
-        }
-        return logger;
-    };
-
-    var setArgs = function (args) {
-        if (args.workId) {
-            workerId = args.workId;
-        }
-        if (args.dir) {
-            dir = args.dir;
-        }
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir);
-        }
-
-        foreground = args.foreground;
-        debugLevel = args.debug;
-        verboseLevel = args.verbose;
+function setArgs (args) {
+    if (args.workId) {
+        workerId = args.workId;
     }
+    if (args.dir) {
+        dir = args.dir;
+    }
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+    }
+    foreground = args.foreground;
+    debugLevel = args.debug;
+    verboseLevel = args.verbose;
+    infoLevel = args.info;
+    count = args.count;
 }
 
-Logger.getInstance = function () {
-    if (!loggerSingleton) {
-        loggerSingleton = new Logger();
+function formatWorkId(workId){
+    if(count >= 10){
+        if(workId < 10){
+            workId = '0' + workId;
+        }
     }
-    return loggerSingleton;
+    return workId;
+}
+
+var Logger = function Logger(tag, args) {
+    if (args) {
+        setArgs(args);
+        return;
+    }
+
+    var fileTag = tag;
+    var opts = {
+        name: 'error',
+        json: false,
+        level: 'error',
+        datePattern: 'yyyy-MM-dd_error.log',
+        filename: dir + "/" + "log",
+        timestamp: function () {
+            return new Date().toLocaleString();
+        },
+        formatter: function (options) {
+            return options.timestamp() + " " + 'work:' + formatWorkId(workerId) + ' ' + options.level.substring(0,1).toUpperCase()  + '/'
+                + fileTag + ' ' + (undefined !== options.message ? options.message : '');
+        }
+    };
+    var logger = new (winston.Logger)({
+        transports: []
+    });
+
+    logger.add(winston.transports.DailyRotateFile, opts);
+
+    opts.name = 'info';
+    opts.level = 'info';
+    opts.filename = dir + "/" + "log";
+    opts.datePattern = 'yyyy-MM-dd_info.log';
+    logger.add(winston.transports.DailyRotateFile, opts);
+
+    opts.name = 'console';
+    opts.level = 'debug';
+    opts.levelOnly = false;
+    delete opts.filename;
+    delete opts.datePattern;
+
+    if (foreground) {
+        if (debugLevel) {
+            opts.level = 'debug';
+        } else if (verboseLevel) {
+            opts.level = 'verbose';
+        } else if(infoLevel) {
+            opts.level = 'info';
+        }
+        logger.add(winston.transports.Console, opts);
+    }
+    return logger;
 };
 
-module.exports = Logger.getInstance().getLogger;
+module.exports = Logger;

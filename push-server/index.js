@@ -30,7 +30,8 @@ if (cluster.isMaster) {
         foreground:program.F,
         debug:program.D,
         info:program.I,
-        verbose:program.V
+        verbose:program.V,
+        count:program.count
     }
     require('./lib/log/index.js')('Main', args);
     require('./lib/push-server.js')(config);
