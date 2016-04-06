@@ -18,7 +18,7 @@ function Sentinel(sentinelAddrs, masterNames, ipMap, completeCallback, masterCha
             connect_timeout: 10000000000000000
         });
         client.on("error", function (err) {
-            logger.log('error', "sentinel connect Error %s:%s %s", addr.host, addr.port, err);
+            logger.error("sentinel connect Error %s:%s %s", addr.host, addr.port, err);
         });
 
         masterNames.forEach(function (masterName, i) {
@@ -27,7 +27,7 @@ function Sentinel(sentinelAddrs, masterNames, ipMap, completeCallback, masterCha
             };
             client.send_command("SENTINEL", ['get-master-addr-by-name', masterName], function (err, replies) {
                 if (replies && outerThis.completeCallback) {
-                    logger.log('info', "get-master-addr-by-name %s %j", masterName, replies);
+                    logger.info("get-master-addr-by-name %s %j", masterName, replies);
                     var allQueried = true;
                     masters.forEach(function (master) {
                         if (master.name == masterName) {
@@ -38,7 +38,7 @@ function Sentinel(sentinelAddrs, masterNames, ipMap, completeCallback, masterCha
                         }
                     });
                     if (allQueried) {
-                        logger.log('info', "masters all queried %j", masters);
+                        logger.info("masters all queried %j", masters);
                         outerThis.completeCallback();
                         outerThis.completeCallback = null;
                     }
@@ -55,7 +55,7 @@ function Sentinel(sentinelAddrs, masterNames, ipMap, completeCallback, masterCha
             connect_timeout: 10000000000000000
         });
         subClient.on("error", function (err) {
-            logger.log('error', "sentinel subscribe Error %s:%s %s", addr.host, addr.port, err);
+            logger.error("sentinel subscribe Error %s:%s %s", addr.host, addr.port, err);
         });
 
         subClient.on("message", function (channel, message) {
@@ -64,12 +64,12 @@ function Sentinel(sentinelAddrs, masterNames, ipMap, completeCallback, masterCha
                 var name = lines[0];
                 var host = lines[3].toString();
                 var port = parseInt(lines[4].toString());
-                logger.log('info', "+switch-master %j %j \n", lines, masters, name, host, port);
+                logger.info("+switch-master %j %j \n", lines, masters, name, host, port);
                 masters.forEach(function (master, i) {
                     if (master && master.name == name) {
                         master.host = getIp(host);
                         master.port = port;
-                        logger.log('info', "switch master callback %j", master);
+                        logger.info("switch master callback %j", master);
                         masterChangeCallback(master, i);
                         return;
                     }
@@ -82,7 +82,7 @@ function Sentinel(sentinelAddrs, masterNames, ipMap, completeCallback, masterCha
 
     function getIp(fromSentinel) {
         if (ipMap && ipMap[fromSentinel]) {
-            logger.log('info', 'getIp %s -> %s', fromSentinel, ipMap[fromSentinel]);
+            logger.info('getIp %s -> %s', fromSentinel, ipMap[fromSentinel]);
             return ipMap[fromSentinel];
         } else {
             return fromSentinel;

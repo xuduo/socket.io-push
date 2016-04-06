@@ -101,7 +101,10 @@ function adapter(uri, opts, stats) {
         var args = msgpack.decode(msg);
         var packet;
 
-        if (uid == args.shift()) return logger.log("info", 'ignore same uid');
+        if (uid == args.shift()) {
+            logger.verbose('ignore same uid');
+            return ;
+        }
 
         packet = args[0];
 
@@ -110,7 +113,8 @@ function adapter(uri, opts, stats) {
         }
 
         if (!packet || packet.nsp != this.nsp.name) {
-            return logger.log("info", 'ignore different namespace');
+            logger.verbose('ignore different namespace');
+            return;
         }
 
         args.push(true);

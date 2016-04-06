@@ -18,10 +18,10 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
 
     server.on('uncaughtException', function (req, res, route, err) {
         try {
-            logger.log("error", "RestApi uncaughtException " + err.stack + " \n params: \n" + JSON.stringify(req.params));
+            logger.error("RestApi uncaughtException " + err.stack + " \n params: \n" + JSON.stringify(req.params));
             res.send({code: "error", message: "exception " + err.stack});
         } catch (err) {
-            logger.log("error", "RestApi uncaughtException catch " + err.stack);
+            logger.error("RestApi uncaughtException catch " + err.stack);
         }
     });
 

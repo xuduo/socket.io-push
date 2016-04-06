@@ -6,9 +6,9 @@ function AdminCommand(redis, stats, packetSevice, proxyServer, apiThrehold) {
     redis.on("message", function (channel, message) {
         if (channel == "adminCommand") {
             var command = JSON.parse(message);
-            logger.log('debug', 'adminCommand %j', command);
+            logger.debug( 'adminCommand %j', command);
             if (command.command == 'packetDropThreshold') {
-                logger.log('debug', 'setting packetDropThreshold %d', stats.packetDropThreshold);
+                logger.debug( 'setting packetDropThreshold %d', stats.packetDropThreshold);
                 stats.packetDropThreshold = command.packetDropThreshold;
             } else if (command.command == 'stopPacketService') {
                 packetSevice.stopped = true;

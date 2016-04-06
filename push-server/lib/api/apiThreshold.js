@@ -13,7 +13,7 @@ ApiThreshold.prototype.checkPushDrop = function (topic, callback) {
         var redis = this.redis;
         redis.lindex("apiThreshold#callTimestamp#" + topic, -1, function (err, result) {
             if (result && result > (Date.now() - 10 * 1000)) {
-                logger.log("info", "too many call dropping %s", topic);
+                logger.info("too many call dropping %s", topic);
                 call = false;
             }
             doPush(redis, topic, call, threshold, callback);
@@ -26,7 +26,7 @@ ApiThreshold.prototype.checkPushDrop = function (topic, callback) {
 ApiThreshold.prototype.setThreshold = function (topic, threshold) {
     if (threshold == 0) {
         delete this.watchedTopics[topic];
-        logger.log("info", "remove ApiThreshold %s %s", topic, threshold);
+        logger.info("remove ApiThreshold %s %s", topic, threshold);
     } else {
         var fakeValues = [];
         var fakeTime = Date.now() - 20 * 1000;
@@ -37,14 +37,13 @@ ApiThreshold.prototype.setThreshold = function (topic, threshold) {
         this.redis.lpush(key, fakeValues);
         this.redis.ltrim(key, 0, threshold - 1);
         this.watchedTopics[topic] = threshold;
-        logger.log("info", "set ApiThreshold %s %s", topic, threshold);
+        logger.info("set ApiThreshold %s %s", topic, threshold);
     }
 }
 
 
 function doPush(redis, topic, call, threshold, callback) {
     if (call && threshold) {
-        logger.log("info", 7);
         var key = "apiThreshold#callTimestamp#" + topic;
         redis.lpush(key, Date.now());
         redis.ltrim(key, 0, threshold - 1);

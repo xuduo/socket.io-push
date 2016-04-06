@@ -13,7 +13,7 @@ function ProxyServer(io, stats, packetService, notificationService, ttlService) 
             stats.removeSession();
             stats.removePlatformSession(socket.platform);
             if (socket.pushId) {
-                logger.log('debug', "publishDisconnect %s", socket.pushId);
+                logger.debug( "publishDisconnect %s", socket.pushId);
                 packetService.publishDisconnect(socket);
             }
         });
@@ -29,7 +29,7 @@ function ProxyServer(io, stats, packetService, notificationService, ttlService) 
 
         socket.on('pushId', function (data) {
             if (data.id && data.id.length >= 10) {
-                logger.log('debug', "on pushId %j", data);
+                logger.debug( "on pushId %j", data);
                 if (data.platform) {
                     socket.platform = data.platform.toLowerCase();
                 }
@@ -58,7 +58,7 @@ function ProxyServer(io, stats, packetService, notificationService, ttlService) 
                 packetService.publishConnect(socket);
                 socket.join(data.id);
                 socket.emit('pushId', reply);
-                logger.log('debug', 'join room socket.id %s ,pushId %s', socket.id, socket.pushId);
+                logger.debug( 'join room socket.id %s ,pushId %s', socket.id, socket.pushId);
                 ttlService.onPushId(socket);
             }
         });
@@ -71,13 +71,13 @@ function ProxyServer(io, stats, packetService, notificationService, ttlService) 
 
 
         socket.on('unsubscribeTopic', function (data) {
-            logger.log('debug', "on unsubscribeTopic %j", data);
+            logger.debug( "on unsubscribeTopic %j", data);
             var topic = data.topic;
             socket.leave(topic);
         });
 
         socket.on('apnToken', function (data) {
-            logger.log('debug', "on apnToken %j", data);
+            logger.debug( "on apnToken %j", data);
             var pushId = data.pushId;
             var apnToken = data.apnToken;
             notificationService.setApnToken(pushId, apnToken, data.bundleId);
@@ -98,6 +98,6 @@ function ProxyServer(io, stats, packetService, notificationService, ttlService) 
 
 ProxyServer.prototype.getTopicOnline = function (topic) {
     var online = this.io.nsps['/'].adapter.rooms[topic].length;
-    logger.log('debug', "on topic online %s %d", topic, online);
+    logger.debug( "on topic online %s %d", topic, online);
     return online;
 }

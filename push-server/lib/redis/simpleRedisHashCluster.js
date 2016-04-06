@@ -107,7 +107,7 @@ commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         if (Array.isArray(key)) {
-            logger.log('debug', "multiple key not supported ");
+            logger.debug( "multiple key not supported ");
             throw "multiple key not supported";
         }
         var client;
@@ -125,7 +125,7 @@ commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         if (Array.isArray(key)) {
-            logger.log('debug', "multiple key not supported ");
+            logger.debug( "multiple key not supported ");
             throw "multiple key not supported";
         }
         var client;
@@ -143,7 +143,7 @@ commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         if (Array.isArray(key)) {
-            logger.log('debug', "multiple key not supported ");
+            logger.debug( "multiple key not supported ");
             throw "multiple key not supported";
         }
         var client;
