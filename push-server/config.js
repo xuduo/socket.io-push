@@ -3,6 +3,8 @@ var config = {};
 config.pingTimeout = 25000;
 config.pingInterval = 25000;
 
+config.topicOnlineFilter = ['topic:','message']
+
 config.apns = [
     {
         production: false,

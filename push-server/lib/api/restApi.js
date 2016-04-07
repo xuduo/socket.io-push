@@ -2,8 +2,9 @@ module.exports = RestApi;
 var restify = require('restify');
 var debug = require('debug')('RestApi');
 var logger = require('../log/index.js')('RestApi');
+var util = require('../util/util.js');
 
-function RestApi(io, topicOnline, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth) {
+function RestApi(io, topicOnline,  stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth) {
 
     if (!(this instanceof RestApi)) return new RestApi(io, topicOnline, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth);
 
@@ -188,6 +189,10 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
     server.get('api/state/getQueryDataKeys', handleQueryDataKeys)
 
     server.get('/api/topicOnline', function (req, res, next) {
+        if(!topicOnline){
+            res.send({code:'error', message: 'filter is null'});
+            return next();
+        }
         var topic = req.params.topic;
         if (!topic) {
             res.send({code: 'error', message: 'topic is required'});
@@ -195,6 +200,7 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
         topicOnline.getTopicOnline(topic, function (result) {
             res.send({count: result});
         });
+
     });
 
     server.get('/api/testApnAll', function (req, res, next) {

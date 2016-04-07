@@ -1,20 +1,21 @@
 module.exports = topicOnline;
 
 var logger = require('../log/index.js')('topicOnline');
-
+var util = require("../util/util.js");
 var dataDisable = 10000;
 
-function topicOnline(redis, io, id) {
-    if (!(this instanceof topicOnline)) return new topicOnline(redis, io, id);
+function topicOnline(redis, io, id, filterTopics) {
+    if (!(this instanceof topicOnline)) return new topicOnline(redis, io, id, filterTopics);
     this.redis = redis;
     this.io = io;
     this.id = id;
+    this.filters = filterTopics;
     this.interval = 20000;
     var self = this;
     setInterval(function () {
         var result = self.io.nsps['/'].adapter.rooms;
         Object.keys(result).forEach(function(key) {
-            if(result[key].length > 0) {
+            if(result[key].length > 0 && util.filterTopic(key, self.filters)) {
                 var json = {length: result[key].length, time: Date.now()};
                 self.redis.hset("stats#topicOnline#" + key, self.id, JSON.stringify(json));
             }
@@ -25,7 +26,7 @@ function topicOnline(redis, io, id) {
 topicOnline.prototype.writeTopicOnline = function(data){
     var self = this;
     Object.keys(data).forEach(function(key) {
-        if(data[key].length > 0) {
+        if(data[key].length > 0 && util.filterTopic(key, self.filters)) {
             var json = {length: data[key].length, time: Date.now()};
             self.redis.hset("stats#topicOnline#" + key, self.id, JSON.stringify(json));
         }
