@@ -2,7 +2,7 @@ module.exports = PushServer;
 
 function PushServer(config) {
     if (!(this instanceof PushServer)) return new PushServer(config);
-
+    require('./log/index.js')({});
     var self = this;
     console.log("config " + JSON.stringify(config));
     var instance = config.instance || 1;

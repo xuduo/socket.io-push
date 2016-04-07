@@ -89,12 +89,12 @@ var meta = {};
 
 });
 
-var Logger = function Logger(tag, args) {
-    if (args) {
-        setArgs(args);
-        return;
+var Logger = function Logger(tag) {
+    if((typeof tag) == 'string'){
+        return new LogProxy(logger, tag);
+    } else {
+        setArgs(tag);
     }
-    return new LogProxy(logger, tag);
 };
 
 module.exports = Logger;

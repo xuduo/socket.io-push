@@ -22,7 +22,7 @@ describe('api topicOnline', function () {
                     done();
                 });
             });
-        }, 500);
+        }, 1000);
 
     });
 });
