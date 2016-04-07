@@ -3,7 +3,7 @@ var restify = require('restify');
 var debug = require('debug')('RestApi');
 var logger = require('../log/index.js')('RestApi');
 
-function RestApi(io, topicOnline,  stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth) {
+function RestApi(io, topicOnline, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth) {
 
     if (!(this instanceof RestApi)) return new RestApi(io, topicOnline, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth);
 
@@ -188,21 +188,21 @@ function RestApi(io, topicOnline,  stats, notificationService, port, ttlService,
     server.get('api/state/getQueryDataKeys', handleQueryDataKeys)
 
     server.get('/api/topicOnline', function (req, res, next) {
-        if(!topicOnline){
+        if (!topicOnline) {
             res.statusCode = 400;
-            res.send({code:'error', message: 'topicOnline not configured'});
+            res.send({code: 'error', message: 'topicOnline not configured'});
             return next();
         }
         var topic = req.params.topic;
-        if(!topic){
+        if (!topic) {
             res.statusCode = 400;
-            res.send({code:'error', message: 'topic is required'})
+            res.send({code: 'error', message: 'topic is required'})
             return next();
         }
         topicOnline.getTopicOnline(topic, function (result) {
-            res.send({count: result});
+            res.send({count: result, topic: req.params.topic});
         });
-
+        return next();
     });
 
     server.get('/api/testApnAll', function (req, res, next) {

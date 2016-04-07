@@ -3,12 +3,12 @@ module.exports = topicOnline;
 var logger = require('../log/index.js')('topicOnline');
 var dataDisable = 10000;
 
-function filterTopic(topic, filterArray){
-    if(!filterArray || !topic){
+function filterTopic(topic, filterArray) {
+    if (!filterArray || !topic) {
         return false;
     }
-    for(var i =0; i< filterArray.length; i++){
-        if(topic.startsWith(filterArray[i])){
+    for (var i = 0; i < filterArray.length; i++) {
+        if (topic.startsWith(filterArray[i])) {
             return true;
         }
     }
@@ -25,40 +25,41 @@ function topicOnline(redis, io, id, filterTopics) {
     var self = this;
     setInterval(function () {
         var result = self.io.nsps['/'].adapter.rooms;
-        Object.keys(result).forEach(function(key) {
-            if(result[key].length > 0 && filterTopic(key, self.filters)) {
+        Object.keys(result).forEach(function (key) {
+            if (result[key].length > 0 && filterTopic(key, self.filters)) {
                 var json = {length: result[key].length, time: Date.now()};
+                logger.debug("writing topicOnline %s %j", key, json);
                 self.redis.hset("stats#topicOnline#" + key, self.id, JSON.stringify(json));
             }
         });
-    },  this.interval);
+    }, this.interval);
 }
 
-topicOnline.prototype.writeTopicOnline = function(data){
+topicOnline.prototype.writeTopicOnline = function (data) {
     var self = this;
-    Object.keys(data).forEach(function(key) {
-        if(data[key].length > 0 && filterTopic(key, self.filters)) {
+    Object.keys(data).forEach(function (key) {
+        if (data[key].length > 0 && filterTopic(key, self.filters)) {
             var json = {length: data[key].length, time: Date.now()};
             self.redis.hset("stats#topicOnline#" + key, self.id, JSON.stringify(json));
         }
     });
 }
 
-topicOnline.prototype.getTopicOnline = function(topic, callback){
+topicOnline.prototype.getTopicOnline = function (topic, callback) {
     var count = 0;
     var self = this;
     this.redis.hgetall("stats#topicOnline#" + topic, function (err, result) {
-        if(result) {
-            var delKey =[];
+        if (result) {
+            var delKey = [];
             Object.keys(result).forEach(function (key) {
                 var data = JSON.parse(result[key]);
-                if((data.time + dataDisable) < Date.now()){
+                if ((data.time + dataDisable) < Date.now()) {
                     delKey.push(key);
-                }else{
+                } else {
                     count = count + data.length;
                 }
             });
-            if(delKey.length > 0){
+            if (delKey.length > 0) {
                 self.redis.hdel("stats#topicOnline#" + topic, delKey);
             }
         }
