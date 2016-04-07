@@ -1,7 +1,6 @@
 module.exports = topicOnline;
 
 var logger = require('../log/index.js')('topicOnline');
-var dataDisable = 10000;
 
 function filterTopic(topic, filterArray) {
     if (!filterArray || !topic) {
@@ -21,28 +20,29 @@ function topicOnline(redis, io, id, filterTopics) {
     this.io = io;
     this.id = id;
     this.filters = filterTopics;
-    this.interval = 20000;
+    this.interval = 10000;
+    this.timeValidWithIn = 20000;
     var self = this;
     setInterval(function () {
         var result = self.io.nsps['/'].adapter.rooms;
-        Object.keys(result).forEach(function (key) {
+        for(key in result) {
             if (result[key].length > 0 && filterTopic(key, self.filters)) {
                 var json = {length: result[key].length, time: Date.now()};
                 logger.debug("writing topicOnline %s %j", key, json);
                 self.redis.hset("stats#topicOnline#" + key, self.id, JSON.stringify(json));
             }
-        });
+        };
     }, this.interval);
 }
 
 topicOnline.prototype.writeTopicOnline = function (data) {
     var self = this;
-    Object.keys(data).forEach(function (key) {
+    for(key in data) {
         if (data[key].length > 0 && filterTopic(key, self.filters)) {
             var json = {length: data[key].length, time: Date.now()};
             self.redis.hset("stats#topicOnline#" + key, self.id, JSON.stringify(json));
         }
-    });
+    };
 }
 
 topicOnline.prototype.getTopicOnline = function (topic, callback) {
@@ -51,14 +51,14 @@ topicOnline.prototype.getTopicOnline = function (topic, callback) {
     this.redis.hgetall("stats#topicOnline#" + topic, function (err, result) {
         if (result) {
             var delKey = [];
-            Object.keys(result).forEach(function (key) {
+            for(key in result) {
                 var data = JSON.parse(result[key]);
-                if ((data.time + dataDisable) < Date.now()) {
+                if ((data.time + self.timeValidWithIn) < Date.now()) {
                     delKey.push(key);
                 } else {
                     count = count + data.length;
                 }
-            });
+            };
             if (delKey.length > 0) {
                 self.redis.hdel("stats#topicOnline#" + topic, delKey);
             }
