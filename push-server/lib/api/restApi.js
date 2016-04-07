@@ -190,12 +190,9 @@ function RestApi(io, topicOnline,  stats, notificationService, port, ttlService,
 
     server.get('/api/topicOnline', function (req, res, next) {
         if(!topicOnline){
-            res.send({code:'error', message: 'filter is null'});
+            res.statusCode = 400;
+            res.send({code:'error', message: 'topicOnline not configured'});
             return next();
-        }
-        var topic = req.params.topic;
-        if (!topic) {
-            res.send({code: 'error', message: 'topic is required'});
         }
         topicOnline.getTopicOnline(topic, function (result) {
             res.send({count: result});
