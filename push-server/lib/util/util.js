@@ -1,5 +1,8 @@
 module.exports = {
     getByHash: function (array, key) {
+        if(array.length == 1){
+            return array[0];
+        }
         var hash = 0;
         if (key.length == 0) return hash;
         for (var i = 0; i < key.length; i++) {

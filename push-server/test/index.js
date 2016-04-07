@@ -1,13 +1,17 @@
 var request = require('superagent');
 var config = require('../config.js');
+var oldApiPort = config.api_port;
+config.api_port = 0;
 var pushService = require('../lib/push-server.js')(config);
-var apiUrl = 'http://localhost:' + config.api_port;
 var pushClient = require('../lib/push-client.js')('http://localhost:' + config.io_port, {transports: ['websocket', 'polling']});
+config.io_port = config.io_port + 1;
+config.api_port = oldApiPort;
+var apiService = require('../lib/push-server.js')(config);
+var apiUrl = 'http://localhost:' + config.api_port;
 
-var chai = require('chai')
-    , spies = require('chai-spies');
 
-chai.use(spies);
+var chai = require('chai');
+
 var expect = chai.expect;
 
 describe('长连接Socket IO的测试', function () {
@@ -23,25 +27,23 @@ describe('长连接Socket IO的测试', function () {
         var b = new Buffer('{ "message":"ok"}');
         var data = b.toString('base64');
 
-        var messageCallback = function(topic,data){
+        var messageCallback = function (topic, data) {
             expect(topic).to.be.equal('message');
             expect(data.message).to.be.equal('ok');
+            done();
         }
-        var spy = chai.spy(messageCallback);
-        pushClient.event.on('message',spy);
+        pushClient.event.on('message', messageCallback);
         request
             .post(apiUrl + '/api/push')
             .send({
                 pushId: '',
                 pushAll: 'true',
                 topic: 'message',
-                data:data
+                data: data
             })
             .set('Accept', 'application/json')
             .end(function (err, res) {
                 expect(res.text).to.be.equal('{"code":"success"}');
-                expect(spy).to.have.been.called();
-                done();
             });
     });
 
@@ -54,12 +56,12 @@ describe('长连接Socket IO的测试', function () {
         }
         var str = JSON.stringify(data);
 
-        var notificationCallback = function(data){
+        var notificationCallback = function (data) {
             expect(data.android.title).to.be.equal(title);
             expect(data.android.message).to.be.equal(message);
+            done();
         }
-        var spy = chai.spy(notificationCallback);
-        pushClient.event.on('notification',spy);
+        pushClient.event.on('notification', notificationCallback);
 
         //leave topic
         pushClient.unsubscribeTopic("message");
@@ -69,14 +71,12 @@ describe('长连接Socket IO的测试', function () {
             .send({
                 pushId: '',
                 pushAll: 'true',
-                uid:'',
-                notification:str
+                uid: '',
+                notification: str
             })
             .set('Accept', 'application/json')
             .end(function (err, res) {
                 expect(res.text).to.be.equal('{"code":"success"}');
-                expect(spy).to.have.been.called();
-                done();
             });
     });
 

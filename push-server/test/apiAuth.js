@@ -54,7 +54,7 @@ describe('api auth', function () {
         var ipList = ['127.0.0.1', '127.0.0.2'];
         var apiCheckIp = function (path, req, logger) {
             var ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
-            logger.info("%s caller ip %s", path, ip);
+            logger.debug("%s caller ip %s", path, ip);
             if (req.params.pushAll == 'true') {
                 return ipList.indexOf(ip) != -1;
             } else {

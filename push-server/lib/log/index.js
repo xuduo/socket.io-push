@@ -8,7 +8,6 @@ var formatter = function (options) {
     return options.timestamp() + " " + 'work:' + workerId + ' ' + options.level.substring(0, 1).toUpperCase() + '/' + (undefined !== options.message ? options.message : '');
 }
 
-
 var logger;
 
 function setArgs(args) {
@@ -22,8 +21,8 @@ function setArgs(args) {
         fs.mkdirSync(dir);
     }
 
-    if(args.count >= 10){
-        if(workerId < 10){
+    if (args.count >= 10) {
+        if (workerId < 10) {
             workerId = '0' + workerId;
         }
     }
@@ -53,7 +52,7 @@ function setArgs(args) {
 
     opts.name = level;
     opts.level = level;
-    opts.filename = dir + "/" +  level + "_";
+    opts.filename = dir + "/" + level + "_";
     transports.push(new (winston.transports.DailyRotateFile)(opts))
 
     if (args.foreground) {
@@ -81,16 +80,18 @@ var meta = {};
 ['debug', 'verbose', 'info', 'error'].forEach(function (command) {
 
     LogProxy.prototype[command] = function (key, arg, callback) {
-        arguments[0] = this.tag + ' ' + arguments[0];
-        var mainArguments = Array.prototype.slice.call(arguments);
-        mainArguments.push(meta);
-        this.logger[command].apply(this, mainArguments);
+        if (this.logger) {
+            arguments[0] = this.tag + ' ' + arguments[0];
+            var mainArguments = Array.prototype.slice.call(arguments);
+            mainArguments.push(meta);
+            this.logger[command].apply(this, mainArguments);
+        }
     }
 
 });
 
 var Logger = function Logger(tag) {
-    if((typeof tag) == 'string'){
+    if ((typeof tag) == 'string') {
         return new LogProxy(logger, tag);
     } else {
         setArgs(tag);
