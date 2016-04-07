@@ -9,17 +9,5 @@ module.exports = {
         }
         hash = Math.abs(hash);
         return array[hash % array.length];
-    },
-
-    filterTopic: function(topic, filterArray){
-        if(!filterArray || !topic){
-            return false;
-        }
-        for(var i =0; i< filterArray.length; i++){
-            if(topic.startsWith(filterArray[i])){
-                return true;
-            }
-        }
-        return false;
     }
 };

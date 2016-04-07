@@ -1,8 +1,19 @@
 module.exports = topicOnline;
 
 var logger = require('../log/index.js')('topicOnline');
-var util = require("../util/util.js");
 var dataDisable = 10000;
+
+function filterTopic(topic, filterArray){
+    if(!filterArray || !topic){
+        return false;
+    }
+    for(var i =0; i< filterArray.length; i++){
+        if(topic.startsWith(filterArray[i])){
+            return true;
+        }
+    }
+    return false;
+}
 
 function topicOnline(redis, io, id, filterTopics) {
     if (!(this instanceof topicOnline)) return new topicOnline(redis, io, id, filterTopics);
@@ -15,7 +26,7 @@ function topicOnline(redis, io, id, filterTopics) {
     setInterval(function () {
         var result = self.io.nsps['/'].adapter.rooms;
         Object.keys(result).forEach(function(key) {
-            if(result[key].length > 0 && util.filterTopic(key, self.filters)) {
+            if(result[key].length > 0 && filterTopic(key, self.filters)) {
                 var json = {length: result[key].length, time: Date.now()};
                 self.redis.hset("stats#topicOnline#" + key, self.id, JSON.stringify(json));
             }
@@ -26,7 +37,7 @@ function topicOnline(redis, io, id, filterTopics) {
 topicOnline.prototype.writeTopicOnline = function(data){
     var self = this;
     Object.keys(data).forEach(function(key) {
-        if(data[key].length > 0 && util.filterTopic(key, self.filters)) {
+        if(data[key].length > 0 && filterTopic(key, self.filters)) {
             var json = {length: data[key].length, time: Date.now()};
             self.redis.hset("stats#topicOnline#" + key, self.id, JSON.stringify(json));
         }

@@ -2,7 +2,6 @@ module.exports = RestApi;
 var restify = require('restify');
 var debug = require('debug')('RestApi');
 var logger = require('../log/index.js')('RestApi');
-var util = require('../util/util.js');
 
 function RestApi(io, topicOnline,  stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth) {
 
@@ -192,6 +191,12 @@ function RestApi(io, topicOnline,  stats, notificationService, port, ttlService,
         if(!topicOnline){
             res.statusCode = 400;
             res.send({code:'error', message: 'topicOnline not configured'});
+            return next();
+        }
+        var topic = req.params.topic;
+        if(!topic){
+            res.statusCode = 400;
+            res.send({code:'error', message: 'topic is required'})
             return next();
         }
         topicOnline.getTopicOnline(topic, function (result) {
