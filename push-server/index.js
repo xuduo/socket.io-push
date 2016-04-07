@@ -33,6 +33,6 @@ if (cluster.isMaster) {
         verbose:program.V,
         count:program.count
     }
-    require('./lib/log/index.js')('Main', args);
+    require('./lib/log/index.js')(args);
     require('./lib/push-server.js')(config);
 }

@@ -41,8 +41,8 @@ function setArgs(args) {
         name: 'error',
         json: false,
         level: 'error',
-        datePattern: 'error_yyyy-MM-dd.log',
-        filename: dir + "/" + "log",
+        datePattern: 'yyyy-MM-dd.log',
+        filename: dir + "/" + "error_",
         timestamp: function () {
             return new Date().toLocaleString();
         },
@@ -53,7 +53,7 @@ function setArgs(args) {
 
     opts.name = level;
     opts.level = level;
-    opts.datePattern = level + '_yyyy-MM-dd.log';
+    opts.filename = dir + "/" +  level + "_";
     transports.push(new (winston.transports.DailyRotateFile)(opts))
 
     if (args.foreground) {
