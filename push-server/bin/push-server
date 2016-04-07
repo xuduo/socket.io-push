@@ -1,5 +1,17 @@
 #!/bin/bash
 
+if [ -f "pid/pid" ]
+   then
+     kill `cat pid/pid`
+     echo "killing `cat pid/pid`"
+     while [[ ${?} == 0 ]]      # Repeat until the process has terminated.
+     do
+        sleep 0.1              # Wait a bit before testing.
+        ps -p `cat pid/pid` >/dev/null  # Check if the process has terminated.
+     done
+     rm -rf pid/pid
+   fi
+
 mkdir -p log
 mkdir -p pid
 
@@ -39,10 +51,10 @@ shift $((OPTIND-1))
 
 echo "DEBUG=$DEBUG, COUNT='$COUNT',FOREGROUND='$FOREGROUND', Leftovers: $@"
 
-if [ $DEBUG = 1 ]; then
+if [ $DEBUG = 1 -a $FOREGROUND = 1 ]; then
     export DEBUG=apn,apn:socket,apn:trace,NotificationService,RestApi,TTLService,AdminCommand,ApiThreshold,ProxyServer,ApnService
     LOG_FILE=debug.log
-elif [ $VERBOSE = 1 ]; then
+elif [ $VERBOSE = 1 -a $FOREGROUND = 1 ]; then
     export DEBUG=SimpleRedisHashCluster,apn,Stats,socket.io*,ProxyServer,PacketService,NotificationService,RestApi,TTLService,Sentinel,AdminCommand,ApiThreshold,ApnService
     LOG_FILE=verbose.log
 else
@@ -58,17 +70,5 @@ if [ $FOREGROUND = 1 ]; then
     exit
 fi
 
-
-   if [ -f "pid/pid" ]
-   then
-     kill `cat pid/pid`
-     echo "killing node"
-     while [[ ${?} == 0 ]]      # Repeat until the process has terminated.
-     do
-        sleep 0.1              # Wait a bit before testing.
-        ps -p `cat pid/pid` >/dev/null  # Check if the process has terminated.
-     done
-     rm -rf pid/pid
-   fi
    echo "starting push-server in background"
    nohup $node_script $ARGS >> $LOG_DIR/console.log 2>&1 & echo $! > pid/pid
