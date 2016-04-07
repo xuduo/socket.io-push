@@ -19,6 +19,7 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
     server.on('uncaughtException', function (req, res, route, err) {
         try {
             logger.error("RestApi uncaughtException " + err.stack + " \n params: \n" + JSON.stringify(req.params));
+            res.statusCode = 500;
             res.send({code: "error", message: "exception " + err.stack});
         } catch (err) {
             logger.error("RestApi uncaughtException catch " + err.stack);
@@ -47,24 +48,27 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
     server.get("/", staticConfig);
 
     var handlePush = function (req, res, next) {
-        if (self.apiAuth && !self.apiAuth("/api/push", req)) {
-            logger.error("push denied %j %j", req.params, req.headers, {});
+        if (self.apiAuth && !self.apiAuth("/api/push", req, logger)) {
+            logger.error("push denied %j %j", req.params, req.headers);
+            res.statusCode = 400;
             res.send({code: "error", message: 'not authorized'});
             return next();
         }
         var topic = req.params.topic;
         if (!topic) {
+            res.statusCode = 400;
             res.send({code: "error", message: 'topic is required'});
             return next();
         }
         var data = req.params.data;
         if (!data) {
+            res.statusCode = 400;
             res.send({code: "error", message: 'data is required'});
             return next();
         }
         var pushId = req.params.pushId;
         var pushAll = req.params.pushAll;
-        logger.info("push %j", req.params, {});
+        logger.info("push %j", req.params);
         var pushData = {topic: topic, data: data};
 
         var timeToLive = parseInt(req.params.timeToLive);
@@ -75,6 +79,7 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
                     ttlService.addPacketAndEmit(topic, 'push', timeToLive, pushData, io, false);
                     res.send({code: "success"});
                 } else {
+                    res.statusCode = 400;
                     res.send({code: "error", message: "call threshold exceeded"});
                 }
             });
@@ -93,6 +98,7 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
                     return next();
                 }
             } else {
+                res.statusCode = 400;
                 res.send({code: "error", message: "pushId is required"});
                 return next();
             }
@@ -100,13 +106,15 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
     };
 
     var handleNotification = function (req, res, next) {
-        if (self.apiAuth && !self.apiAuth("/api/notification", req)) {
+        if (self.apiAuth && !self.apiAuth("/api/notification", req, logger)) {
             logger.error("notification denied %j %j", req.params, req.headers);
+            res.statusCode = 400;
             res.send({code: "error", message: 'not authorized'});
             return next();
         }
         var notification = JSON.parse(req.params.notification);
         if (!notification) {
+            res.statusCode = 400;
             res.send({code: "error", message: 'notification is required'});
             return next();
         }
@@ -115,7 +123,7 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
         var pushAll = req.params.pushAll;
         var timeToLive = parseInt(req.params.timeToLive);
 
-        logger.info("notification % j", req.params);
+        logger.info("notification ", req.params);
 
         if (pushAll === 'true') {
             notificationService.sendAll(notification, timeToLive, io);
@@ -133,6 +141,7 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
                 res.send({code: "success"});
                 return next();
             } else {
+                res.statusCode = 400;
                 res.send({code: "error", message: "pushId is required"});
                 return next();
             }
@@ -180,11 +189,11 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
 
     server.get('/api/topicOnline', function (req, res, next) {
         var topic = req.params.topic;
-        if(!topic){
-            res.send({code:'error', message: 'topic is required'});
+        if (!topic) {
+            res.send({code: 'error', message: 'topic is required'});
         }
-        topicOnline.getTopicOnline(topic, function(result){
-            res.send({count:result});
+        topicOnline.getTopicOnline(topic, function (result) {
+            res.send({count: result});
         });
     });
 

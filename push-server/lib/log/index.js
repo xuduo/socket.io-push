@@ -8,17 +8,6 @@ var formatter = function (options) {
     return options.timestamp() + " " + 'work:' + workerId + ' ' + options.level.substring(0, 1).toUpperCase() + '/' + (undefined !== options.message ? options.message : '');
 }
 
-var opts = {
-    name: 'error',
-    json: false,
-    level: 'error',
-    datePattern: 'yyyy-MM-dd_error.log',
-    filename: dir + "/" + "log",
-    timestamp: function () {
-        return new Date().toLocaleString();
-    },
-    formatter: formatter
-};
 
 var logger;
 
@@ -39,11 +28,32 @@ function setArgs(args) {
         }
     }
 
+    var level;
+    if (args.debug) {
+        level = 'debug';
+    } else if (args.verbose) {
+        level = 'verbose';
+    } else {
+        level = 'info';
+    }
+
+    var opts = {
+        name: 'error',
+        json: false,
+        level: 'error',
+        datePattern: 'error_yyyy-MM-dd.log',
+        filename: dir + "/" + "log",
+        timestamp: function () {
+            return new Date().toLocaleString();
+        },
+        formatter: formatter
+    };
+
     transports.push(new (winston.transports.DailyRotateFile)(opts));
 
-    opts.name = 'info';
-    opts.level = 'info';
-    opts.datePattern = 'yyyy-MM-dd_info.log';
+    opts.name = level;
+    opts.level = level;
+    opts.datePattern = level + '_yyyy-MM-dd.log';
     transports.push(new (winston.transports.DailyRotateFile)(opts))
 
     if (args.foreground) {
@@ -51,13 +61,7 @@ function setArgs(args) {
         opts.levelOnly = false;
         delete opts.filename;
         delete opts.datePattern;
-        if (args.debug) {
-            opts.level = 'debug';
-        } else if (args.verbose) {
-            opts.level = 'verbose';
-        } else {
-            opts.level = 'info';
-        }
+        opts.level = level;
         transports.push(new (winston.transports.Console)(opts));
     }
 

@@ -41,7 +41,7 @@ function PushServer(config) {
         if (apiPort) {
             var apnService = require('./service/apnService.js')(config.apns, config.apnsSliceServers, cluster, stats);
             notificationService.apnService = apnService;
-            self.restApi = require('./api/restApi.js')(io, topicOnline, stats, notificationService, apiPort, ttlService, cluster, apiThreshold, apnService);
+            self.restApi = require('./api/restApi.js')(io, topicOnline, stats, notificationService, apiPort, ttlService, cluster, apiThreshold, apnService, config.apiAuth);
         }
     });
 }
