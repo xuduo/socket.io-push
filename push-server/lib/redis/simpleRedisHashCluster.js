@@ -10,42 +10,50 @@ function SimpleRedisHashCluster(config, completeCallback) {
     this.messageCallbacks = [];
     this.write = getClientsFromIpList(config.write);
     this.read = getClientsFromIpList(config.read);
+    if (this.read.length == 0) {
+        logger.info("read slave not in config using write");
+        this.read = this.write;
+    }
     this.sub = getClientsFromIpList(config.sub, this);
     this.pubs = [];
     var self = this;
-    config.pubs.forEach(function(pub){
-        self.pubs.push(getClientsFromIpList(pub));
-    });
+    if (config.pubs) {
+        config.pubs.forEach(function (pub) {
+            self.pubs.push(getClientsFromIpList(pub));
+        });
+    }
     completeCallback(this);
 }
 
 function getClientsFromIpList(addrs, subscribe) {
     var clients = [];
-    addrs.forEach(function (addr) {
-        var client = redis.createClient({
-            host: addr.host,
-            port: addr.port,
-            return_buffers: true,
-            retry_max_delay: 3000,
-            max_attempts: 0,
-            connect_timeout: 10000000000000000
-        });
-        client.on("error", function (err) {
-            logger.error("redis error %s", err);
-        });
-        if (subscribe) {
-            client.on("message", function (channel, message) {
-                subscribe.messageCallbacks.forEach(function (callback) {
-                    try {
-                        callback(channel, message);
-                    } catch (err) {
-                        logger.error("redis message error %s", err);
-                    }
-                });
+    if (addrs) {
+        addrs.forEach(function (addr) {
+            var client = redis.createClient({
+                host: addr.host,
+                port: addr.port,
+                return_buffers: true,
+                retry_max_delay: 3000,
+                max_attempts: 0,
+                connect_timeout: 10000000000000000
             });
-        }
-        clients.push(client);
-    });
+            client.on("error", function (err) {
+                logger.error("redis error %s", err);
+            });
+            if (subscribe) {
+                client.on("message", function (channel, message) {
+                    subscribe.messageCallbacks.forEach(function (callback) {
+                        try {
+                            callback(channel, message);
+                        } catch (err) {
+                            logger.error("redis message error %s", err);
+                        }
+                    });
+                });
+            }
+            clients.push(client);
+        });
+    }
     return clients;
 }
 
@@ -61,7 +69,7 @@ commands.list.forEach(function (command) {
 ['publish'].forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
-        this.pubs.forEach(function(pub){
+        this.pubs.forEach(function (pub) {
             var client = util.getByHash(pub, key);
             handleCommand(command, arguments, key, arg, callback, client);
         });
@@ -88,6 +96,10 @@ commands.list.forEach(function (command) {
 });
 
 function handleCommand(command, callArguments, key, arg, callback, client) {
+    if (!client) {
+        logger.error("handleCommand error ", command, key);
+        return;
+    }
 
     if (Array.isArray(arg)) {
         arg = [key].concat(arg);
