@@ -204,14 +204,41 @@ public class SocketIOProxyClient implements PushSubscriber {
             if (pushCallback != null) {
                 try {
                     JSONObject data = (JSONObject) args[0];
-                    String topic = data.optString("topic");
-                    String dataBase64 = data.optString("data");
-                    String id = data.optString("id", null);
-                    boolean reply = data.optBoolean("reply", false);
-                    Log.v(TAG, "on push topic1 " + topic + ",reply " + reply + ", data:" + dataBase64 + " dataToString: " + data.toString());
-                    pushCallback.onPush(topic, Base64.decode(dataBase64, Base64.DEFAULT));
+                    String topic = data.optString("topic", null);
+                    if (topic == null) {
+                        topic = data.optString("t", null);
+                    }
+                    String dataBase64 = data.optString("data", null);
+                    if (dataBase64 == null) {
+                        dataBase64 = data.optString("d", null);
+                    }
+                    byte[] dataBytes;
+                    if (dataBase64 == null) {
+                        String json = data.optString("j");
+                        dataBytes = json.getBytes("UTF-8");
+                    } else {
+                        dataBytes = Base64.decode(dataBase64, Base64.DEFAULT);
+                    }
 
-                    updateLastPacketId(id, data.optString("ttl", null), data.optString("unicast", null), topic);
+                    Log.v(TAG, "on push topic " + topic + ",reply " + ", data:" + new String(dataBytes));
+                    pushCallback.onPush(topic, dataBytes);
+
+                    String id = data.optString("id", null);
+                    if (id == null) {
+                        id = data.optString("i", null);
+                    }
+
+                    String ttl = data.optString("ttl", null);
+                    if (ttl == null) {
+                        ttl = data.optString("t", null);
+                    }
+
+                    String unicast = data.optString("unicast", null);
+                    if (unicast == null) {
+                        unicast = data.optString("u", null);
+                    }
+
+                    updateLastPacketId(id, ttl, unicast, topic);
                 } catch (Exception e) {
                     Log.e(TAG, "handle push error ", e);
                 }
@@ -342,7 +369,9 @@ public class SocketIOProxyClient implements PushSubscriber {
             socket.on(Socket.EVENT_CONNECT, connectListener);
             socket.on("pushId", pushIdListener);
             socket.on("push", pushListener);
+            socket.on("p", pushListener);
             socket.on("noti", notificationListener);
+            socket.on("n", notificationListener);
             socket.on(Socket.EVENT_DISCONNECT, disconnectListener);
             socket.connect();
         } catch (URISyntaxException e) {

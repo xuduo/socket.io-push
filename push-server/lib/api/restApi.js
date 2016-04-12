@@ -61,7 +61,8 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
             return next();
         }
         var data = req.params.data;
-        if (!data) {
+        var json = req.params.json;
+        if (!data && !json) {
             res.statusCode = 400;
             res.send({code: "error", message: 'data is required'});
             return next();
@@ -69,7 +70,16 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
         var pushId = req.params.pushId;
         var pushAll = req.params.pushAll;
         logger.info("push %j", req.params);
-        var pushData = {topic: topic, data: data};
+        var pushData = {};
+        if (data) {
+            pushData.data = data;
+        }
+        if (topic) {
+            pushData.topic = topic;
+        }
+        if (json) {
+            pushData.j = JSON.parse(json);
+        }
 
         var timeToLive = parseInt(req.params.timeToLive);
 

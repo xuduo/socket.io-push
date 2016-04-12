@@ -8,6 +8,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.yy.httpproxy.Config;
 import com.yy.httpproxy.ProxyClient;
 import com.yy.httpproxy.PushHandler;
@@ -15,6 +16,9 @@ import com.yy.httpproxy.ReplyHandler;
 import com.yy.httpproxy.serializer.JsonPushSerializer;
 import com.yy.httpproxy.serializer.JsonSerializer;
 import com.yy.httpproxy.subscribe.ConnectCallback;
+import com.yy.httpproxy.subscribe.PushCallback;
+
+import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
 
@@ -62,17 +66,23 @@ public class DrawActivity extends Activity implements ConnectCallback {
         msg = (TextView) findViewById(R.id.tv_msg);
 
         String pushServerHost = getIntent().getStringExtra("ipAddress");
-//        String pushServerHost = "https://183.60.221.91:443";
-//        String pushServerHost = "http://ws.tt.yy.csom";
-//        String pushServerHost = "http://61.160.36.69:9101";
-//        String pushServerHost = "http://patch.3g.yy.com:9101";
-//        String pushServerHost = "http://183.60.221.91:9101";
 
         myColor = myColors[new Random().nextInt(myColors.length)];
 
         proxyClient = new ProxyClient(new Config(this.getApplicationContext())
+                .setPushCallback(new PushCallback() {
+                    @Override
+                    public void onPush(String topic, byte[] data) {
+                        if("message".equals(topic)) {
+                            try {
+                                Message message = new Gson().fromJson(new String(data, "UTF-8"), Message.class);
+                                msg.setText("Msg: " + message.message);
+                            } catch (UnsupportedEncodingException e) {
+                            }
+                        }
+                    }
+                })
                 .setHost(pushServerHost)
-                .setPushSerializer(new JsonPushSerializer())
                 .setRequestSerializer(new JsonSerializer()).setConnectCallback(this));
 
         findViewById(R.id.btn_clear).setOnClickListener(new View.OnClickListener() {
@@ -118,37 +128,9 @@ public class DrawActivity extends Activity implements ConnectCallback {
         });
 
 
-        proxyClient.subscribeBroadcast("/addDot", new PushHandler<DrawView.Dot>(DrawView.Dot.class) {
-            @Override
-            public void onSuccess(DrawView.Dot result) {
-                drawView.addDot(result);
-                count.setText(totalCount + "dots");
-            }
-        });
+        proxyClient.subscribeAndReceiveTtlPackets("message");
 
-        proxyClient.subscribeBroadcast("/clear", new PushHandler(null) {
-
-            @Override
-            public void onSuccess(Object result) {
-                drawView.clear();
-                resetLatency();
-            }
-
-        });
-
-        proxyClient.subscribeAndReceiveTtlPackets("message", new PushHandler<Message>(Message.class) {
-            @Override
-            public void onSuccess(Message result) {
-                msg.setText("Msg: " + result.message);
-            }
-        });
-
-        proxyClient.subscribeBroadcast("/endLine", new PushHandler<DrawView.Dot>(DrawView.Dot.class) {
-            @Override
-            public void onSuccess(DrawView.Dot result) {
-                drawView.endLine();
-            }
-        });
+        proxyClient.subscribeBroadcast("/endLine");
 
         updateConnect();
     }

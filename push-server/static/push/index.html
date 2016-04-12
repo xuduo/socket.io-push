@@ -185,14 +185,12 @@
 
         var uri = $('input[name=uri]:checked').val();
 
-        var content = utf8_to_b64($("#content").val());
-
         var data = {
             pushId: pushIds,
             pushAll: pushAll,
             topic : $("#title").val(),
             uid: uids,
-            data: content,
+            json: $("#content").val(),
             timeToLive: $("#timeToLive").val()
         };
 
