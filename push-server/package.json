@@ -26,7 +26,8 @@
     "socket.io-parser": "2.2.6",
     "superagent": "^1.8.0",
     "uid2": "0.0.3",
-    "winston-levelonly": "^1.0.3"
+    "winston-levelonly": "^1.0.3",
+    "bluebird": "^2.9.0"
   },
   "devDependencies": {
     "expect.js": "0.3.1",

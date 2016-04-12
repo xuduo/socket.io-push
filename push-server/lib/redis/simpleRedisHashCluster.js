@@ -3,6 +3,7 @@ module.exports = SimpleRedisHashCluster;
 var commands = require('redis-commands');
 var redis = require('redis');
 var util = require("../util/util.js");
+var Sentinel = require("./sentinel.js");
 var logger = require('../log/index.js')('SimpleRedisHashCluster');
 
 
@@ -13,6 +14,66 @@ function SimpleRedisHashCluster(config, completeCallback) {
     if (this.read.length == 0) {
         logger.info("read slave not in config using write");
         this.read = this.write;
+    }
+
+    if (config.sentinel){
+        this.pubs = [];
+        this.sub = [];
+        var _this = this;
+        var masterNames = config.sentinel.masters;
+        var completeCnt = 0;
+        config.sentinel.sentinels.forEach(function(sentinelAddrs,i){
+            var senIndex = i;
+            sentinel = new Sentinel(sentinelAddrs,masterNames,config.ipMap);
+            _this.pubs[senIndex] = [];
+            sentinel.on("create_client",function(masterName,clientType,client){
+                var clientAddr = client.connection_options.host + ":" + client.connection_options.port;
+                logger.debug("[replica %d][%s][%s][%s] enable",senIndex, masterName, clientType, clientAddr);
+                masterNames.forEach(function(name,n){
+                    if (name === masterName){
+                        if (clientType === 'master'){
+                            _this.pubs[senIndex][n] = client;
+                        }
+                        if(clientType === 'slave' && senIndex == 0){
+                            _this.sub[n] = client;
+                        }
+                    }
+                })
+            });
+            sentinel.on('complete',function(sentinelAddr){
+                logger.debug("sentinel %j commplete callback", sentinelAddr);
+                completeCnt++;
+                if(completeCnt === config.sentinel.sentinels.length){
+                    var pubsInfo = [];
+                    _this.pubs.forEach(function(p,i){
+                        pubsInfo[i] = [];
+                        p.forEach(function(c,j){
+                            pubsInfo[i][j] = c.connection_options.host + ":" + c.connection_options.port;
+                        });
+                    });
+                    var subInfo = [];
+                    _this.sub.forEach(function(c,i){
+                        subInfo[i] = c.connection_options.host + ":" + c.connection_options.port;
+                    });
+                    logger.info("sentinel init complete pubs: %j",pubsInfo);
+                    logger.info("sentinel init complete sub: %j",subInfo);
+
+                    _this.sub.forEach(function(client) {
+                        client.on("message", function (channel, message) {
+                            _this.messageCallbacks.forEach(function (callback) {
+                                try {
+                                    callback(channel, message);
+                                } catch (err) {
+                                    logger.error("redis message error %s", err);
+                                }
+                            });
+                        });
+                    });
+                    completeCallback(_this);
+                }
+            });
+        });
+        return;
     }
     this.sub = getClientsFromIpList(config.sub, this);
     this.pubs = [];
