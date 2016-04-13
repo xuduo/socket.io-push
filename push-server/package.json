@@ -14,6 +14,7 @@
   "dependencies": {
     "apn": "1.7.5",
     "async": "0.9.0",
+    "ioredis" : "^1.15.0",
     "commander": "2.9.0",
     "debug": "2.2.0",
     "msgpack-js": "0.3.0",
@@ -26,8 +27,7 @@
     "socket.io-parser": "2.2.6",
     "superagent": "^1.8.0",
     "uid2": "0.0.3",
-    "winston-levelonly": "^1.0.3",
-    "bluebird": "^2.9.0"
+    "winston-levelonly": "^1.0.3"
   },
   "devDependencies": {
     "expect.js": "0.3.1",

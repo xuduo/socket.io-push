@@ -2,10 +2,10 @@ module.exports = SimpleRedisHashCluster;
 
 var commands = require('redis-commands');
 var redis = require('redis');
+var IoRedis = require('ioredis');
 var util = require("../util/util.js");
 var Sentinel = require("./sentinel.js");
 var logger = require('../log/index.js')('SimpleRedisHashCluster');
-
 
 function SimpleRedisHashCluster(config, completeCallback) {
     this.messageCallbacks = [];
@@ -15,75 +15,62 @@ function SimpleRedisHashCluster(config, completeCallback) {
         logger.info("read slave not in config using write");
         this.read = this.write;
     }
+    var self = this;
 
     if (config.sentinel){
+        this.sub = getClientsFromSentinel(config.sentinel.sub, config.sentinel.masters, this);
         this.pubs = [];
-        this.sub = [];
-        var _this = this;
-        var masterNames = config.sentinel.masters;
-        var completeCnt = 0;
-        config.sentinel.sentinels.forEach(function(sentinelAddrs,i){
-            var senIndex = i;
-            sentinel = new Sentinel(sentinelAddrs,masterNames,config.ipMap);
-            _this.pubs[senIndex] = [];
-            sentinel.on("create_client",function(masterName,clientType,client){
-                var clientAddr = client.connection_options.host + ":" + client.connection_options.port;
-                logger.debug("[replica %d][%s][%s][%s] enable",senIndex, masterName, clientType, clientAddr);
-                masterNames.forEach(function(name,n){
-                    if (name === masterName){
-                        if (clientType === 'master'){
-                            _this.pubs[senIndex][n] = client;
-                        }
-                        if(clientType === 'slave' && senIndex == 0){
-                            _this.sub[n] = client;
-                        }
-                    }
-                })
-            });
-            sentinel.on('complete',function(sentinelAddr){
-                logger.debug("sentinel %j commplete callback", sentinelAddr);
-                completeCnt++;
-                if(completeCnt === config.sentinel.sentinels.length){
-                    var pubsInfo = [];
-                    _this.pubs.forEach(function(p,i){
-                        pubsInfo[i] = [];
-                        p.forEach(function(c,j){
-                            pubsInfo[i][j] = c.connection_options.host + ":" + c.connection_options.port;
-                        });
-                    });
-                    var subInfo = [];
-                    _this.sub.forEach(function(c,i){
-                        subInfo[i] = c.connection_options.host + ":" + c.connection_options.port;
-                    });
-                    logger.info("sentinel init complete pubs: %j",pubsInfo);
-                    logger.info("sentinel init complete sub: %j",subInfo);
 
-                    _this.sub.forEach(function(client) {
-                        client.on("message", function (channel, message) {
-                            _this.messageCallbacks.forEach(function (callback) {
-                                try {
-                                    callback(channel, message);
-                                } catch (err) {
-                                    logger.error("redis message error %s", err);
-                                }
-                            });
-                        });
-                    });
-                    completeCallback(_this);
-                }
+        if (config.sentinel.pubs) {
+            config.sentinel.pubs.forEach(function (pub) {
+                self.pubs.push(getClientsFromSentinel(pub, config.sentinel.masters));
             });
-        });
+        }
+        completeCallback(this);
         return;
     }
     this.sub = getClientsFromIpList(config.sub, this);
     this.pubs = [];
-    var self = this;
+    
     if (config.pubs) {
         config.pubs.forEach(function (pub) {
             self.pubs.push(getClientsFromIpList(pub));
         });
     }
     completeCallback(this);
+}
+
+function getClientsFromSentinel(sentinels, names, subscribe){
+    var clients = [];
+    if (names) {
+        names.forEach(function (name) {
+            var role = 'master';
+            if (subscribe){role = 'slave';}
+            var client = new IoRedis({
+                sentinels : sentinels,
+                name : name,
+                role : role,
+                enableReadyCheck : true,
+                connectTimeout: 10000000000000000
+            });
+            client.on("error", function (err) {
+                logger.error("redis error %s", err);
+            });
+            if (subscribe) {
+                client.on("messageBuffer", function (channel, message) {
+                    subscribe.messageCallbacks.forEach(function (callback) {
+                        try {
+                            callback(channel, message);
+                        } catch (err) {
+                            logger.error("redis message error %s", err);
+                        }
+                    });
+                });
+            }
+            clients.push(client);
+        });
+    }
+    return clients;
 }
 
 function getClientsFromIpList(addrs, subscribe) {
@@ -130,9 +117,10 @@ commands.list.forEach(function (command) {
 ['publish'].forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
+        var args = arguments;
         this.pubs.forEach(function (pub) {
             var client = util.getByHash(pub, key);
-            handleCommand(command, arguments, key, arg, callback, client);
+            handleIoRedisCommand(command, args, key, arg, callback, client);
         });
     }
 
@@ -142,7 +130,7 @@ commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         var client = util.getByHash(this.sub, key);
-        handleCommand(command, arguments, key, arg, callback, client);
+        handleIoRedisCommand(command, arguments, key, arg, callback, client);
     }
 
 });
@@ -156,11 +144,34 @@ commands.list.forEach(function (command) {
 
 });
 
+function handleIoRedisCommand(command, callArguments, key, arg, callback, client) {
+    if (!client) {
+        logger.error("handleCommand error ", command, key);
+        return;
+    }
+
+    if (Array.isArray(arg)) {
+        arg = [key].concat(arg);
+        return client.send_command(command, arg, callback);
+    }
+    // Speed up the common case
+    var len = callArguments.length;
+    if (len === 2) {
+        return client.send_command(command, key, arg);
+    }
+    if (len === 3) {
+        return client.send_command(command, key, arg, callback);
+    }
+    return client.send_command.apply(client, [command].concat(toArray(callArguments)));
+}
+
 function handleCommand(command, callArguments, key, arg, callback, client) {
     if (!client) {
         logger.error("handleCommand error ", command, key);
         return;
     }
+
+    logger.debug("%s:%s", command, key);
 
     if (Array.isArray(arg)) {
         arg = [key].concat(arg);
@@ -177,6 +188,7 @@ function handleCommand(command, callArguments, key, arg, callback, client) {
     return client.send_command(command, toArray(callArguments));
 }
 
+// #TODO ioreids not connection_options property
 SimpleRedisHashCluster.prototype.hash = function (key, callback) {
     var client = util.getByHash(this.readSlaves, key);
     callback({host: client.connection_options.host, port: client.connection_options.port});
