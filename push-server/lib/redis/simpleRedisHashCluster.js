@@ -4,8 +4,8 @@ var commands = require('redis-commands');
 var redis = require('redis');
 var IoRedis = require('ioredis');
 var util = require("../util/util.js");
-var Sentinel = require("./sentinel.js");
 var logger = require('../log/index.js')('SimpleRedisHashCluster');
+var useSentinel = false;
 
 function SimpleRedisHashCluster(config, completeCallback) {
     this.messageCallbacks = [];
@@ -18,6 +18,7 @@ function SimpleRedisHashCluster(config, completeCallback) {
     var self = this;
 
     if (config.sentinel){
+        useSentinel = true;
         this.sub = getClientsFromSentinel(config.sentinel.sub, config.sentinel.masters, this);
         this.pubs = [];
 
@@ -50,7 +51,6 @@ function getClientsFromSentinel(sentinels, names, subscribe){
                 sentinels : sentinels,
                 name : name,
                 role : role,
-                enableReadyCheck : true,
                 connectTimeout: 10000000000000000
             });
             client.on("error", function (err) {
@@ -120,7 +120,11 @@ commands.list.forEach(function (command) {
         var args = arguments;
         this.pubs.forEach(function (pub) {
             var client = util.getByHash(pub, key);
-            handleIoRedisCommand(command, args, key, arg, callback, client);
+            if(useSentinel){
+                handleIoRedisCommand(command, args, key, arg, callback, client);
+            }else{
+                handleCommand(command, args, key, arg, callback, client);
+            }
         });
     }
 
@@ -130,7 +134,11 @@ commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         var client = util.getByHash(this.sub, key);
-        handleIoRedisCommand(command, arguments, key, arg, callback, client);
+        if(useSentinel){
+            handleIoRedisCommand(command, arguments, key, arg, callback, client);
+        }else {
+            handleCommand(command, arguments, key, arg, callback, client);
+        }
     }
 
 });

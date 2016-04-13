@@ -38,7 +38,7 @@ config.redis = {
             "master_group1",
             "master_group2"
         ],
-        sentinels:[
+        pubs:[
             [
                 {host:"127.0.0.1",port:18301},
                 {host:"127.0.0.1",port:18302},
@@ -49,8 +49,12 @@ config.redis = {
                 {host:"127.0.0.1",port:19302},
                 {host:"127.0.0.1",port:19303}
             ]
-        ]
-
+        ],
+        sub:[
+                {host:"127.0.0.1",port:19301},
+                {host:"127.0.0.1",port:19302},
+                {host:"127.0.0.1",port:19303}
+            ]
     },
     pubs: [
         [
@@ -69,13 +73,13 @@ config.redis = {
     read: [
         {
             host: "127.0.0.1",
-            port: 6380
+            port: 6379
         }
     ],
     sub: [
         {
             host: "127.0.0.1",
-            port: 6380
+            port: 6379
         }
     ]
 };
