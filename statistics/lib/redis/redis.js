@@ -75,29 +75,4 @@ function countData(onces, timestamp) {
     }
 }
 
-exports.getData = function (key, callback) {
-    redisClient.keys(key, function (err, result) {
-        if (result) {
-            console.log(JSON.stringify(result), result.length);
-            var repies = [];
-            var myKey;
-            var find = function(err, replies){
-                if(replies != -1){
-                    var index =myKey.lastIndexOf('#');
-                    var str = myKey.substring(index + 1, myKey.length);
-                    var time = new Date(parseInt(str));
-                    var date = (time.getMonth() + 1) + '-' + time.getDate()+ " " + time.getHours() + ':' + time.getMinutes() + ':' + time.getSeconds();
-                    repies.push({key: myKey, time:date, count:replies});
-                }
-                if (result.length > 0) {
-                    myKey = result.shift();
-                    redisClient.get(myKey, find)
-                } else {
-                    callback(repies);
-                }
-            }
-            find(null, -1);
-        }
-    });
-}
 exports.client = redisClient;

@@ -4,18 +4,6 @@ var Stats = require('../../node_modules/socket.io-push/lib/stats/stats.js');
 var stats = new Stats(redis.client, 123);
 module.exports = function(server) {
 
-    server.get('/getDatas', function (req, res, next) {
-        var key = req.params.key;
-        key = '*stats#socketConnect#totalCount*'
-        redis.getData(key, function(result){
-            if(!result){
-                result = {};
-            }
-            res.send(result);
-        })
-        return next();
-    });
-
     var handleStates = function(req, res, next){
         var key =  req.params.key;
         if(!key){
