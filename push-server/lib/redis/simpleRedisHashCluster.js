@@ -54,7 +54,7 @@ function getClientsFromSentinel(sentinels, names, subscribe){
                 connectTimeout: 10000000000000000
             });
             client.on("error", function (err) {
-                logger.error("redis error %s", err);
+                logger.error("pub/sub redis error %s", err);
             });
             if (subscribe) {
                 client.on("messageBuffer", function (channel, message) {
@@ -62,7 +62,7 @@ function getClientsFromSentinel(sentinels, names, subscribe){
                         try {
                             callback(channel, message);
                         } catch (err) {
-                            logger.error("redis message error %s", err);
+                            logger.error("pub/sub redis message error %s", err);
                         }
                     });
                 });
@@ -86,7 +86,7 @@ function getClientsFromIpList(addrs, subscribe) {
                 connect_timeout: 10000000000000000
             });
             client.on("error", function (err) {
-                logger.error("redis error %s", err);
+                logger.error("store redis error %s", err);
             });
             if (subscribe) {
                 client.on("message", function (channel, message) {
@@ -94,7 +94,7 @@ function getClientsFromIpList(addrs, subscribe) {
                         try {
                             callback(channel, message);
                         } catch (err) {
-                            logger.error("redis message error %s", err);
+                            logger.error("store redis message error %s", err);
                         }
                     });
                 });
