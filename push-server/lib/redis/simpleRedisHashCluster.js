@@ -10,6 +10,7 @@ function SimpleRedisHashCluster(config, completeCallback) {
     this.messageCallbacks = [];
     this.write = getClientsFromIpList(config.write);
     this.read = getClientsFromIpList(config.read);
+    this.event = getClientsFromIpList(config.event);
     if (this.read.length == 0) {
         logger.info("read slave not in config using write");
         this.read = this.write;
@@ -69,10 +70,16 @@ commands.list.forEach(function (command) {
 ['publish'].forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
-        this.pubs.forEach(function (pub) {
-            var client = util.getByHash(pub, key);
+        if (key == "event#client") {
+            logger.verbose("key");
+            var client = util.getByHash(this.event, key);
             handleCommand(command, arguments, key, arg, callback, client);
-        });
+        } else {
+            this.pubs.forEach(function (pub) {
+                var client = util.getByHash(pub, key);
+                handleCommand(command, arguments, key, arg, callback, client);
+            });
+        }
     }
 
 });

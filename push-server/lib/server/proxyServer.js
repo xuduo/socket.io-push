@@ -83,11 +83,6 @@ function ProxyServer(io, stats, packetService, notificationService, ttlService) 
             notificationService.setApnToken(pushId, apnToken, data.bundleId);
         });
 
-        socket.on('packetProxy', function (data) {
-            data.pushId = socket.pushId;
-            packetService.publishPacket(data);
-        });
-
         socket.on('notificationReply', function (data) {
             stats.onNotificationReply(data.timestamp);
         });

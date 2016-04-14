@@ -34,14 +34,16 @@
         <service android:name="com.yy.httpproxy.service.BindService" android:process=":push" android:enabled="true"/>
         <service android:name="com.yy.httpproxy.service.ConnectionService" android:process=":push" android:enabled="true"/>
         <service android:name="com.yy.httpproxy.service.ForegroundService" android:process=":push" android:enabled="true"/>
+        <service android:name="com.yy.httpproxy.service.DummyService" android:process=":push" android:enabled="true"/>
 
         <receiver
             android:name=".appmodel.YYNotificationReceiver"
+            android:enabled="true"
             android:exported="true" >
 
             <!-- 这里com.xiaomi.mipushdemo.DemoMessageRreceiver改成app中定义的完整类名 -->
             <intent-filter>
-                <action android:name="com.yy.httpproxy.service.RemoteService.INTENT" />
+                <action android:name="com.yy.misaka.demo.YY_NOTIFICATION" />
             </intent-filter>
         </receiver>
 

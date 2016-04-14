@@ -20,10 +20,6 @@ config.apns = [
     }
 ];
 
-config.apnsSliceServers = [
-    "http://localhost:11001",
-    "http://localhost:11002"
-];
 
 config.apiAuth = function (path, req, logger) {
     var ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
@@ -54,6 +50,12 @@ config.redis = {
         }
     ],
     sub: [
+        {
+            host: "127.0.0.1",
+            port: 6380
+        }
+    ],
+    event: [
         {
             host: "127.0.0.1",
             port: 6380
