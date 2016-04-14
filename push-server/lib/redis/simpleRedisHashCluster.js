@@ -117,9 +117,10 @@ commands.list.forEach(function (command) {
             var client = util.getByHash(this.event, key);
             handleCommand(command, arguments, key, arg, callback, client);
         } else {
+            var args = arguments;
             this.pubs.forEach(function (pub) {
                 var client = util.getByHash(pub, key);
-                handleCommand(command, arguments, key, arg, callback, client);
+                handleCommand(command, args, key, arg, callback, client);
             });
         }
     }
