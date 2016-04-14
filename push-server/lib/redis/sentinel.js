@@ -1,92 +1,70 @@
+'use strict';
 module.exports = Sentinel;
-
-var redis = require('redis');
+var Redis = require('ioredis');
 var logger = require('../log/index.js')('Sentinel');
 
-function Sentinel(sentinelAddrs, masterNames, ipMap, completeCallback, masterChangeCallback) {
-    var masters = [];
-    this.masters = masters;
-    this.completeCallback = completeCallback;
-    var outerThis = this;
-    sentinelAddrs.forEach(function (addr) {
-        var client = redis.createClient({
-            host: addr.host,
-            port: addr.port,
-            return_buffers: true,
-            retry_max_delay: 3000,
-            max_attempts: 0,
-            connect_timeout: 10000000000000000
-        });
-        client.on("error", function (err) {
-            logger.error("sentinel connect Error %s:%s %s", addr.host, addr.port, err);
-        });
+function Sentinel(sentinels){
+    this.sentinels = sentinels;
+}
 
-        masterNames.forEach(function (masterName, i) {
-            masters[i] = {
-                name: masterName
-            };
-            client.send_command("SENTINEL", ['get-master-addr-by-name', masterName], function (err, replies) {
-                if (replies && outerThis.completeCallback) {
-                    logger.info("get-master-addr-by-name %s %j", masterName, replies);
-                    var allQueried = true;
-                    masters.forEach(function (master) {
-                        if (master.name == masterName) {
-                            master.host = getIp(replies[0].toString());
-                            master.port = parseInt(replies[1].toString());
-                        } else if (!master.host) {
-                            allQueried = false;
-                        }
-                    });
-                    if (allQueried) {
-                        logger.info("masters all queried %j", masters);
-                        outerThis.completeCallback();
-                        outerThis.completeCallback = null;
-                    }
-                }
-            })
-        });
-
-        var subClient = redis.createClient({
-            host: addr.host,
-            port: addr.port,
-            return_buffers: true,
-            retry_max_delay: 3000,
-            max_attempts: 0,
-            connect_timeout: 10000000000000000
-        });
-        subClient.on("error", function (err) {
-            logger.error("sentinel subscribe Error %s:%s %s", addr.host, addr.port, err);
-        });
-
-        subClient.on("message", function (channel, message) {
-            if (channel == "+switch-master") {
-                var lines = message.toString().split(" ");
-                var name = lines[0];
-                var host = lines[3].toString();
-                var port = parseInt(lines[4].toString());
-                logger.info("+switch-master %j %j \n", lines, masters, name, host, port);
-                masters.forEach(function (master, i) {
-                    if (master && master.name == name) {
-                        master.host = getIp(host);
-                        master.port = port;
-                        logger.info("switch master callback %j", master);
-                        masterChangeCallback(master, i);
-                        return;
-                    }
-                });
-            }
-        });
-        subClient.subscribe("+switch-master");
-
+Sentinel.prototype.getMaster = function(masterName, callback){
+    var sentinel = this.sentinels[0];
+    var client = new Redis({
+        host: sentinel.host,
+        port: sentinel.port,
+        connectTimeout: 3000
     });
-
-    function getIp(fromSentinel) {
-        if (ipMap && ipMap[fromSentinel]) {
-            logger.info('getIp %s -> %s', fromSentinel, ipMap[fromSentinel]);
-            return ipMap[fromSentinel];
-        } else {
-            return fromSentinel;
+    client.on('error', function(err){
+        logger.error("sentinel[%s:%d]: %s", sentinel.host, sentinel.port, err);
+    })
+    client.sentinel('get-master-addr-by-name', masterName, function (err, result) {
+        client.disconnect();
+        if (err) {
+            return callback(err);
         }
+        callback(null, Array.isArray(result) ? { host: result[0], port: result[1] } : null);
+    });
+}
+
+Sentinel.prototype.getSlave = function (masterName, callback) {
+    var sentinel = this.sentinels[0];
+    var client = new Redis({
+        host: sentinel.host,
+        port: sentinel.port,
+        connectTimeout: 3000
+    });
+    client.on('error', function(err){
+        logger.error("sentinel[%s:%d]: %s", sentinel.host, sentinel.port, err);
+    })
+    client.sentinel('slaves', masterName, function (err, result) {
+        client.disconnect();
+        if (err) {
+            return callback(err);
+        }
+        var selectedSlave;
+        if (Array.isArray(result)) {
+            var availableSlaves = [];
+            for (var i = 0; i < result.length; ++i) {
+                var slave = packObject(result[i]);
+                if (slave.flags && !slave.flags.match(/(disconnected|s_down|o_down)/)) {
+                    availableSlaves.push(slave);
+                }
+            }
+            if(availableSlaves.length > 0) {
+                selectedSlave = availableSlaves[0];
+            }
+        }
+        callback(null, selectedSlave ? { host: selectedSlave.ip, port: selectedSlave.port } : null);
+    });
+};
+
+function packObject (array) {
+    var result = {};
+    var length = array.length;
+
+    for (var i = 1; i < length; i += 2) {
+        result[array[i - 1]] = array[i];
     }
 
-}
+    return result;
+};

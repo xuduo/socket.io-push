@@ -24,7 +24,7 @@ function PushClient(url, opt) {
 }
 
 PushClient.prototype.subscriptTopic = function (topic) {
-    this.socket.emit('subscriptTopic', {topic: topic});
+    this.socket.emit('subscribeTopic', {topic: topic});
 };
 
 
