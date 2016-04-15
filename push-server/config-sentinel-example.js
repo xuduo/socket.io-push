@@ -31,18 +31,39 @@ config.apiAuth = function (path, req, logger) {
 config.redis = {
 
     pubs: [
-        [
-            {host: "127.0.0.1", port: 6379}
-        ]
+        {
+            groupName: [
+                "master_group1",
+                "master_group2"],
+            sentinel: [
+                {host: "127.0.0.1", port: 18301},
+                {host: "127.0.0.1", port: 18302},
+                {host: "127.0.0.1", port: 18303}]
+        },
+        {
+            groupName: [
+                "master_group1",
+                "master_group2"],
+            sentinel: [
+                {host: "127.0.0.1", port: 19301},
+                {host: "127.0.0.1", port: 19302},
+                {host: "127.0.0.1", port: 19303}]
+        }
     ],
-    sub: [
-        {host: "127.0.0.1", port: 6379}
-    ],
+    sub: {
+        groupName: [
+            "master_group1",
+            "master_group2"],
+        sentinel: [
+            {host: "127.0.0.1", port: 19301},
+            {host: "127.0.0.1", port: 19302},
+            {host: "127.0.0.1", port: 19303}]
+    },
     write: [
-        {host: "127.0.0.1", port: 6379}
+        { host: "127.0.0.1", port: 6379 }
     ],
     read: [
-        {host: "127.0.0.1", port: 6379}
+        { host: "127.0.0.1", port: 6379 }
     ],
     event: [
         {
@@ -51,6 +72,7 @@ config.redis = {
         }
     ]
 };
+
 
 config.io_port = 10001;
 config.api_port = 11001;

@@ -17,7 +17,7 @@ cd push-server
 ```
 var config = {};
 
-config.pingTimeout = 25000;
+config.pingTimeout = 25000;  //心跳间隔
 config.pingInterval = 25000;
 config.apns = [];
 

@@ -6,7 +6,7 @@ var util = require("../util/util.js");
 var logger = require('../log/index.js')('SimpleRedisHashCluster');
 
 const REDIS_MASTER = 'master';    // ioreids use when fetch sentinel
-const REDIS_SLAVE  = 'slave';     // ioreids use when fetch sentinel
+const REDIS_SLAVE = 'slave';     // ioreids use when fetch sentinel
 
 function SimpleRedisHashCluster(config, completeCallback) {
     this.messageCallbacks = [];
@@ -19,36 +19,40 @@ function SimpleRedisHashCluster(config, completeCallback) {
     }
     var self = this;
 
-    if (config.sentinel){
-        this.sub = getClientsFromSentinel(config.sentinel.sub, config.sentinel.masters, REDIS_SLAVE, this);
-        this.pubs = [];
-        if (config.sentinel.pubs) {
-            config.sentinel.pubs.forEach(function (pub) {
-                self.pubs.push(getClientsFromSentinel(pub, config.sentinel.masters, REDIS_MASTER));
-            });
+    this.sub = [];
+    if (config.sub) {
+        if (Array.isArray(config.sub)) {
+            logger.debug("sub using direct redis", config.sub);
+            this.sub = getClientsFromIpList(config.sub, this);
+        } else {
+            logger.debug("sub using sentinel", config.sub);
+            this.sub = getClientsFromSentinel(config.sub.sentinel, config.sub.groupName, REDIS_SLAVE, this);
         }
-        completeCallback(this);
-        return;
     }
 
-    this.sub = getClientsFromIpList(config.sub, this);
     this.pubs = [];
     if (config.pubs) {
         config.pubs.forEach(function (pub) {
-            self.pubs.push(getClientsFromIpList(pub));
+            if (Array.isArray(pub)) {
+                logger.debug("pub using direct redis", pub);
+                self.pubs.push(getClientsFromIpList(pub));
+            } else {
+                logger.debug("pub using sentinel", pub);
+                self.pubs.push(getClientsFromSentinel(pub.sentinel, pub.groupName, REDIS_MASTER));
+            }
         });
     }
     completeCallback(this);
 }
 
-function getClientsFromSentinel(sentinels, names, role, subscribe){
+function getClientsFromSentinel(sentinels, names, role, subscribe) {
     var clients = [];
     if (names) {
         names.forEach(function (name) {
             var client = new IoRedis({
-                sentinels : sentinels,
-                name : name,
-                role : role,
+                sentinels: sentinels,
+                name: name,
+                role: role,
                 retryStrategy: function (times) {
                     var delay = Math.min(times * 300, 2000);
                     return delay;
@@ -82,7 +86,7 @@ function getClientsFromIpList(addrs, subscribe) {
             var client = new IoRedis({
                 host: addr.host,
                 port: addr.port,
-                retryStrategy : function (times) {
+                retryStrategy: function (times) {
                     var delay = Math.min(times * 300, 2000);
                     return delay;
                 },
@@ -161,10 +165,10 @@ function handleCommand(command, callArguments, key, arg, callback, client) {
     logger.debug("handleCommand[%s %s %j]", command, key, arg);
 
     /*
-      replyBuffer:
-         And every command has a method that returns a Buffer (by adding a suffix of "Buffer" to the command name).
-         To get a buffer instead of a utf8 string:
-        client.callBuffer is the lowlevel api
+     replyBuffer:
+     And every command has a method that returns a Buffer (by adding a suffix of "Buffer" to the command name).
+     To get a buffer instead of a utf8 string:
+     client.callBuffer is the lowlevel api
      **/
 
     if (Array.isArray(arg)) {
@@ -203,7 +207,7 @@ SimpleRedisHashCluster.prototype.on = function (message, callback) {
 SimpleRedisHashCluster.prototype.status = function () {
     var masterError = 0;
     this.pubs.forEach(function (pub) {
-        pub.forEach(function(master) {
+        pub.forEach(function (master) {
             master.status !== 'ready' && masterError++;
         });
     });
