@@ -49,6 +49,10 @@ function getClientsFromSentinel(sentinels, names, role, subscribe){
                 sentinels : sentinels,
                 name : name,
                 role : role,
+                retryStrategy: function (times) {
+                    var delay = Math.min(times * 300, 2000);
+                    return delay;
+                },
                 connectTimeout: 10000000000000000
             });
             client.on("error", function (err) {
@@ -78,6 +82,10 @@ function getClientsFromIpList(addrs, subscribe) {
             var client = new IoRedis({
                 host: addr.host,
                 port: addr.port,
+                retryStrategy : function (times) {
+                    var delay = Math.min(times * 300, 2000);
+                    return delay;
+                },
                 connectTimeout: 10000000000000000
             });
             client.on("error", function (err) {
