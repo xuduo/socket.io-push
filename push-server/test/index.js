@@ -3,7 +3,10 @@ var config = require('../config.js');
 var oldApiPort = config.api_port;
 config.api_port = 0;
 var pushService = require('../lib/push-server.js')(config);
-var pushClient = require('../lib/push-client.js')('http://localhost:' + config.io_port, {transports: ['websocket', 'polling']});
+var pushClient = require('../lib/push-client.js')('http://localhost:' + config.io_port, {
+    transports: ['websocket', 'polling'],
+    useNotification: true
+});
 config.io_port = config.io_port + 1;
 config.api_port = oldApiPort;
 var apiService = require('../lib/push-server.js')(config);
@@ -32,12 +35,12 @@ describe('长连接Socket IO的测试', function () {
             expect(data.message).to.be.equal('ok');
             done();
         }
-        pushClient.event.on('message', messageCallback);
+
+        pushClient.on('push', messageCallback);
         request
             .post(apiUrl + '/api/push')
             .send({
-                pushId: '',
-                pushAll: 'true',
+                pushId: pushClient.pushId,
                 topic: 'message',
                 data: data
             })
@@ -67,11 +70,10 @@ describe('长连接Socket IO的测试', function () {
         pushClient.unsubscribeTopic("message");
 
         request
-            .post('http://localhost:11001/api/notification')
+            .post(apiUrl + '/api/notification')
             .send({
                 pushId: '',
                 pushAll: 'true',
-                uid: '',
                 notification: str
             })
             .set('Accept', 'application/json')
@@ -80,31 +82,5 @@ describe('长连接Socket IO的测试', function () {
             });
     });
 
-
-    //it('Socket IO Push leave Topic', function (done) {
-    //    var b = new Buffer('{message:"ok"}');
-    //    var data = b.toString('base64');
-    //
-    //    var messageCallback = function(data){
-    //        expect(data.topic).to.be.equal('message');
-    //        expect(data.data).to.be.equal('{message:"ok"}');
-    //    }
-    //    var spy = chai.spy(messageCallback);
-    //    pushClient.event.on('message',spy);
-    //    request
-    //        .post(apiUrl + '/api/push')
-    //        .send({
-    //            pushId: '',
-    //            pushAll: 'true',
-    //            topic: 'message',
-    //            data:data
-    //        })
-    //        .set('Accept', 'application/json')
-    //        .end(function (err, res) {
-    //            expect(res.text).to.be.equal('{"code":"success"}');
-    //            expect(spy).to.have.been.called();
-    //            done();
-    //        });
-    //});
 
 });

@@ -17,7 +17,7 @@ function PushServer(config) {
         var io = require('socket.io')(ioPort, {
             pingTimeout: config.pingTimeout,
             pingInterval: config.pingInterval,
-            transports: ['websocket']
+            transports: ['websocket', 'polling']
         });
         console.log("start server on port " + ioPort);
         var Stats = require('./stats/stats.js');
@@ -37,7 +37,7 @@ function PushServer(config) {
         var AdminCommand = require('./server/adminCommand.js');
         var adminCommand = new AdminCommand(cluster, stats, packetService, proxyServer, apiThreshold);
         var topicOnline;
-        if(config.topicOnlineFilter) {
+        if (config.topicOnlineFilter) {
             topicOnline = require('./stats/topicOnline.js')(cluster, io, stats.id, config.topicOnlineFilter);
         }
         if (apiPort) {
