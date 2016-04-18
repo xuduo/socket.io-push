@@ -10,13 +10,21 @@ function PushClient(url, opt) {
     this.socket = require('socket.io-client')(url, opt);
     this.pushId = randomstring.generate(24);
     this.event = new EventEmitter();
+
     this.socket.on('connect', function () {
         self.sendPushIdAndTopic();
-        console.log('PushClient connected');
     }.bind(this));
+
     this.socket.on('disconnect', function () {
         console.log('PushClient disconnected');
+        self.event.emit('disconnect', data);
     }.bind(this));
+
+    this.socket.on('pushId', function (data) {
+        console.log('PushClient connected');
+        self.event.emit('connect', data);
+    });
+
     this.socket.on('push', pushHandler.bind(this));
     this.socket.on('p', pushHandler.bind(this));
     if (opt.useNotification) {
@@ -49,10 +57,11 @@ var notiHandler = function (data) {
 }
 
 PushClient.prototype.on = function (event, callback) {
+    this.event.removeAllListeners(event);
     this.event.on(event, callback);
 };
 
-PushClient.prototype.subscriptTopic = function (topic) {
+PushClient.prototype.subscribeTopic = function (topic) {
     this.topics[topic] = 1;
     this.socket.emit('subscribeTopic', {topic: topic});
 };

@@ -17,16 +17,16 @@ var chai = require('chai');
 
 var expect = chai.expect;
 
-describe('长连接Socket IO的测试', function () {
+describe('push test', function () {
 
-    it('Socket Io  connect', function (done) {
-        pushClient.socket.on('pushId', function (data) {
+    it('Socket Io connect', function (done) {
+        pushClient.on('connect', function (data) {
             expect(data.id).to.be.equal(pushClient.pushId);
             done();
         });
     });
 
-    it('Socket IO Push', function (done) {
+    it('Push to id', function (done) {
         var b = new Buffer('{ "message":"ok"}');
         var data = b.toString('base64');
 
@@ -50,24 +50,46 @@ describe('长连接Socket IO的测试', function () {
             });
     });
 
+    it('push to topic', function (done) {
+        var b = new Buffer('{ "message":"ok"}');
+        var data = b.toString('base64');
+
+        var messageCallback = function (topic, data) {
+            expect(topic).to.be.equal('message');
+            expect(data.message).to.be.equal('ok');
+            done();
+        }
+        pushClient.subscribeTopic("message");
+        pushClient.on('push', messageCallback);
+        request
+            .post(apiUrl + '/api/push')
+            .send({
+                pushAll: "true",
+                topic: 'message',
+                data: data
+            })
+            .set('Accept', 'application/json')
+            .end(function (err, res) {
+                expect(res.text).to.be.equal('{"code":"success"}');
+            });
+    });
+
     it('Socket IO Notification', function (done) {
         var title = 'hello',
             message = 'hello world';
         var data = {
-            "android": {"title": title, "message": message},
+            "browser": {"title": title, "message": message},
             "apn": {"alert": message, "badge": 5, "sound": "default", "payload": {}}
         }
         var str = JSON.stringify(data);
 
-        var notificationCallback = function (data) {
-            expect(data.android.title).to.be.equal(title);
-            expect(data.android.message).to.be.equal(message);
+        var notificationCallback = function (id,data) {
+            expect(data.title).to.be.equal(title);
+            expect(data.message).to.be.equal(message);
             done();
         }
-        pushClient.event.on('notification', notificationCallback);
+        pushClient.on('notification', notificationCallback);
 
-        //leave topic
-        pushClient.unsubscribeTopic("message");
 
         request
             .post(apiUrl + '/api/notification')

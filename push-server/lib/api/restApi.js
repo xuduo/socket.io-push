@@ -37,6 +37,8 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
 
     server.get(/^\/push\/?.*/, staticConfig);
 
+    server.get(/^\/client\/?.*/, staticConfig);
+
     server.get(/^\/notification\/?.*/, staticConfig);
 
     server.get(/^\/handleStatsBase\/?.*/, staticConfig);
