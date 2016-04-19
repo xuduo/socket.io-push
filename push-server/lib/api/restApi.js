@@ -3,9 +3,9 @@ var restify = require('restify');
 var debug = require('debug')('RestApi');
 var logger = require('../log/index.js')('RestApi');
 
-function RestApi(io, topicOnline, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth) {
+function RestApi(io, topicOnline, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth, uidStore) {
 
-    if (!(this instanceof RestApi)) return new RestApi(io, topicOnline, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth);
+    if (!(this instanceof RestApi)) return new RestApi(io, topicOnline, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth, uidStore);
 
     var self = this;
 
@@ -40,6 +40,8 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
     server.get(/^\/client\/?.*/, staticConfig);
 
     server.get(/^\/notification\/?.*/, staticConfig);
+
+    server.get(/^\/uid\/?.*/, staticConfig);
 
     server.get(/^\/handleStatsBase\/?.*/, staticConfig);
 
@@ -110,10 +112,31 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
                     return next();
                 }
             } else {
-                res.statusCode = 400;
-                res.send({code: "error", message: "pushId is required"});
-                return next();
+                if (uid) {
+                    if (typeof uid === 'string') {
+                        uidStore.getPushIdByUid(uid, function (pushIds) {
+                            pushIds.forEach(function (id) {
+                                ttlService.addPacketAndEmit(id, 'push', timeToLive, pushData, io, true);
+                            });
+                            res.send({code: "success"});
+                            return next();
+                        });
+                    } else {
+                        uid.forEach(function (id, i) {
+                            uidStore.getPushIdByUid(id, function (pushIds) {
+                                pushIds.forEach(function (result) {
+                                    ttlService.addPacketAndEmit(result, 'push', timeToLive, pushData, io, true);
+                                });
+                            });
+                        });
+                        res.send({code: "success"});
+                        return next();
+                    }
+                }
             }
+            res.statusCode = 400;
+            res.send({code: "error", message: "pushId or uid is required"});
+            return next();
         }
     };
 
@@ -153,8 +176,22 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
                 res.send({code: "success"});
                 return next();
             } else {
+                if (uid) {
+                    var uids;
+                    if (typeof uid === 'string') {
+                        uids = [uid];
+                    } else {
+                        uids = uid;
+                    }
+                    uids.forEach(function (uid, i) {
+                        uidStore.getPushIdByUid(uid, function (pushIds) {
+                            notificationService.sendByPushIds(pushIds, timeToLive, notification, io);
+                        });
+                    });
+                    res.send({code: "success"});
+                }
                 res.statusCode = 400;
-                res.send({code: "error", message: "pushId is required"});
+                res.send({code: "error", message: "pushId or uid is required"});
                 return next();
             }
         }
@@ -172,6 +209,14 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
         stats.find(key, function (result) {
             res.send(result);
         });
+        return next();
+    };
+
+    var handleAddPushIdToUid = function (req, res, next) {
+        var uid = req.params.uid;
+        var pushId = req.params.pushId;
+        uidStore.addUid(pushId, uid, 3600 * 1000)
+        res.send({code: "success"});
         return next();
     };
 
@@ -197,6 +242,8 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
     server.post('/api/push', handlePush);
     server.get('/api/notification', handleNotification);
     server.post('/api/notification', handleNotification);
+    server.get('/api/addPushIdToUid', handleAddPushIdToUid);
+    server.post('/api/addPushIdToUid', handleAddPushIdToUid);
     server.get('api/state/getQueryDataKeys', handleQueryDataKeys)
 
     server.get('/api/topicOnline', function (req, res, next) {

@@ -12,6 +12,7 @@ function PushClient(url, opt) {
     this.event = new EventEmitter();
 
     this.socket.on('connect', function () {
+        console.log('PushClient socket.io connect');
         self.sendPushIdAndTopic();
     }.bind(this));
 
@@ -21,7 +22,7 @@ function PushClient(url, opt) {
     }.bind(this));
 
     this.socket.on('pushId', function (data) {
-        console.log('PushClient connected');
+        console.log('PushClient pushId connected');
         self.event.emit('connect', data);
     });
 

@@ -89,7 +89,7 @@ server
 
 ##HTTP API
 
-string[]类型,表示http协议中list类型参数，如 get?pushId=123&pushId=456 ,表示一个pushId数组 [123, 456]. get?pushId=123 表示单个pushId数组 [123]
+string[]类型,表示http协议中list类型参数，如 get?uid=123&uid=456 ,表示一个uid数组 [123, 456]. get?uid=123 表示单个uid数组 [123]
 
 ### /api/push 应用内透传
 
@@ -100,6 +100,8 @@ http://yourip:11001/api/push?pushAll=true&data=aGVsbG8gd29ybGQ&topic=/topic/test
 pushAll -> string, true表示推送全网,其它或者留空表示单个推送
 
 pushId -> string[], 客户端生成的随机ID,单个或者数组
+
+uid -> string[] 通过addPushIdToUid接口绑定的uid
 
 --- 以上参数3选一,指定推送对象
 
@@ -115,6 +117,8 @@ http://yourip:11001/api/notification?pushId=true&notification=%7B%20%22android%2
 pushAll -> string, true表示推送全网,其它或者留空表示单个推送
 
 pushId -> string[], 客户端生成的随机ID,单个或者数组
+
+uid -> string[], 通过addPushIdToUid接口绑定的uid
 
 --- 以上参数3选一,指定推送对象
 
@@ -142,3 +146,12 @@ badge(ios) - (apn对应的badge字段) 可选
 sound(ios) - (apn对应的sound字段) 可选
 
 payload - 发送给应用非显示用的透传信息, 需要是一个json map
+
+
+### /api/addPushIdToUid 绑定UID和pushId
+
+http://yourip:11001/api/addPushIdToUid?pushId=abc&uid=123
+
+pushId -> string,客户端生成的随机ID
+
+uid -> string,服务器需要绑定的UID

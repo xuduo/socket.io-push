@@ -19,7 +19,7 @@ var expect = chai.expect;
 
 describe('push test', function () {
 
-    it('Socket Io connect', function (done) {
+    it('connect', function (done) {
         pushClient.on('connect', function (data) {
             expect(data.id).to.be.equal(pushClient.pushId);
             done();
