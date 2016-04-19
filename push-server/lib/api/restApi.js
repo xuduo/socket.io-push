@@ -58,12 +58,15 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
             res.send({code: "error", message: 'not authorized'});
             return next();
         }
+        var pushAll = req.params.pushAll;
         var topic = req.params.topic;
-        if (!topic) {
+
+        if (!topic && pushAll == 'true') {
             res.statusCode = 400;
-            res.send({code: "error", message: 'topic is required'});
+            res.send({code: "error", message: 'topic is required when pushAll == true'});
             return next();
         }
+
         var data = req.params.data;
         var json = req.params.json;
         if (!data && !json) {
@@ -71,8 +74,6 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
             res.send({code: "error", message: 'data is required'});
             return next();
         }
-        var pushId = req.params.pushId;
-        var pushAll = req.params.pushAll;
         logger.info("push %j", req.params);
         var pushData = {};
         if (data) {
@@ -98,42 +99,23 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
                 }
             });
             return next();
-        } else {
-            if (pushId) {
-                if (typeof pushId === 'string') {
-                    ttlService.addPacketAndEmit(pushId, 'push', timeToLive, pushData, io, true);
-                    res.send({code: "success"});
-                    return next();
-                } else {
-                    pushId.forEach(function (id) {
-                        ttlService.addPacketAndEmit(id, 'push', timeToLive, pushData, io, true);
+        } else if (req.params.pushId) {
+            parseArrayParam(req.params.pushId).forEach(function (id) {
+                ttlService.addPacketAndEmit(id, 'push', timeToLive, pushData, io, true);
+            });
+            res.send({code: "success"});
+            return next();
+        } else if (req.params.uid) {
+            parseArrayParam(req.params.uid).forEach(function (id) {
+                uidStore.getPushIdByUid(id, function (pushIds) {
+                    pushIds.forEach(function (result) {
+                        ttlService.addPacketAndEmit(result, 'push', timeToLive, pushData, io, true);
                     });
-                    res.send({code: "success"});
-                    return next();
-                }
-            } else {
-                if (uid) {
-                    if (typeof uid === 'string') {
-                        uidStore.getPushIdByUid(uid, function (pushIds) {
-                            pushIds.forEach(function (id) {
-                                ttlService.addPacketAndEmit(id, 'push', timeToLive, pushData, io, true);
-                            });
-                            res.send({code: "success"});
-                            return next();
-                        });
-                    } else {
-                        uid.forEach(function (id, i) {
-                            uidStore.getPushIdByUid(id, function (pushIds) {
-                                pushIds.forEach(function (result) {
-                                    ttlService.addPacketAndEmit(result, 'push', timeToLive, pushData, io, true);
-                                });
-                            });
-                        });
-                        res.send({code: "success"});
-                        return next();
-                    }
-                }
-            }
+                });
+            });
+            res.send({code: "success"});
+            return next();
+        } else {
             res.statusCode = 400;
             res.send({code: "error", message: "pushId or uid is required"});
             return next();
@@ -164,36 +146,23 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
             notificationService.sendAll(notification, timeToLive, io);
             res.send({code: "success"});
             return next();
+        } else if (pushId) {
+            var pushIds = parseArrayParam(pushId);
+            notificationService.sendByPushIds(pushIds, timeToLive, notification, io);
+            res.send({code: "success"});
+            return next();
+        } else if (uid) {
+            var uids = parseArrayParam(uid);
+            uids.forEach(function (uid) {
+                uidStore.getPushIdByUid(uid, function (pushIds) {
+                    notificationService.sendByPushIds(pushIds, timeToLive, notification, io);
+                });
+            });
+            res.send({code: "success"});
         } else {
-            if (pushId) {
-                var pushIds;
-                if (typeof pushId === 'string') {
-                    pushIds = [pushId];
-                } else {
-                    pushIds = pushId;
-                }
-                notificationService.sendByPushIds(pushIds, timeToLive, notification, io);
-                res.send({code: "success"});
-                return next();
-            } else {
-                if (uid) {
-                    var uids;
-                    if (typeof uid === 'string') {
-                        uids = [uid];
-                    } else {
-                        uids = uid;
-                    }
-                    uids.forEach(function (uid, i) {
-                        uidStore.getPushIdByUid(uid, function (pushIds) {
-                            notificationService.sendByPushIds(pushIds, timeToLive, notification, io);
-                        });
-                    });
-                    res.send({code: "success"});
-                }
-                res.statusCode = 400;
-                res.send({code: "error", message: "pushId or uid is required"});
-                return next();
-            }
+            res.statusCode = 400;
+            res.send({code: "error", message: "pushId or uid is required"});
+            return next();
         }
     };
 
@@ -375,4 +344,20 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
 
 }
 
-
+function parseArrayParam(param) {
+    var arr;
+    if (typeof param === 'string') {
+        if (param.startsWith('[')) {
+            arr = JSON.parse(param);
+        } else {
+            arr = [param];
+        }
+    } else if (typeof param === 'number') {
+        arr = [param];
+    }
+    else {
+        arr = param;
+    }
+    console.log("xxxx " + JSON.stringify(arr));
+    return arr;
+}

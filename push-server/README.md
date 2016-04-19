@@ -89,7 +89,7 @@ server
 
 ##HTTP API
 
-string[]类型,表示http协议中list类型参数，如 get?uid=123&uid=456 ,表示一个uid数组 [123, 456]. get?uid=123 表示单个uid数组 [123]
+string[]类型,表示http协议中list类型参数，如 get?uid=123&uid=456 ,表示一个uid数组 ["123", "456"]. get?uid=123 表示单个uid数组 [123]
 
 ### /api/push 应用内透传
 
@@ -99,13 +99,17 @@ http://yourip:11001/api/push?pushAll=true&data=aGVsbG8gd29ybGQ&topic=/topic/test
 
 pushAll -> string, true表示推送全网,其它或者留空表示单个推送
 
-pushId -> string[], 客户端生成的随机ID,单个或者数组
+pushId -> string[], 如 ["abc","def"] 客户端生成的随机ID,单个或者数组
 
-uid -> string[] 通过addPushIdToUid接口绑定的uid
+uid -> string[],如 ["123","456"] 通过addPushIdToUid接口绑定的uid
 
 --- 以上参数3选一,指定推送对象
 
-data -> string, base64编码的二进制数据
+data -> string, base64编码的二进制数据,透传数据,客户端会接收到
+
+json -> jsonString, 同data,如果json数据, 推荐用json字段
+
+--- 以上参数2选一
 
 topic -> string, 客户端订阅的topic, (subscribeBroadcast的才能收到)
 
@@ -116,9 +120,9 @@ http://yourip:11001/api/notification?pushId=true&notification=%7B%20%22android%2
 
 pushAll -> string, true表示推送全网,其它或者留空表示单个推送
 
-pushId -> string[], 客户端生成的随机ID,单个或者数组
+pushId -> string[], 如 ["abc","def"] 客户端生成的随机ID,单个或者数组
 
-uid -> string[], 通过addPushIdToUid接口绑定的uid
+uid -> string[],如 ["123","456"] 通过addPushIdToUid接口绑定的uid
 
 --- 以上参数3选一,指定推送对象
 

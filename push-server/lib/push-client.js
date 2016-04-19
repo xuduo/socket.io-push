@@ -46,7 +46,7 @@ var pushHandler = function (data) {
     } else {
         jsonData = data.j;
     }
-    var topic = data.topic || data.t;
+    var topic = data.topic || data.t || '';
     console.log("pushHandler topic " + topic + " jsonData" + JSON.stringify(jsonData));
     this.event.emit("push", topic, jsonData);
 }

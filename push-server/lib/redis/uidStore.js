@@ -6,32 +6,32 @@ function UidStore(redis, subClient) {
     this.redis = redis;
 }
 
-UidStore.prototype.addUid = function(pushId, uid, timeToLive) {
+UidStore.prototype.addUid = function (pushId, uid, timeToLive) {
     logger.info("addUid pushId %s %s", uid, pushId);
     var key = "pushIdToUid#" + pushId;
-    var ourThis = this;
-    this.getUidByPushId(pushId, function(oldUid){
-        if(oldUid) {
+    var self = this;
+    this.getUidByPushId(pushId, function (oldUid) {
+        if (oldUid) {
             logger.log('info', "remove %s from old uid %s", pushId, oldUid);
-            ourThis.redis.hdel("uidToPushId#" + oldUid, pushId);
+            self.redis.hdel("uidToPushId#" + oldUid, pushId);
         }
-        ourThis.redis.set(key, uid);
-        if(timeToLive){
-            ourThis.redis.expire(key, timeToLive);
+        self.redis.set(key, uid);
+        if (timeToLive) {
+            self.redis.expire(key, timeToLive);
         }
-        ourThis.redis.hset("uidToPushId#" + uid, pushId , Date.now());
+        self.redis.hset("uidToPushId#" + uid, pushId, Date.now());
     });
 };
 
 UidStore.prototype.removePushId = function (pushId) {
     logger.info("removePushId pushId %s %s", uid, pushId);
     var key = "pushIdToUid#" + pushId;
-    var ourThis = this;
+    var self = this;
     this.redis.get(key, function (err, oldUid) {
         if (oldUid) {
             logger.log('info', "remove %s from old uid %s", pushId, oldUid);
-            ourThis.redis.hdel("uidToPushId#" + uid, pushId);
-            ourThis.redis.del(key);
+            self.redis.hdel("uidToPushId#" + uid, pushId);
+            self.redis.del(key);
         }
     });
 };
@@ -46,6 +46,8 @@ UidStore.prototype.getUidByPushId = function (pushId, callback) {
 
 UidStore.prototype.getPushIdByUid = function (uid, callback) {
     this.redis.hkeys("uidToPushId#" + uid, function (err, replies) {
-        callback(replies);
+        if (replies && replies.length > 0) {
+            callback(replies);
+        }
     });
 };

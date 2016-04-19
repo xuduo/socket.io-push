@@ -63,7 +63,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                     packetService.publishConnect(socket);
                     socket.join(data.id);
                     socket.emit('pushId', reply);
-                    logger.log('debug', 'join room socket.id %s ,pushId %s', socket.id, socket.pushId);
+                    logger.debug('join room socket.id %s ,pushId %s', socket.id, socket.pushId);
                     ttlService.onPushId(socket);
                 })
 
