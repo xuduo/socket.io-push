@@ -26,7 +26,7 @@ NotificationService.prototype.setApnToken = function (pushId, apnToken, bundleId
             bundleId = this.defaultBundleId;
         }
         try {
-            var buffer = new Buffer(apnToken, 'hex');
+            new Buffer(apnToken, 'hex');
         } catch (err) {
             logger.info("invalid apnToken format %s", apnToken);
             return;

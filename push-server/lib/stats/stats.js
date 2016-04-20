@@ -144,7 +144,7 @@ Stats.prototype.onNotificationReply = function (timestamp) {
     var latency = Date.now() - timestamp;
     logger.verbose('onNotificationReply %s', latency);
     if (latency < 10000) {
-        this.incr("stats#notification#successCount", timestamp);
+        this.incr("stats#notification#totalCount", timestamp);
         this.incrby("stats#notification#totalLatency", timestamp, latency);
         logger.verbose("onNotificationReply %d", latency);
     }

@@ -22,7 +22,7 @@ function PushClient(url, opt) {
     }.bind(this));
 
     this.socket.on('pushId', function (data) {
-        console.log('PushClient pushId connected');
+        console.log('PushClient pushId connected ' + data.id);
         self.event.emit('connect', data);
     });
 

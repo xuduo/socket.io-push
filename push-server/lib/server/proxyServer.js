@@ -56,7 +56,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                 uidStore.getUidByPushId(data.id, function (uid) {
                     var reply = {id: data.id};
                     if (uid) {
-                        reply.uid = uid;
+                        reply.uid = uid.toString();
                         socket.uid = uid;
                     }
                     socket.pushId = data.id;
@@ -75,7 +75,6 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
             ttlService.getPackets(topic, data.lastPacketId, socket);
             socket.join(topic);
         });
-
 
         socket.on('unsubscribeTopic', function (data) {
             logger.debug( "on unsubscribeTopic %j", data);
