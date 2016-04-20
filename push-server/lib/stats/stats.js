@@ -268,11 +268,11 @@ Stats.prototype.find = function (key, callback) {
                 latencyDay += latency;
                 totalChart.push(total);
                 latencyChart.push(Math.round(latency / success) || 0);
-                successRateChart.push(((100 * success / total) || 0).toFixed(2));
+                successRateChart.push(((100 * success / total) || 0).toFixed(3));
                 countPerSecondChart.push(total / mSecPerHour * 1000);
 
                 if ((i + 1) % (24) == 0) {
-                    successRateChartDay.push(((100 * successDay / totalDay) || 0).toFixed(2));
+                    successRateChartDay.push(((100 * successDay / totalDay) || 0).toFixed(3));
                     latencyChartDay.push(Math.round(latencyDay / successDay) || 0);
                     totalDay = 0;
                     successDay = 0;

@@ -86,7 +86,7 @@ public class SocketIOProxyClient implements PushSubscriber {
     private final Emitter.Listener connectListener = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
-            sendStats();
+            stats.onConnect();
             sendPushIdAndTopicToServer();
             reSendFailedRequest();
         }
@@ -97,6 +97,7 @@ public class SocketIOProxyClient implements PushSubscriber {
         public void call(Object... args) {
             connected = false;
             uid = null;
+            stats.onDisconnect();
             if (connectCallback != null) {
                 connectCallback.onDisconnect();
             }
@@ -299,8 +300,12 @@ public class SocketIOProxyClient implements PushSubscriber {
                 Log.e(TAG, "sendStats error", e);
             }
         }
+        postStatsTask();
+    }
+
+    private void postStatsTask() {
         handler.removeCallbacks(statsTask);
-        handler.postDelayed(statsTask, 10 * 60 * 1000L);
+        handler.postDelayed(statsTask,  30 * 1000L);
     }
 
     public void reportStats(String path, int successCount, int errorCount, int latency) {
@@ -374,6 +379,7 @@ public class SocketIOProxyClient implements PushSubscriber {
             socket.on("n", notificationListener);
             socket.on(Socket.EVENT_DISCONNECT, disconnectListener);
             socket.connect();
+            postStatsTask();
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }

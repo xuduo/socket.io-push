@@ -14,6 +14,7 @@ import java.util.Map;
 public class Stats {
 
     private Map<String, Performance> performances = new HashMap<>();
+    private Connectivity connectivity = new Connectivity();
 
     public void reportError(String path) {
         Performance performance = getPerformance(path);
@@ -40,6 +41,14 @@ public class Stats {
         performance.addSuccess(System.currentTimeMillis() - timestamp);
     }
 
+    public void onConnect(){
+        connectivity.onConnect();
+    }
+
+    public void onDisconnect(){
+        connectivity.onDisconnect();
+    }
+
     public JSONArray getRequestJsonArray() throws JSONException {
         JSONArray array = new JSONArray();
         for (Performance performance : performances.values()) {
@@ -51,6 +60,14 @@ public class Stats {
             array.put(object);
         }
         performances.clear();
+        Connectivity.ConnectionTimes connectionTimes = connectivity.getResult();
+        if(connectionTimes.timeTotal > 10){
+            JSONObject object = new JSONObject();
+            object.put("path", "Connectivity");
+            object.put("successCount", connectionTimes.timeConnected);
+            object.put("totalCount", connectionTimes.timeTotal);
+            array.put(object);
+        }
         return array;
     }
 }

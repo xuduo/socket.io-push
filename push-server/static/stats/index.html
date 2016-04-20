@@ -144,7 +144,7 @@
 
                 $("#totalCount").text(data.totalCount);
                 $("#avgLatency").text(data.avgLatency);
-                $("#successRate").text((data.successRate * 100).toFixed(2) + '%');
+                $("#successRate").text((data.successRate * 100).toFixed(3) + '%');
 
                 makeChart("totalChartHour", "count", data.chartData.total, data.chartData.timestamps);
                 makeDayChart("totalChartDay", "count", data.chartData.total, data.chartData.timestamps);
