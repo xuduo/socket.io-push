@@ -358,6 +358,5 @@ function parseArrayParam(param) {
     else {
         arr = param;
     }
-    console.log("xxxx " + JSON.stringify(arr));
     return arr;
 }
