@@ -84,6 +84,12 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
             String handlerClassName = getFromIntentOrPref(intent, "notificationHandler");
             Class handlerClass;
 
+            if (host == null) {
+                Log.e(TAG, "host is null , exit");
+                stopSelf();
+                return;
+            }
+
             if (handlerClassName == null) {
                 notificationHandler = new DefaultNotificationHandler();
             } else {
@@ -159,7 +165,7 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
         sendConnect();
     }
 
-    public static void sendConnect(){
+    public static void sendConnect() {
         int id;
         if (client.isConnected()) {
             id = BindService.CMD_CONNECTED;
