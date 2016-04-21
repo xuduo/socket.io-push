@@ -34,6 +34,7 @@ public class RemoteClient implements PushSubscriber, HttpRequester {
     public static final int CMD_REGISTER_CLIENT = 4;
     public static final int CMD_UNSUBSCRIBE_BROADCAST = 5;
     public static final int CMD_STATS = 6;
+    public static final int CMD_UNBIND_UID = 7;
     private Map<String, Boolean> topics = new HashMap<>();
     private ProxyClient proxyClient;
     private Messenger mService;
@@ -167,6 +168,12 @@ public class RemoteClient implements PushSubscriber, HttpRequester {
         msg.setData(bundle);
         sendMsg(msg);
     }
+
+    public void unbindUid() {
+        Message msg = Message.obtain(null, CMD_UNBIND_UID, 0, 0);
+        sendMsg(msg);
+    }
+
 
     @Override
     public void subscribeBroadcast(String topic, boolean receiveTtlPackets) {

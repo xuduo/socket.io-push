@@ -18,12 +18,12 @@ function PushClient(url, opt) {
 
     this.socket.on('disconnect', function () {
         console.log('PushClient disconnected');
-        self.event.emit('disconnect', data);
+        self.event.emit('disconnect');
     }.bind(this));
 
     this.socket.on('pushId', function (data) {
         console.log('PushClient pushId connected ' + data.id);
-        self.event.emit('connect', data);
+        self.event.emit('connect', {pushId: data.id, uid: data.uid});
     });
 
     this.socket.on('push', pushHandler.bind(this));
@@ -32,11 +32,24 @@ function PushClient(url, opt) {
         this.socket.on('noti', notiHandler.bind(this));
     }
 }
-
+// private
 PushClient.prototype.sendPushIdAndTopic = function () {
     var topics = Object.keys(this.topics);
     this.socket.emit('pushId', {id: this.pushId, version: 1, platform: "browser", topics: topics});
 }
+
+PushClient.prototype.unbindUid = function () {
+    this.socket.emit('unbindUid');
+}
+
+PushClient.prototype.disconnect = function () {
+    this.socket.disconnect();
+}
+
+PushClient.prototype.connect = function () {
+    this.socket.connect();
+}
+
 
 var pushHandler = function (data) {
     var jsonData;

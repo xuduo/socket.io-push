@@ -52,6 +52,8 @@ public class BindService extends Service {
                 int errorCount = bundle.getInt("errorCount");
                 int latency = bundle.getInt("latency");
                 ConnectionService.client.reportStats(path, successCount, errorCount, latency);
+            } else if (cmd == RemoteClient.CMD_UNBIND_UID) {
+                ConnectionService.client.unbindUid();
             }
         }
     }

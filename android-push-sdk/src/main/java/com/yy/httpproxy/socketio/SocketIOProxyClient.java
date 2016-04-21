@@ -115,6 +115,12 @@ public class SocketIOProxyClient implements PushSubscriber {
         }
     }
 
+    public void unbindUid(){
+        if (pushId != null && socket.connected()) {
+            socket.emit("unbindUid");
+        }
+    }
+
     private void sendPushIdAndTopicToServer() {
         if (pushId != null && socket.connected()) {
             Log.i(TAG, "sendPushIdAndTopicToServer " + pushId);
@@ -305,7 +311,7 @@ public class SocketIOProxyClient implements PushSubscriber {
 
     private void postStatsTask() {
         handler.removeCallbacks(statsTask);
-        handler.postDelayed(statsTask,  30 * 1000L);
+        handler.postDelayed(statsTask,  10 * 60 * 1000L);
     }
 
     public void reportStats(String path, int successCount, int errorCount, int latency) {

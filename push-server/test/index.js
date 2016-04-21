@@ -3,15 +3,8 @@ var config = require('../config.js');
 var oldApiPort = config.api_port;
 config.api_port = 0;
 var pushService = require('../lib/push-server.js')(config);
-var pushClient = require('../lib/push-client.js')('http://localhost:' + config.io_port, {
-    transports: ['websocket', 'polling'],
-    useNotification: true
-});
-
-var pushClient2 = require('../lib/push-client.js')('http://localhost:' + config.io_port, {
-    transports: ['websocket', 'polling'],
-    useNotification: true
-});
+var pushClient;
+var pushClient2;
 config.io_port = config.io_port + 1;
 config.api_port = oldApiPort;
 var apiService = require('../lib/push-server.js')(config);
@@ -25,15 +18,24 @@ describe('push test', function () {
 
     it('connect', function (done) {
         var connected = 0;
+        pushClient =  require('../lib/push-client.js')('http://localhost:' + config.io_port, {
+            transports: ['websocket', 'polling'],
+            useNotification: true
+        });
         pushClient.on('connect', function (data) {
-            expect(data.id).to.be.equal(pushClient.pushId);
+            expect(data.pushId).to.be.equal(pushClient.pushId);
             if (++connected == 2) {
                 done();
             }
         });
 
+        pushClient2 = require('../lib/push-client.js')('http://localhost:' + config.io_port, {
+            transports: ['websocket', 'polling'],
+            useNotification: true
+        });
+
         pushClient2.on('connect', function (data) {
-            expect(data.id).to.be.equal(pushClient2.pushId);
+            expect(data.pushId).to.be.equal(pushClient2.pushId);
             if (++connected == 2) {
                 done();
             }

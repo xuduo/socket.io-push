@@ -97,6 +97,12 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
             packetService.publishPacket(data);
         });
 
+        socket.on('unbindUid', function () {
+            if(socket.pushId){
+                uidStore.removePushId(socket.pushId);
+            }
+        });
+
         socket.on('notificationReply', function (data) {
             stats.onNotificationReply(data.timestamp);
         });

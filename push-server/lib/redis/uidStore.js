@@ -24,13 +24,13 @@ UidStore.prototype.addUid = function (pushId, uid, timeToLive) {
 };
 
 UidStore.prototype.removePushId = function (pushId) {
-    logger.info("removePushId pushId %s %s", uid, pushId);
+    logger.info("removePushId pushId  %s", pushId);
     var key = "pushIdToUid#" + pushId;
     var self = this;
     this.redis.get(key, function (err, oldUid) {
         if (oldUid) {
             logger.debug("remove %s from old uid %s", pushId, oldUid);
-            self.redis.hdel("uidToPushId#" + uid, pushId);
+            self.redis.hdel("uidToPushId#" + oldUid, pushId);
             self.redis.del(key);
         }
     });
