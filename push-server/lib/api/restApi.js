@@ -138,6 +138,7 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
 
         var pushId = req.params.pushId;
         var pushAll = req.params.pushAll;
+        var uid = req.params.uid;
         var timeToLive = parseInt(req.params.timeToLive);
 
         logger.info("notification ", req.params);

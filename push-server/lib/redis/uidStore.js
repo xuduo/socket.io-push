@@ -12,7 +12,7 @@ UidStore.prototype.addUid = function (pushId, uid, timeToLive) {
     var self = this;
     this.getUidByPushId(pushId, function (oldUid) {
         if (oldUid) {
-            logger.log('info', "remove %s from old uid %s", pushId, oldUid);
+            logger.debug("remove %s from old uid %s", pushId, oldUid);
             self.redis.hdel("uidToPushId#" + oldUid, pushId);
         }
         self.redis.set(key, uid);
@@ -29,7 +29,7 @@ UidStore.prototype.removePushId = function (pushId) {
     var self = this;
     this.redis.get(key, function (err, oldUid) {
         if (oldUid) {
-            logger.log('info', "remove %s from old uid %s", pushId, oldUid);
+            logger.debug("remove %s from old uid %s", pushId, oldUid);
             self.redis.hdel("uidToPushId#" + uid, pushId);
             self.redis.del(key);
         }
@@ -39,7 +39,7 @@ UidStore.prototype.removePushId = function (pushId) {
 UidStore.prototype.getUidByPushId = function (pushId, callback) {
     this.redis.get("pushIdToUid#" + pushId, function (err, uid) {
         // reply is null when the key is missing
-        logger.info("getUidByPushId %s %s", pushId, uid);
+        logger.debug("getUidByPushId %s %s", pushId, uid);
         callback(uid);
     });
 };
