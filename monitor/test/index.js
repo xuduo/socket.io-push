@@ -28,30 +28,23 @@ for (var i = 0; i <ips.length; i++) {
         var testip = config.ips[k];
         describe('长连接Socket IO的测试', function () {
             it(JSON.stringify({socketIP: ip, type: 'connect', apiIP: testip}), function (done) {
-                socket = require('socket.io-client')('http://' + ip, {
+                socket = require('socket.io-push/lib/push-client.js')('http://' + ip, {
                     transports: ['websocket'], extraHeaders: {
                         Host: config.ioHost
-                    }
+                    } ,useNotification : true
                 });
-                pushId = randomstring.generate(24);
-                socket.on('connect', function () {
-                    socket.emit('pushId', {id: pushId, version: 1, platform: "android", topics: ['message', "noti"]});
-                });
-                socket.on('pushId', function (data) {
-                    expect(data.id).to.be.equal(pushId);
+                socket.on('connect', function (data) {
+                    expect(data.pushId).to.be.equal(socket.pushId);
                     done();
                 });
             });
 
             it(JSON.stringify({socketIP: ip, type: 'push', apiIP:testip}), function (done) {
-                var b = new Buffer('{"message":"ok"}');
-                var data = b.toString('base64');
                 request
                     .post(testip + '/api/push')
                     .send({
-                        pushId: pushId,
-                        topic: 'message',
-                        data: data
+                        pushId: socket.pushId,
+                        json: '{"message":"ok"}'
                     })
                     .set('Accept', 'application/json')
                     .set('Host', config.apiHost)
@@ -60,9 +53,8 @@ for (var i = 0; i <ips.length; i++) {
                         expect(res.text).to.be.equal('{"code":"success"}');
                     });
 
-                socket.on('push', function (data) {
-                    var str = new Buffer(data.data, 'base64').toString();
-                    expect(str).to.be.equal('{"message":"ok"}');
+                socket.on('push', function (topic,data) {
+                    expect(data.message).to.equal('ok');
                     done();
                 });
             });
@@ -80,18 +72,17 @@ for (var i = 0; i <ips.length; i++) {
                 request
                     .post(testip + '/api/notification')
                     .send({
-                        pushId: pushId,
-                        uid: '',
+                        pushId: socket.pushId,
                         notification: str
                     })
                     .set('Accept', 'application/json')
                     .set('Host', config.apiHost)
                     .end(function (err, res) {
                         expect(err).to.be.null;
-                        expect(res.text).to.be.equal('{"code":"success"}');
+                        expect(res.text).to.equal('{"code":"success"}');
                     });
 
-                socket.on('noti', function (data) {
+                socket.on('notification', function (data) {
                     expect(data.android.title).to.be.equal(title);
                     expect(data.android.message).to.be.equal(message);
                     socket.disconnect();

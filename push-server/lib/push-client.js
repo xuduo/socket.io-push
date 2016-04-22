@@ -67,7 +67,7 @@ var pushHandler = function (data) {
 
 var notiHandler = function (data) {
     console.log("notiHandler data: " + JSON.stringify(data));
-    this.event.emit("notification", data.id, data.browser);
+    this.event.emit("notification", data);
 }
 
 PushClient.prototype.on = function (event, callback) {

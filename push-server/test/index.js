@@ -276,14 +276,14 @@ describe('push test', function () {
         var title = 'hello',
             message = 'hello world';
         var data = {
-            "browser": {"title": title, "message": message},
+            "android": {"title": title, "message": message},
             "apn": {"alert": message, "badge": 5, "sound": "default", "payload": {}}
         }
         var str = JSON.stringify(data);
 
-        var notificationCallback = function (id, data) {
-            expect(data.title).to.be.equal(title);
-            expect(data.message).to.be.equal(message);
+        var notificationCallback = function (data) {
+            expect(data.android.title).to.be.equal(title);
+            expect(data.android.message).to.be.equal(message);
             done();
         }
         pushClient.on('notification', notificationCallback);

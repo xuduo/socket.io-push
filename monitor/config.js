@@ -6,7 +6,7 @@ config.io_port = 10001;
 config.api_port = 11001;
 config.mochaInterval = 100000;
 
-config.ipFileName = ['test/wuxi-duoxian-01'];
+config.ipFileName = ['ipList'];
 config.ioHost = 'localhost';
 config.apiHost = 'localhost';
 config.ips= ['127.0.0.1:11001'];
