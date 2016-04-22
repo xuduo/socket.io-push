@@ -13,7 +13,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
             stats.removeSession();
             stats.removePlatformSession(socket.platform);
             if (socket.pushId) {
-                logger.debug( "publishDisconnect %s", socket.pushId);
+                logger.debug("publishDisconnect %s", socket.pushId);
                 packetService.publishDisconnect(socket);
             }
         });
@@ -29,7 +29,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
 
         socket.on('pushId', function (data) {
             if (data.id && data.id.length >= 10) {
-                logger.debug( "on pushId %j", data);
+                logger.debug("on pushId %j", data);
                 if (data.platform) {
                     socket.platform = data.platform.toLowerCase();
                 }
@@ -52,21 +52,23 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                 if (data.lastUnicastId) {
                     ttlService.getPackets(data.id, data.lastUnicastId, socket);
                 }
+                socket.join(data.id, function () {
 
-                uidStore.getUidByPushId(data.id, function (uid) {
-                    var reply = {id: data.id};
-                    if (uid) {
-                        reply.uid = uid.toString();
-                        socket.uid = uid;
-                    }
-                    socket.pushId = data.id;
-                    packetService.publishConnect(socket);
-                    socket.join(data.id);
-                    socket.emit('pushId', reply);
-                    logger.debug('join room socket.id %s ,pushId %s', socket.id, socket.pushId);
-                    ttlService.onPushId(socket);
-                })
+                    uidStore.getUidByPushId(data.id, function (uid) {
+                        var reply = {id: data.id};
+                        if (uid) {
+                            reply.uid = uid.toString();
+                            socket.uid = uid;
+                        }
+                        socket.pushId = data.id;
+                        packetService.publishConnect(socket);
+                        socket.emit('pushId', reply);
+                        logger.debug('join room socket.id %s ,pushId %s', socket.id, socket.pushId);
+                        ttlService.onPushId(socket);
 
+                    })
+
+                });
             }
         });
 
@@ -77,13 +79,13 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
         });
 
         socket.on('unsubscribeTopic', function (data) {
-            logger.debug( "on unsubscribeTopic %j", data);
+            logger.debug("on unsubscribeTopic %j", data);
             var topic = data.topic;
             socket.leave(topic);
         });
 
         socket.on('apnToken', function (data) {
-            logger.debug( "on apnToken %j", data);
+            logger.debug("on apnToken %j", data);
             var pushId = data.pushId;
             var apnToken = data.apnToken;
             notificationService.setApnToken(pushId, apnToken, data.bundleId);
@@ -98,7 +100,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
         });
 
         socket.on('unbindUid', function () {
-            if(socket.pushId){
+            if (socket.pushId) {
                 uidStore.removePushId(socket.pushId);
             }
         });
@@ -113,6 +115,6 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
 
 ProxyServer.prototype.getTopicOnline = function (topic) {
     var online = this.io.nsps['/'].adapter.rooms[topic].length;
-    logger.debug( "on topic online %s %d", topic, online);
+    logger.debug("on topic online %s %d", topic, online);
     return online;
 }

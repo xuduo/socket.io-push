@@ -20,13 +20,13 @@ config.ipFileName.forEach(function (ipFile) {
         }
     });
 });
-var socket, pushId;
 
+describe('长连接Socket IO的测试', function () {
 for (var i = 0; i <ips.length; i++) {
     var ip = ips[i];
     for(var k = 0; k<config.ips.length; k++) {
         var testip = config.ips[k];
-        describe('长连接Socket IO的测试', function () {
+            var socket
             it(JSON.stringify({socketIP: ip, type: 'connect', apiIP: testip}), function (done) {
                 socket = require('socket.io-push/lib/push-client.js')('http://' + ip, {
                     transports: ['websocket'], extraHeaders: {
@@ -90,8 +90,9 @@ for (var i = 0; i <ips.length; i++) {
                 })
             });
 
-        });
+
     }
 
 }
 
+});

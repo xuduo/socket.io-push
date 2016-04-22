@@ -272,7 +272,7 @@ describe('push test', function () {
             });
     });
 
-    it('Socket IO Notification', function (done) {
+    it('Notification pushAll', function (done) {
         var title = 'hello',
             message = 'hello world';
         var data = {
