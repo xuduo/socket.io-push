@@ -17,7 +17,7 @@ function NotificationService(apnConfigs, redis, ttlService) {
         }
     });
 
-    logger.info("defaultBundleId %s", this.defaultBundleId);
+    logger.debug("defaultBundleId %s", this.defaultBundleId);
 }
 
 NotificationService.prototype.setApnToken = function (pushId, apnToken, bundleId) {
@@ -28,16 +28,16 @@ NotificationService.prototype.setApnToken = function (pushId, apnToken, bundleId
         try {
             new Buffer(apnToken, 'hex');
         } catch (err) {
-            logger.info("invalid apnToken format %s", apnToken);
+            logger.debug("invalid apnToken format %s", apnToken);
             return;
         }
         var apnData = JSON.stringify({bundleId: bundleId, apnToken: apnToken});
         var self = this;
         this.redis.get("apnTokenToPushId#" + apnToken, function (err, oldPushId) {
-            logger.info("oldPushId %s", oldPushId);
+            logger.debug("oldPushId %s", oldPushId);
             if (oldPushId && oldPushId != pushId) {
                 self.redis.del("pushIdToApnData#" + oldPushId);
-                logger.info("remove old pushId to apnToken %s %s", oldPushId, apnData);
+                logger.debug("remove old pushId to apnToken %s %s", oldPushId, apnData);
             }
             self.redis.set("apnTokenToPushId#" + apnToken, pushId);
             self.redis.set("pushIdToApnData#" + pushId, apnData);
@@ -52,12 +52,12 @@ NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, not
     var self = this;
     pushIds.forEach(function (pushId) {
         self.redis.get("pushIdToApnData#" + pushId, function (err, reply) {
-            logger.info("pushIdToApnData %s %s", pushId, JSON.stringify(reply));
+            logger.debug("pushIdToApnData %s %s", pushId, JSON.stringify(reply));
             if (reply) {
                 var apnData = JSON.parse(reply);
                 self.apnService.sendOne(apnData, notification, timeToLive);
             } else {
-                logger.info("send notification to android %s", pushId);
+                logger.debug("send notification to android %s", pushId);
                 self.ttlService.addPacketAndEmit(pushId, 'noti', timeToLive, notification, io, true);
             }
         });

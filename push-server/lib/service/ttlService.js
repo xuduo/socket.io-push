@@ -19,7 +19,7 @@ TTLService.prototype.addPacketAndEmit = function (topic, event, timeToLive, pack
         packet.timestamp = Date.now();
     }
     if (timeToLive > 0) {
-        logger.info("addPacket %s %s %s", topic, event, timeToLive);
+        logger.debug("addPacket %s %s %s", topic, event, timeToLive);
         packet.ttl = "";
         if (unicast) {
             packet.unicast = "";
@@ -30,7 +30,7 @@ TTLService.prototype.addPacketAndEmit = function (topic, event, timeToLive, pack
         data.event = event;
         var listKey = "ttl#packet#" + topic;
         redis.pttl(listKey, function (err, oldTtl) {
-            logger.info("addPacket key %s , %d , %d", listKey, oldTtl, timeToLive);
+            logger.debug("addPacket key %s , %d , %d", listKey, oldTtl, timeToLive);
             redis.rpush(listKey, JSON.stringify(data));
             redis.ltrim(listKey, maxTllPacketPerTopic, -1);
             if (timeToLive > oldTtl) {
@@ -54,15 +54,15 @@ TTLService.prototype.getPackets = function (topic, lastId, socket) {
                     var now = Date.now();
                     if (jsonPacket.id == lastId) {
                         lastFound = true;
-                        logger.info("lastFound %s %s", jsonPacket.id, lastId);
+                        logger.debug("lastFound %s %s", jsonPacket.id, lastId);
                     } else if (lastFound == true && jsonPacket.timestampValid > now) {
-                        logger.info("call emitPacket %s %s", jsonPacket.id, lastId);
+                        logger.debug("call emitPacket %s %s", jsonPacket.id, lastId);
                         emitPacket(socket, jsonPacket);
                     }
                 });
 
                 if (!lastFound) {
-                    logger.info('lastId %s not found send all packets', lastId);
+                    logger.debug('lastId %s not found send all packets', lastId);
                     list.forEach(function (packet) {
                         var jsonPacket = JSON.parse(packet);
                         if (jsonPacket.timestampValid > now) {
@@ -79,6 +79,6 @@ function emitPacket(socket, packet) {
     var event = packet.event;
     delete packet.event;
     delete packet.timestampValid;
-    logger.info("emitPacket %s %j", event, packet);
+    logger.debug("emitPacket %s %j", event, packet);
     socket.emit(event, packet);
 }
