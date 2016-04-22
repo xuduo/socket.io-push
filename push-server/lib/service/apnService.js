@@ -13,7 +13,7 @@ function ApnService(apnConfigs, sliceServers, redis, stats) {
     this.apnConnections = {};
     this.stats = stats;
     this.sliceServers = sliceServers;
-    var outerThis = this;
+    var self = this;
     var fs = require('fs');
     var ca = [fs.readFileSync(__dirname + "/../../cert/entrust_2048_ca.cer")];
 
@@ -39,7 +39,7 @@ function ApnService(apnConfigs, sliceServers, redis, stats) {
         }
         var connection = apn.Connection(apnConfig);
         connection.index = index;
-        outerThis.apnConnections[apnConfig.bundleId] = connection;
+        self.apnConnections[apnConfig.bundleId] = connection;
         connection.on("transmitted", function () {
             stats.addApnSuccess(1);
         });

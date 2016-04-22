@@ -10,10 +10,10 @@ function NotificationService(apnConfigs, redis, ttlService) {
     if (!(this instanceof NotificationService)) return new NotificationService(apnConfigs, redis, ttlService);
     this.redis = redis;
     this.ttlService = ttlService;
-    var outerThis = this;
+    var self = this;
     apnConfigs.forEach(function (apnConfig) {
-        if (!outerThis.defaultBundleId) {
-            outerThis.defaultBundleId = apnConfig.bundleId;
+        if (!self.defaultBundleId) {
+            self.defaultBundleId = apnConfig.bundleId;
         }
     });
 
@@ -32,33 +32,33 @@ NotificationService.prototype.setApnToken = function (pushId, apnToken, bundleId
             return;
         }
         var apnData = JSON.stringify({bundleId: bundleId, apnToken: apnToken});
-        var outerThis = this;
+        var self = this;
         this.redis.get("apnTokenToPushId#" + apnToken, function (err, oldPushId) {
             logger.info("oldPushId %s", oldPushId);
             if (oldPushId && oldPushId != pushId) {
-                outerThis.redis.del("pushIdToApnData#" + oldPushId);
+                self.redis.del("pushIdToApnData#" + oldPushId);
                 logger.info("remove old pushId to apnToken %s %s", oldPushId, apnData);
             }
-            outerThis.redis.set("apnTokenToPushId#" + apnToken, pushId);
-            outerThis.redis.set("pushIdToApnData#" + pushId, apnData);
-            outerThis.redis.hset("apnTokens#" + bundleId, apnToken, Date.now());
-            outerThis.redis.expire("pushIdToApnData#" + pushId, apnTokenTTL);
-            outerThis.redis.expire("apnTokenToPushId#" + apnToken, apnTokenTTL);
+            self.redis.set("apnTokenToPushId#" + apnToken, pushId);
+            self.redis.set("pushIdToApnData#" + pushId, apnData);
+            self.redis.hset("apnTokens#" + bundleId, apnToken, Date.now());
+            self.redis.expire("pushIdToApnData#" + pushId, apnTokenTTL);
+            self.redis.expire("apnTokenToPushId#" + apnToken, apnTokenTTL);
         });
     }
 };
 
 NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, notification, io) {
-    var outerThis = this;
+    var self = this;
     pushIds.forEach(function (pushId) {
-        outerThis.redis.get("pushIdToApnData#" + pushId, function (err, reply) {
+        self.redis.get("pushIdToApnData#" + pushId, function (err, reply) {
             logger.info("pushIdToApnData %s %s", pushId, JSON.stringify(reply));
             if (reply) {
                 var apnData = JSON.parse(reply);
-                outerThis.apnService.sendOne(apnData, notification, timeToLive);
+                self.apnService.sendOne(apnData, notification, timeToLive);
             } else {
                 logger.info("send notification to android %s", pushId);
-                outerThis.ttlService.addPacketAndEmit(pushId, 'noti', timeToLive, notification, io, true);
+                self.ttlService.addPacketAndEmit(pushId, 'noti', timeToLive, notification, io, true);
             }
         });
     });
