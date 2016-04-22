@@ -93,7 +93,7 @@ function getClientsFromIpList(addrs, subscribe) {
                 connectTimeout: 10000000000000000
             });
             client.on("error", function (err) {
-                logger.error("redis error %s", err);
+                logger.error("redis error", err);
             });
             if (subscribe) {
                 client.on("messageBuffer", function (channel, message) {
@@ -116,7 +116,7 @@ commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         var client = util.getByHash(this.write, key);
-        handleCommand(command, arguments, key, arg, callback, client);
+        handleCommand(command, arguments, client);
     }
 
 });
@@ -125,14 +125,13 @@ commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         if (key == "event#client") {
-            logger.verbose("key");
             var client = util.getByHash(this.event, key);
-            handleCommand(command, arguments, key, arg, callback, client);
+            handleCommand(command, arguments, client);
         } else {
             var args = arguments;
             this.pubs.forEach(function (pub) {
                 var client = util.getByHash(pub, key);
-                handleCommand(command, args, key, arg, callback, client);
+                handleCommand(command, args, client);
             });
         }
     }
@@ -143,7 +142,7 @@ commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         var client = util.getByHash(this.sub, key);
-        handleCommand(command, arguments, key, arg, callback, client);
+        handleCommand(command, arguments, client);
     }
 
 });
@@ -152,41 +151,21 @@ commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         var client = util.getByHash(this.read, key);
-        handleCommand(command, arguments, key, arg, callback, client);
+        handleCommand(command, arguments, client);
     }
 });
 
-function handleCommand(command, callArguments, key, arg, callback, client) {
+function handleCommand(command, callArguments, client) {
     if (!client) {
-        logger.error("handleCommand error ", command, key);
+        logger.error("handleCommand error %j", callArguments);
         return;
     }
 
-    logger.debug("handleCommand[%s %s %j]", command, key, arg);
+    logger.debug("handleCommand[%s %j]", command, callArguments);
 
-    /*
-     replyBuffer:
-     And every command has a method that returns a Buffer (by adding a suffix of "Buffer" to the command name).
-     To get a buffer instead of a utf8 string:
-     client.callBuffer is the lowlevel api
-     **/
-
-    if (Array.isArray(arg)) {
-        arg = [key].concat(arg);
-        return client.callBuffer(command, arg, callback);
-    }
-    // Speed up the common case
-    var len = callArguments.length;
-    if (len === 2) {
-        return client.callBuffer(command, key, arg);
-    }
-    if (len === 3) {
-        return client.callBuffer(command, key, arg, callback);
-    }
     return client.callBuffer.apply(client, [command].concat(toArray(callArguments)));
 }
 
-// #TODO ioreids not connection_options property
 SimpleRedisHashCluster.prototype.hash = function (key, callback) {
     var client = util.getByHash(this.read, key);
     callback({host: client.options.host, port: client.options.port});

@@ -1,0 +1,1 @@
+npm publish ./ && cnpm sync socket.io-push
