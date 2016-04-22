@@ -163,16 +163,16 @@ function adapter(uri, opts, stats) {
         Adapter.prototype.add.call(this, id, room);
         var channel = prefix + '#' + this.nsp.name + '#' + room + '#';
         if (id == room) {
-            logger.verbose("verbose", "skip add to id %s", room);
+            logger.verbose("skip add to id %s", room);
             return;
         }
         if (needRedisSub) {
-            logger.verbose("verbose", "skip re-subscribe to room %s", room);
+            logger.verbose("skip re-subscribe to room %s", room);
             return;
         }
         sub.subscribe(channel, function (err) {
             if (err) {
-                logger.verbose("error", 'subscribe error %s', channel);
+                logger.error('subscribe error %s', channel);
                 self.emit('error', err);
                 if (fn) fn(err);
                 return;

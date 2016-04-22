@@ -30,9 +30,9 @@ PacketService.prototype.publishDisconnect = function (socket) {
         var self = this;
         this.redis.get("pushIdSocketId#" + socket.pushId, function (err, lastSocketId) {
             // reply is null when the key is missing
-            logger.info("pushIdSocketId redis %s %s %s", socket.id, lastSocketId, socket.pushId);
+            logger.debug("pushIdSocketId redis %s %s %s", socket.id, lastSocketId, socket.pushId);
             if (lastSocketId == socket.id) {
-                logger.info("publishDisconnect current socket disconnect %s", socket.id);
+                logger.debug("publishDisconnect current socket disconnect %s", socket.id);
                 self.redis.del("pushIdSocketId#" + socket.pushId);
                 var data = {pushId: socket.pushId, path: "/socketDisconnect"};
                 if (socket.uid) {

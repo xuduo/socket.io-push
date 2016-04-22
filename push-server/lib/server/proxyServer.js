@@ -52,8 +52,11 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                 if (data.lastUnicastId) {
                     ttlService.getPackets(data.id, data.lastUnicastId, socket);
                 }
-                socket.join(data.id, function () {
-
+                socket.join(data.id, function (err) {
+                    if (err) {
+                        logger.error("join pushId room fail %s", err);
+                        return;
+                    }
                     uidStore.getUidByPushId(data.id, function (uid) {
                         var reply = {id: data.id};
                         if (uid) {

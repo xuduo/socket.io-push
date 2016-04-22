@@ -7,7 +7,7 @@ function UidStore(redis, subClient) {
 }
 
 UidStore.prototype.addUid = function (pushId, uid, timeToLive) {
-    logger.info("addUid pushId %s %s", uid, pushId);
+    logger.debug("addUid pushId %s %s", uid, pushId);
     var key = "pushIdToUid#" + pushId;
     var self = this;
     this.getUidByPushId(pushId, function (oldUid) {
@@ -24,7 +24,7 @@ UidStore.prototype.addUid = function (pushId, uid, timeToLive) {
 };
 
 UidStore.prototype.removePushId = function (pushId) {
-    logger.info("removePushId pushId  %s", pushId);
+    logger.debug("removePushId pushId  %s", pushId);
     var key = "pushIdToUid#" + pushId;
     var self = this;
     this.redis.get(key, function (err, oldUid) {
