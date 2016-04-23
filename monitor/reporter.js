@@ -25,6 +25,5 @@ function MyReporter(runner) {
     runner.on('end', function () {
         console.log('mocha result: %d/%d', passes, passes + failures);
         redis.handleResult(result);
-        process.exit(0);
     });
 }
