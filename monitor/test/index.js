@@ -21,29 +21,39 @@ config.ipFileName.forEach(function (ipFile) {
     });
 });
 
-describe('长连接Socket IO的测试', function () {
 
-    for (var i = 0; i < ips.length; i++) {
-        var ip = ips[i];
-        for (var k = 0; k < config.ips.length; k++) {
+for (var i = 0; i < ips.length; i++) {
+    var ip = ips[i];
+    for (var k = 0; k < config.ips.length; k++) {
 
-            var testip = config.ips[k];
-            var socket;
-            var pushId = randomstring.generate(24);
+        var testip = config.ips[k];
+
+        describe('长连接Socket IO的测试', function () {
+
+            before(function (){
+                global.pushId = randomstring.generate(24);
+            });
+
             it(JSON.stringify({socketIP: ip, type: 'connect', apiIP: testip}), function (done) {
-                socket = require('socket.io-push/lib/push-client.js')('http://' + ip, {
+                global.socket = require('socket.io-push/lib/push-client.js')('http://' + ip, {
                     transports: ['websocket'], extraHeaders: {
                         Host: config.ioHost
                     }, useNotification: true,
-                    pushId: pushId
+                    pushId: global.pushId
                 });
-                socket.on('connect', function (data) {
-                    expect(data.pushId).to.be.equal(socket.pushId);
+                global.socket.on('connect', function (data) {
+                    expect(data.pushId).to.be.equal(global.pushId);
                     done();
                 });
             });
 
-            it(JSON.stringify({socketIP: ip, type: 'push', apiIP: testip, pushId: pushId}), function (done) {
+            it(JSON.stringify({socketIP: ip, type: 'push', apiIP: testip, pushId: global.pushId}), function (done) {
+
+                global.socket.on('push', function (topic, data) {
+                    expect(data.message).to.equal('ok');
+                    done();
+                });
+
                 request
                     .post(testip + '/api/push')
                     .send({
@@ -57,10 +67,7 @@ describe('长连接Socket IO的测试', function () {
                         expect(res.text).to.be.equal('{"code":"success"}');
                     });
 
-                socket.on('push', function (topic, data) {
-                    expect(data.message).to.equal('ok');
-                    done();
-                });
+
             });
 
 
@@ -68,8 +75,16 @@ describe('长连接Socket IO的测试', function () {
                 socketIP: ip,
                 type: 'notification',
                 apiIP: testip,
-                pushId: pushId
+                pushId: global.pushId
             }), function (done) {
+
+                global.socket.on('notification', function (data) {
+                    expect(data.android.title).to.be.equal(title);
+                    expect(data.android.message).to.be.equal(message);
+                    global.socket.disconnect();
+                    done();
+                });
+
                 var title = 'hello',
                     message = 'hello world';
                 var data = {
@@ -91,16 +106,11 @@ describe('长连接Socket IO的测试', function () {
                         expect(res.text).to.equal('{"code":"success"}');
                     });
 
-                socket.on('notification', function (data) {
-                    expect(data.android.title).to.be.equal(title);
-                    expect(data.android.message).to.be.equal(message);
-                    socket.disconnect();
-                    done();
-                })
+
             });
-
-
-        }
+        });
 
     }
-});
+
+}
+
