@@ -24,7 +24,7 @@ function MyReporter(runner) {
     runner.on('fail', function (test, err) {
         failures++;
         var testContent = JSON.parse(test.title);
-        console.log('fail: %s -- error: %s %j', test.title, err.message, testContent);
+        console.log('fail: %s %s -- error: %s %j', new Date.toLocaleString(), test.title, err.message, testContent);
         //filter api fail
         if ((err.message).indexOf('to be null') == -1) {
             var ok = {state: test.state, title: testContent, duration: test.duration};
