@@ -22,24 +22,23 @@ config.ipFileName.forEach(function (ipFile) {
 });
 
 describe('长连接Socket IO的测试', function () {
-for (var i = 0; i <ips.length; i++) {
-    var ip = ips[i];
-    for(var k = 0; k<config.ips.length; k++) {
-        var testip = config.ips[k];
-            var socket
+    for (var i = 0; i < ips.length; i++) {
+        var ip = ips[i];
+        for (var k = 0; k < config.ips.length; k++) {
+            var testip = config.ips[k];
+            var socket = require('socket.io-push/lib/push-client.js')('http://' + ip, {
+                transports: ['websocket'], extraHeaders: {
+                    Host: config.ioHost
+                }, useNotification: true
+            });
             it(JSON.stringify({socketIP: ip, type: 'connect', apiIP: testip}), function (done) {
-                socket = require('socket.io-push/lib/push-client.js')('http://' + ip, {
-                    transports: ['websocket'], extraHeaders: {
-                        Host: config.ioHost
-                    } ,useNotification : true
-                });
                 socket.on('connect', function (data) {
                     expect(data.pushId).to.be.equal(socket.pushId);
                     done();
                 });
             });
 
-            it(JSON.stringify({socketIP: ip, type: 'push', apiIP:testip}), function (done) {
+            it(JSON.stringify({socketIP: ip, type: 'push', apiIP: testip, pushId: socket.pushId}), function (done) {
                 request
                     .post(testip + '/api/push')
                     .send({
@@ -53,14 +52,19 @@ for (var i = 0; i <ips.length; i++) {
                         expect(res.text).to.be.equal('{"code":"success"}');
                     });
 
-                socket.on('push', function (topic,data) {
+                socket.on('push', function (topic, data) {
                     expect(data.message).to.equal('ok');
                     done();
                 });
             });
 
 
-            it(JSON.stringify({socketIP: ip, type: 'notification', apiIP:testip}), function (done) {
+            it(JSON.stringify({
+                socketIP: ip,
+                type: 'notification',
+                apiIP: testip,
+                pushId: socket.pushId
+            }), function (done) {
                 var title = 'hello',
                     message = 'hello world';
                 var data = {
@@ -91,8 +95,8 @@ for (var i = 0; i <ips.length; i++) {
             });
 
 
-    }
+        }
 
-}
+    }
 
 });

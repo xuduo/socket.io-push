@@ -6,15 +6,20 @@ var config = require('../../config.js');
 var cmdStr = config.cmdStr;
 
 function State() {
+    test();
     setInterval(function () {
-        childProcess.exec(cmdStr, function(err,stdout,stderr){
-            if(err) {
-                console.log(err);
-            } else {
-                console.log(stdout);
-            }
-        });
+        test();
     }, config.mochaInterval);
+}
+
+function test(){
+    childProcess.exec(cmdStr, function(err,stdout,stderr){
+        if(err) {
+            console.log(err);
+        } else {
+            console.log(stdout);
+        }
+    });
 }
 
 module.exports = State;
