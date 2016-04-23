@@ -22,23 +22,28 @@ config.ipFileName.forEach(function (ipFile) {
 });
 
 describe('长连接Socket IO的测试', function () {
+
     for (var i = 0; i < ips.length; i++) {
         var ip = ips[i];
         for (var k = 0; k < config.ips.length; k++) {
+
             var testip = config.ips[k];
-            var socket = require('socket.io-push/lib/push-client.js')('http://' + ip, {
-                transports: ['websocket'], extraHeaders: {
-                    Host: config.ioHost
-                }, useNotification: true
-            });
+            var socket;
+            var pushId = randomstring.generate(24);
             it(JSON.stringify({socketIP: ip, type: 'connect', apiIP: testip}), function (done) {
+                socket = require('socket.io-push/lib/push-client.js')('http://' + ip, {
+                    transports: ['websocket'], extraHeaders: {
+                        Host: config.ioHost
+                    }, useNotification: true,
+                    pushId: pushId
+                });
                 socket.on('connect', function (data) {
                     expect(data.pushId).to.be.equal(socket.pushId);
                     done();
                 });
             });
 
-            it(JSON.stringify({socketIP: ip, type: 'push', apiIP: testip, pushId: socket.pushId}), function (done) {
+            it(JSON.stringify({socketIP: ip, type: 'push', apiIP: testip, pushId: pushId}), function (done) {
                 request
                     .post(testip + '/api/push')
                     .send({
@@ -63,7 +68,7 @@ describe('长连接Socket IO的测试', function () {
                 socketIP: ip,
                 type: 'notification',
                 apiIP: testip,
-                pushId: socket.pushId
+                pushId: pushId
             }), function (done) {
                 var title = 'hello',
                     message = 'hello world';
@@ -98,5 +103,4 @@ describe('长连接Socket IO的测试', function () {
         }
 
     }
-
 });

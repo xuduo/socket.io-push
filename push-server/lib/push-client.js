@@ -8,7 +8,11 @@ function PushClient(url, opt) {
     var self = this;
     this.topics = {'noti': 1};
     this.socket = require('socket.io-client')(url, opt);
-    this.pushId = randomstring.generate(24);
+    if(opt.pushId){
+        this.pushId = opt.pushId;
+    } else {
+        this.pushId = randomstring.generate(24);
+    }
     this.event = new EventEmitter();
 
     this.socket.on('connect', function () {
