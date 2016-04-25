@@ -58,19 +58,7 @@ function countData(onces, timestamp) {
         if (onces[i].title.type === 'connect' && onces[i].state === 'passed') {
             connectCount++;
             isConnect = true;
-            redisClient.incrby("stats#socketConnect#totalLatency#" + hourStrip(timestamp), onces[i].duration);
-        } else if (isConnect && onces[i].title.type === 'push') {
-            pushTotal++;
-            if (onces[i].state === 'passed') {
-                pushCount++;
-                redisClient.incrby("stats#socketPush#totalLatency#" + hourStrip(timestamp), onces[i].duration);
-            }
-        } else if (isConnect && onces[i].title.type === 'notification') {
-            notificationTotal++;
-            if (onces[i].state === 'passed') {
-                notificationCount++;
-                redisClient.incrby("stats#socketNotification#totalLatency#" + hourStrip(timestamp), onces[i].duration);
-            }
+            redisClient.incrby("stats#monitor:ConnectPush#totalLatency#" + hourStrip(timestamp), onces[i].duration);
         }
     }
 }
