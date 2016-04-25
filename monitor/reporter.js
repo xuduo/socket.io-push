@@ -23,7 +23,7 @@ function MyReporter(runner) {
     });
 
     runner.on('end', function () {
-        console.log('mocha result: %d/%d', passes, passes + failures);
+        console.log('mocha result %s %d/%d',failures == 0, passes, passes + failures);
         redis.handleResult(result);
     });
 }
