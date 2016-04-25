@@ -21,17 +21,17 @@ config.ipFileName.forEach(function (ipFile) {
     });
 });
 
+describe('test ', function () {
 
-for (var i = 0; i < ips.length; i++) {
-    var ip = ips[i];
-    for (var k = 0; k < config.ips.length; k++) {
+    for (var i = 0; i < ips.length; i++) {
 
-        var testip = config.ips[k];
+        var ip = ips[i];
+        for (var k = 0; k < config.ips.length; k++) {
 
-        describe('test ',function () {
+            var testip = config.ips[k];
 
             it(JSON.stringify({socketIP: ip, type: 'connect', apiIP: testip}), function (done) {
-				var socket = require('socket.io-push/lib/push-client.js')('http://' + ip, {
+                var socket = require('socket.io-push/lib/push-client.js')('http://' + ip, {
                     transports: ['websocket'], extraHeaders: {
                         Host: config.ioHost
                     }, useNotification: true
@@ -39,30 +39,26 @@ for (var i = 0; i < ips.length; i++) {
 
                 socket.on('push', function (topic, data) {
                     expect(data.message).to.equal('ok');
-					socket.disconnect();
+                    socket.disconnect();
                     done();
                 });
 
                 socket.on('connect', function (data) {
                     expect(data.pushId).to.be.equal(socket.pushId);
                     request
-                    .post(testip + '/api/push')
-                    .send({
-                        pushId: socket.pushId,
-                        json: '{"message":"ok"}'
-                    })
-                    .set('Accept', 'application/json')
-                    .set('Host', config.apiHost)
-                    .end(function (err, res) {
-                        expect(err).to.be.null;
-                        expect(res.text).to.be.equal('{"code":"success"}');
-                    });
+                        .post(testip + '/api/push')
+                        .send({
+                            pushId: socket.pushId,
+                            json: '{"message":"ok"}'
+                        })
+                        .set('Accept', 'application/json')
+                        .set('Host', config.apiHost)
+                        .end(function (err, res) {
+                            expect(err).to.be.null;
+                            expect(res.text).to.be.equal('{"code":"success"}');
+                        });
                 });
             });
-
-        });
-
+        }
     }
-
-}
-
+});
