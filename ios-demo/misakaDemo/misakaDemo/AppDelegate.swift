@@ -7,25 +7,24 @@
 //
 
 import UIKit
-import misakaSwift
 
 
 @UIApplicationMain
 public class AppDelegate: UIResponder, UIApplicationDelegate {
-
+    
     public var window: UIWindow?
     public var socketIOClient:SocketIOProxyClient!
-    public var socketIOClientOc:SocketIOProxyClientOC!
-
+   // public var socketIOClientOc:SocketIOProxyClientOC!
+    
     public func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-        let url = "http://172.26.66.12:10001";
+        let url = "http://spush.yy.com";
         
         socketIOClient = SocketIOProxyClient.init(host: url)
         
-        socketIOClientOc = SocketIOProxyClientOC.initWith(url);
-   
-
-            // Register for push in iOS 8
+       // socketIOClientOc = SocketIOProxyClientOC.initWith(url);
+        
+        
+        // Register for push in iOS 8
         if #available(iOS 8.0, *) {
             let settings = UIUserNotificationSettings(forTypes: [.Alert, .Badge, .Sound], categories: nil)
             UIApplication.sharedApplication().registerUserNotificationSettings(settings)
@@ -33,19 +32,19 @@ public class AppDelegate: UIResponder, UIApplicationDelegate {
         } else {
             UIApplication.sharedApplication().registerForRemoteNotificationTypes([.Alert, .Badge, .Sound])
         }
-            
-
+        
+        
         
         return true
     }
-
+    
     public func applicationWillResignActive(application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
     }
-
+    
     public func applicationDidEnterBackground(application: UIApplication) {
-
+        
         self.socketIOClient.keepInBackground()
     }
     
@@ -57,8 +56,8 @@ public class AppDelegate: UIResponder, UIApplicationDelegate {
             
             self.taskId = self.beginBackgroundUpdateTask()
             
-                print(" application.backgroundTimeRemaining %d",UIApplication.sharedApplication().backgroundTimeRemaining)
-
+            print(" application.backgroundTimeRemaining %d",UIApplication.sharedApplication().backgroundTimeRemaining)
+            
         })
     }
     
@@ -69,20 +68,20 @@ public class AppDelegate: UIResponder, UIApplicationDelegate {
     func endBackgroundUpdateTask(taskID: UIBackgroundTaskIdentifier) {
         UIApplication.sharedApplication().endBackgroundTask(taskID)
     }
-
+    
     public func applicationWillEnterForeground(application: UIApplication) {
-      //  self.endBackgroundUpdateTask(self.taskId!)
+        //  self.endBackgroundUpdateTask(self.taskId!)
         // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
     }
-
+    
     public func applicationDidBecomeActive(application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
     }
-
+    
     public func applicationWillTerminate(application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
-
+    
     public func application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData) {
         let tokenChars = UnsafePointer<CChar>(deviceToken.bytes)
         var tokenString = ""
@@ -105,6 +104,6 @@ public class AppDelegate: UIResponder, UIApplicationDelegate {
     public func application(application: UIApplication, handleActionWithIdentifier identifier: String?, forRemoteNotification userInfo: [NSObject : AnyObject], withResponseInfo responseInfo: [NSObject : AnyObject], completionHandler: () -> Void) {
         print("3")
     }
-
+    
 }
 

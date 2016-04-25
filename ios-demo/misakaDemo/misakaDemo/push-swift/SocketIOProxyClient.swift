@@ -9,9 +9,32 @@
 import Foundation
 import UIKit
 
+@objc public protocol PushCallback {
+    func websocketDidConnect(topic : String, data : NSData?)
+    func onPush(topic : String, data : NSData?)
+}
+
+@objc public protocol ConnectCallback {
+    func onConnect(uid:String)
+    func onDisconnect()
+}
+
+@objc public protocol PushIdCallback {
+    func onPushId(pushId : String)
+}
+
+@objc public protocol PushSerializer {
+    func serialize(topic:String,data : NSData)
+}
+
+@objc public protocol PushHandler {
+    func onPush(topic:String, data : AnyObject)
+}
+
+
 
 public class SocketIOProxyClient : NSObject {
-
+    
     public var pushCallback:PushCallback?
     public var connectCallback:ConnectCallback?
     private var socket:SocketIOClient?
@@ -19,12 +42,12 @@ public class SocketIOProxyClient : NSObject {
     private var apnToken:String?
     private var connected = false
     private var broadcastTopics = NSMutableSet()
-
+    
     public init(host:String){
         super.init();
         let https = host.containsString("https://")
-        socket = SocketIOClient(socketURL: host, options: [.Log(true), .ForceWebsockets(true), .Secure(https), .SelfSigned(https),  .ForceNew(true), .ReconnectWait(5)])
-
+        socket = SocketIOClient(socketURL: host, options: [.Log(true), .ForceWebsockets(true), .Secure(https), .SelfSigned(https),  .ForceNew(true), .ReconnectWait(3)])
+        
         socket!.on("connect") {data, ack in
             print("socket connect ")
             self.connected = true
@@ -35,9 +58,14 @@ public class SocketIOProxyClient : NSObject {
         socket!.on("pushId") {data, ack in
             print("socket pushId ")
             self.connected = true
-            self.connectCallback?.onConnect()
+            var values = data[0] as! Dictionary<String, AnyObject>
+            var uid = values["uid"] as? String
+            if(uid == nil){
+                uid = "";
+            }
+            self.connectCallback?.onConnect(uid!)
         }
-
+        
         socket!.on("disconnect") {data, ack in
             print("socket disconnect")
             self.connected = false
@@ -49,30 +77,42 @@ public class SocketIOProxyClient : NSObject {
             self.connected = false
             self.connectCallback?.onDisconnect()
         }
-
+        
         socket!.on("push") {data, ack in
-            var aDictionary = data[0] as! Dictionary<String, AnyObject>
+            var values = data[0] as! Dictionary<String, AnyObject>
             
-            let topic = aDictionary["topic"] as? String
-            let dataBase64 = aDictionary["data"] as? String
-            
-            if( aDictionary["reply"] != nil){
-                let data = NSMutableDictionary()
-                self.socket!.emit("pushReply", data)
+            var topic = values["t"] as? String
+            if(topic == nil){
+                topic = values["topic"] as? String
+            }
+            var binary = NSData();
+            var dataBase64 = values["data"] as? String
+            if( dataBase64 == nil){
+                dataBase64 = values["d"] as? String
+            }
+            if(dataBase64 != nil){
+                binary = NSData(base64EncodedString: dataBase64!, options: NSDataBase64DecodingOptions(rawValue: 0))!;
+            } else {
+                let json = values["j"];
+                if( json != nil){
+                    do {
+                        binary = try NSJSONSerialization.dataWithJSONObject(json!, options: NSJSONWritingOptions.init(rawValue: 0))
+                    } catch let myJSONError {
+                        print("parse json error %s", myJSONError)
+                        return;
+                    }
+                }
             }
             
             if (nil != self.pushCallback) {
-                if(nil != dataBase64) {
-                    let nsdata = NSData(base64EncodedString: dataBase64!, options: NSDataBase64DecodingOptions(rawValue: 0))
-                    self.pushCallback?.onPush(topic!, data: nsdata)
-                } else {
-                    self.pushCallback?.onPush(topic!, data: nil)
-                }
+                self.pushCallback?.onPush(topic!, data: binary)
             }
         }
         
         socket!.connect()
     }
+    
+    
     
     public func keepInBackground() {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
@@ -85,13 +125,15 @@ public class SocketIOProxyClient : NSObject {
     }
     
     public func request(path:String,data:NSData?) {
-        
         if let base64DataStr = data?.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0)) {
             self.socket!.emit("packetProxy", ["data": base64DataStr,"path":path,"sequenceId":PushIdGeneratorBase.randomAlphaNumeric(32)])
         } else {
             self.socket!.emit("packetProxy", ["path":path,"sequenceId":PushIdGeneratorBase.randomAlphaNumeric(32)])
         }
-        
+    }
+    
+    public func unbindUid() {
+         self.socket!.emit("unbindUid")
     }
     
     public func onApnToken(token:String){
@@ -142,6 +184,4 @@ public class SocketIOProxyClient : NSObject {
         self.sendPushIdAndTopicToServer()
     }
     
-        
-
 }

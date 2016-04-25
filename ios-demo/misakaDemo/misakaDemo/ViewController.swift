@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import misakaSwift
 
 class ViewController: UIViewController,ConnectCallback,PushCallback,DrawListener,PushCallbackDelegate {
     
@@ -24,10 +23,10 @@ class ViewController: UIViewController,ConnectCallback,PushCallback,DrawListener
         drawView.drawListener = self
         
         socketIOClient = (UIApplication.sharedApplication().delegate as! AppDelegate).socketIOClient
-        socketIOClientOc = (UIApplication.sharedApplication().delegate as! AppDelegate).socketIOClientOc
-        socketIOClientOc.pushCallbackDelegate = self;
-        let pushIdOc = socketIOClientOc.pushId;
-        print("pushIdOc " + pushIdOc);
+    //    socketIOClientOc = (UIApplication.sharedApplication().delegate as! AppDelegate).socketIOClientOc
+     //   socketIOClientOc.pushCallbackDelegate = self;
+      //  let pushIdOc = socketIOClientOc.pushId;
+  //      print("pushIdOc " + pushIdOc);
         latencyText.text = "disconnected"
         socketIOClient.pushCallback = self
         socketIOClient.connectCallback = self
@@ -74,6 +73,8 @@ class ViewController: UIViewController,ConnectCallback,PushCallback,DrawListener
     
     func onPush(topic: String, data: NSData?) {
         
+        print("ViewController %@ %@",topic, String(data:data!, encoding: NSUTF8StringEncoding));
+        
         if ("/addDot" == topic) {
             do {
                 let dot = Dot()
@@ -97,7 +98,7 @@ class ViewController: UIViewController,ConnectCallback,PushCallback,DrawListener
         drawView.setNeedsDisplay()
     }
     
-    func onConnect(){
+    func onConnect(uid:String){
         latencyText.text = "connected"
     }
 
