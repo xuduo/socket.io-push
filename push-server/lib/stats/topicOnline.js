@@ -25,7 +25,7 @@ function topicOnline(redis, io, id, filterTopics) {
     var self = this;
     setInterval(function () {
         var result = self.io.nsps['/'].adapter.rooms;
-        for(key in result) {
+        for(var key in result) {
             if (result[key].length > 0 && filterTopic(key, self.filters)) {
                 var json = {length: result[key].length, time: Date.now()};
                 logger.debug("writing topicOnline %s %j", key, json);
@@ -37,7 +37,7 @@ function topicOnline(redis, io, id, filterTopics) {
 
 topicOnline.prototype.writeTopicOnline = function (data) {
     var self = this;
-    for(key in data) {
+    for(var key in data) {
         if (data[key].length > 0 && filterTopic(key, self.filters)) {
             var json = {length: data[key].length, time: Date.now()};
             self.redis.hset("stats#topicOnline#" + key, self.id, JSON.stringify(json));
@@ -63,7 +63,7 @@ topicOnline.prototype.getTopicOnline = function (topic, callback) {
                 self.redis.hdel("stats#topicOnline#" + topic, delKey);
             }
         }
-        console.log("result count: " + count);
+        logger.debug("result count: " + count);
         callback(count);
     });
 }

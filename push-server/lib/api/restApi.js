@@ -74,7 +74,7 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
             res.send({code: "error", message: 'data is required'});
             return next();
         }
-        logger.info("push %j", req.params);
+        logger.debug("push %j", req.params);
         var pushData = {};
         if (data) {
             pushData.data = data;
@@ -141,7 +141,7 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
         var uid = req.params.uid;
         var timeToLive = parseInt(req.params.timeToLive);
 
-        logger.info("notification ", req.params);
+        logger.debug("notification ", req.params);
 
         if (pushAll === 'true') {
             notificationService.sendAll(notification, timeToLive, io);
