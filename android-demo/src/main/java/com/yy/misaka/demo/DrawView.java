@@ -2,7 +2,6 @@ package com.yy.misaka.demo;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
@@ -12,9 +11,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Created by xuduo on 11/23/15.
- */
 public class DrawView extends View {
 
     public static class Dot {

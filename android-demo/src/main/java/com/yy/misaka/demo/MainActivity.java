@@ -10,10 +10,7 @@ import android.widget.TextView;
 
 import com.yy.httpproxy.subscribe.SharedPreferencePushIdGenerator;
 
-/**
- * Created by Administrator on 2016/3/9.
- */
-public class MainActivity extends Activity{
+public class MainActivity extends Activity {
 
     public EditText editText;
     public final static String IPNAME = "ipAddress";
@@ -21,13 +18,14 @@ public class MainActivity extends Activity{
     public SharedPreferences mySharedPreferences;
     public TextView pushId;
     private String id;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        editText = (EditText)findViewById(R.id.et_ip);
+        editText = (EditText) findViewById(R.id.et_ip);
         pushId = (TextView) findViewById(R.id.tv_pushId);
-        mySharedPreferences=getSharedPreferences(IPNAME, Activity.MODE_PRIVATE);
+        mySharedPreferences = getSharedPreferences(IPNAME, Activity.MODE_PRIVATE);
         initEditText();
 
         id = new SharedPreferencePushIdGenerator(this).generatePushId();
@@ -49,11 +47,11 @@ public class MainActivity extends Activity{
         });
     }
 
-    public void initEditText(){
+    public void initEditText() {
         String ip = mySharedPreferences.getString("ip", "0");
-        if(ip.equals("0")){
+        if (ip.equals("0")) {
             editText.setText(defaultIp);
-        }else{
+        } else {
             editText.setText(ip);
         }
     }

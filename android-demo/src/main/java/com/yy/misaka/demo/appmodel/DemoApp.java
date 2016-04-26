@@ -8,17 +8,18 @@ import android.util.Log;
  */
 public class DemoApp extends Application {
 
+    private static final String TAG = "DemoApp";
+
     @Override
     public void onCreate() {
         super.onCreate();
-        // AppModel.INSTANCE.init(this);
-//        ImageLoaderConfiguration configuration = new ImageLoaderConfiguration.Builder(this).build();
-//        ImageLoader.getInstance().init(configuration);
+        AppModel.INSTANCE.init(this);
+        Log.i(TAG, "onCreate");
     }
 
     @Override
     public void onTerminate() {
         super.onTerminate();
-        Log.i("DemoApp", "onTerminate");
+        Log.i(TAG, "onTerminate");
     }
 }

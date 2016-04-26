@@ -15,6 +15,7 @@ import com.yy.httpproxy.ReplyHandler;
 import com.yy.httpproxy.serializer.JsonSerializer;
 import com.yy.httpproxy.subscribe.ConnectCallback;
 import com.yy.httpproxy.subscribe.PushCallback;
+import com.yy.misaka.demo.entity.Message;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Random;
@@ -33,7 +34,6 @@ public class DrawActivity extends Activity implements ConnectCallback {
     public int myColors[] = {Color.BLACK, Color.DKGRAY, Color.CYAN, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.MAGENTA};
     public int myColor;
     private TextView msg;
-
 
     private void updateLatency(long timestamp) {
         totalTime += System.currentTimeMillis() - timestamp;
@@ -74,7 +74,7 @@ public class DrawActivity extends Activity implements ConnectCallback {
                         if("message".equals(topic)) {
                             try {
                                 Message message = new Gson().fromJson(new String(data, "UTF-8"), Message.class);
-                                msg.setText("Msg: " + message.message);
+                                msg.setText("Msg: " + message.getMessage());
                             } catch (UnsupportedEncodingException e) {
                             }
                         }

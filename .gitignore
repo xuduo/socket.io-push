@@ -8,3 +8,5 @@ log.txt
 pid
 pids
 pid_debug
+.gradle
+build

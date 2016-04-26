@@ -10,52 +10,47 @@
         android:layout_height="match_parent" />
 
     <Button
+        android:id="@+id/btn_clear"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:text="Clear"
-        android:id="@+id/btn_clear"
-        />
-
+        android:text="Clear" />
 
     <TextView
+        android:id="@+id/tv_latency"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_margin="10dp"
-        android:text="0ms"
-        android:id="@+id/tv_latency"
-        />
+        android:text="0ms" />
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_toRightOf="@id/tv_latency"
-        android:layout_margin="10dp"
-        android:text="0dots"
         android:id="@+id/tv_count"
-        />
-
-    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_toRightOf="@id/tv_count"
         android:layout_margin="10dp"
-        android:text="0dots"
+        android:layout_toRightOf="@id/tv_latency"
+        android:text="0dots" />
+
+    <TextView
         android:id="@+id/tv_connect"
-        />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="10dp"
+        android:layout_toRightOf="@id/tv_count"
+        android:text="0dots" />
 
     <TextView
         android:id="@+id/tv_msg"
-        android:textSize="15sp"
-        android:layout_marginTop="20dp"
-        android:layout_marginLeft="20dp"
-        android:text="Msg:"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"
+        android:text="Msg:"
+        android:textSize="15sp" />
 
 </RelativeLayout>
