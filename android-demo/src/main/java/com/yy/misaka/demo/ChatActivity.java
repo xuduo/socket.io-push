@@ -24,7 +24,7 @@ import java.util.Random;
 
 public class ChatActivity extends Activity implements PushCallback, ConnectCallback {
 
-    public final static String chatTopic = "chatroom";
+    public final static String chatTopic = "chatRoom";
     private RecyclerView recyclerViewMessages;
     private ProxyClient proxyClient;
     private ChatMessagesAdapter chatMessagesAdapter;

@@ -58,7 +58,7 @@ public class JsonHelper {
         return t;
     }
 
-    public static String toJson(Object object, String encode) {
+    public static<T> String toJson(T object, String encode) {
         String sourceStr = getGson().toJson(object);
         String encodeStr = null;
         try {

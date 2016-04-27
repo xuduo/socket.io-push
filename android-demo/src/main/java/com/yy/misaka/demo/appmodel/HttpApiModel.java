@@ -2,12 +2,16 @@ package com.yy.misaka.demo.appmodel;
 
 import android.util.Log;
 
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 import com.yy.misaka.demo.ChatActivity;
-import com.yy.misaka.demo.entity.CallbackCode;
 import com.yy.misaka.demo.entity.Message;
-import com.yy.misaka.demo.http.ChatHttpClient;
-import com.yy.misaka.demo.http.HttpCallback;
-import com.yy.misaka.demo.http.HttpRequest;
+import com.yy.misaka.demo.util.HttpUtils;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HttpApiModel {
 
@@ -18,24 +22,20 @@ public class HttpApiModel {
         this.url = url;
     }
 
-    private ChatHttpClient httpClient = new ChatHttpClient();
-
     public void sendMessage(Message msg) {
-        HttpRequest.Builder builder = new HttpRequest.Builder();
-        String topic = ChatActivity.chatTopic;
-        builder.url(url).method(HttpRequest.Method.GET).
-                addParams("pushAll", true).addParams("json", msg).addParams("topic", topic);
-        final HttpRequest request = builder.build();
-        httpClient.request( request, new HttpCallback<CallbackCode>(CallbackCode.class) {
-
+        Map<String, Object> params = new HashMap<>();
+        params.put("pushAll", true);
+        params.put("json", msg);
+        params.put("topic", ChatActivity.chatTopic);
+        HttpUtils.request(url, params, new Callback() {
             @Override
-            public void onResponseSuccess(CallbackCode result) {
-                Log.d(TAG, "Code:" + result.getCode() + "       Message:" + result.getMeaasge());
+            public void onFailure(Request request, IOException e) {
+                Log.d(TAG, "sendMessage onFailure");
             }
 
             @Override
-            public void onResponseFailed(int errorCode, String errorMsg) {
-                Log.d(TAG, "Code:" + errorCode + "       Message:" + errorMsg);
+            public void onResponse(Response response) throws IOException {
+                Log.d(TAG, "sendMessage onResponse" + response.body());
             }
         });
     }
