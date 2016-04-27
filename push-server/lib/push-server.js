@@ -23,7 +23,6 @@ function PushServer(config) {
         var Stats = require('./stats/stats.js');
         var stats = new Stats(cluster, ioPort);
         var socketIoRedis = require('./redis/redisAdapter.js')({pubClient: cluster, subClient: cluster}, null, stats);
-        //var socketIoRedis = require('socket.io-redis')({pubClient: cluster, subClient: cluster}, null, stats);
         io.adapter(socketIoRedis);
         var packetService = require('./service/packetService.js')(cluster, cluster);
 

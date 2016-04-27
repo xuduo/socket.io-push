@@ -43,15 +43,6 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                         socket.join(topic);
                     });
                 }
-                var lastPacketIds = data.lastPacketIds;
-                if (lastPacketIds) {
-                    for (var topic in lastPacketIds) {
-                        ttlService.getPackets(topic, lastPacketIds[topic], socket);
-                    }
-                }
-                if (data.lastUnicastId) {
-                    ttlService.getPackets(data.id, data.lastUnicastId, socket);
-                }
                 socket.join(data.id, function (err) {
                     if (err) {
                         logger.error("join pushId room fail %s", err);
@@ -67,8 +58,13 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                         packetService.publishConnect(socket);
                         socket.emit('pushId', reply);
                         logger.debug('join room socket.id %s ,pushId %s', socket.id, socket.pushId);
-                        ttlService.onPushId(socket);
-
+                        var lastPacketIds = data.lastPacketIds;
+                        if (lastPacketIds) {
+                            for (var topic in lastPacketIds) {
+                                ttlService.getPackets(topic, lastPacketIds[topic], socket);
+                            }
+                        }
+                        ttlService.onPushId(socket, data.lastUnicastId);
                     })
 
                 });

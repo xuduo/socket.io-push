@@ -115,7 +115,7 @@ public class SocketIOProxyClient implements PushSubscriber {
         }
     }
 
-    public void unbindUid(){
+    public void unbindUid() {
         if (pushId != null && socket.connected()) {
             socket.emit("unbindUid");
         }
@@ -198,7 +198,7 @@ public class SocketIOProxyClient implements PushSubscriber {
             Log.v(TAG, "on push topic " + topic + " id " + id);
             if (unicast != null) {
                 lastUnicastId = id;
-            } else if (reciveTtl) {
+            } else if (reciveTtl && topic != null) {
                 topicToLastPacketId.put(topic, id);
             }
         }
@@ -311,7 +311,7 @@ public class SocketIOProxyClient implements PushSubscriber {
 
     private void postStatsTask() {
         handler.removeCallbacks(statsTask);
-        handler.postDelayed(statsTask,  10 * 60 * 1000L);
+        handler.postDelayed(statsTask, 10 * 60 * 1000L);
     }
 
     public void reportStats(String path, int successCount, int errorCount, int latency) {

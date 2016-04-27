@@ -50,11 +50,11 @@ PacketService.prototype.publishConnect = function (socket) {
         var self = this;
         this.redis.get("pushIdSocketId#" + socket.pushId, function (err, lastSocketId) {
             // reply is null when the key is missing
-            logger.verbose("publishConnect query redis %s", lastSocketId);
+            logger.debug("publishConnect query redis %s", lastSocketId);
             if (lastSocketId) {
-                logger.verbose("reconnect do not publish", lastSocketId);
+                logger.debug("reconnect do not publish", lastSocketId);
             } else {
-                logger.verbose("first connect publish", lastSocketId);
+                logger.debug("first connect publish", lastSocketId);
                 var data = {pushId: socket.pushId, path: "/socketConnect"};
                 if (socket.uid) {
                     data.uid = socket.uid;

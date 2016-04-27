@@ -102,7 +102,6 @@ function adapter(uri, opts, stats) {
         var packet;
 
         if (uid == args.shift()) {
-            logger.verbose('ignore same uid');
             return ;
         }
 
@@ -113,7 +112,6 @@ function adapter(uri, opts, stats) {
         }
 
         if (!packet || packet.nsp != this.nsp.name) {
-            logger.verbose('ignore different namespace');
             return;
         }
 
@@ -158,16 +156,14 @@ function adapter(uri, opts, stats) {
 
     Redis.prototype.add = function (id, room, fn) {
         var self = this;
-        logger.verbose('adding %s to %s', id, room);
         var needRedisSub = this.rooms.hasOwnProperty(room) && this.rooms[room]
         Adapter.prototype.add.call(this, id, room);
         var channel = prefix + '#' + this.nsp.name + '#' + room + '#';
         if (id == room) {
-            logger.verbose("skip add to id %s", room);
             return;
         }
         if (needRedisSub) {
-            logger.verbose("skip re-subscribe to room %s", room);
+            logger.debug("skip re-subscribe to room %s", room);
             return;
         }
         sub.subscribe(channel, function (err) {
@@ -191,7 +187,6 @@ function adapter(uri, opts, stats) {
      */
 
     Redis.prototype.del = function (id, room, fn) {
-        logger.verbose('removing %s from %s', id, room);
         var self = this;
         var hasRoom = this.rooms.hasOwnProperty(room);
         Adapter.prototype.del.call(this, id, room);
@@ -199,7 +194,6 @@ function adapter(uri, opts, stats) {
         if (hasRoom && !this.rooms[room]) {
 
             var channel = prefix + '#' + this.nsp.name + '#' + room + '#';
-            logger.verbose('unsubscribing %s', channel);
             sub.unsubscribe(channel, function (err) {
                 if (err) {
                     self.emit('error', err);
