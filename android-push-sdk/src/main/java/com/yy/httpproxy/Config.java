@@ -30,7 +30,7 @@ public class Config {
         CachedSharedPreference cachedSharedPreference = new CachedSharedPreference(context);
         this.pushId = cachedSharedPreference.get("pushId");
         if(this.pushId == null){
-            this.pushId = new RandomPushIdGenerator(context).generatePushId();
+            this.pushId = new RandomPushIdGenerator().generatePushId();
             cachedSharedPreference.save("pushId",this.pushId);
         }
     }
