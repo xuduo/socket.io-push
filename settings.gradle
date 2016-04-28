@@ -1,1 +1,1 @@
-include ':android-demo',  ':server-demo' ,  ':android-push-sdk','java-server-push-sdk'
+include ':android-demo', ':android-push-sdk'

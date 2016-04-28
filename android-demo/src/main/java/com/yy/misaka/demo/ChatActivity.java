@@ -7,16 +7,18 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
 import com.google.gson.Gson;
+import com.yy.httpproxy.Config;
 import com.yy.httpproxy.ProxyClient;
 import com.yy.httpproxy.serializer.JsonSerializer;
 import com.yy.httpproxy.subscribe.ConnectCallback;
 import com.yy.httpproxy.subscribe.PushCallback;
 import com.yy.misaka.demo.adapter.ChatMessagesAdapter;
-import com.yy.misaka.demo.appmodel.AppModel;
+import com.yy.misaka.demo.appmodel.HttpApiModel;
 import com.yy.misaka.demo.entity.Message;
 
 import java.io.UnsupportedEncodingException;
@@ -25,11 +27,15 @@ import java.util.Random;
 public class ChatActivity extends Activity implements PushCallback, ConnectCallback {
 
     public final static String chatTopic = "chatRoom";
+    public final static String TAG = "ChatActivity";
     private RecyclerView recyclerViewMessages;
     private ProxyClient proxyClient;
+    private HttpApiModel httpApiModel = new HttpApiModel(API_URL);
     private ChatMessagesAdapter chatMessagesAdapter;
     public int Colors[] = {Color.BLACK, Color.DKGRAY, Color.CYAN, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.MAGENTA};
     public int myColor;
+    private static final String PUSH_SERVICE_URL = "http://spush.yy.com";
+    private static final String API_URL = "http://spush.yy.com/api/push";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +55,7 @@ public class ChatActivity extends Activity implements PushCallback, ConnectCallb
                 message.setMessage(String.valueOf(editTextInput.getText()));
                 message.setNickName(nickName);
                 message.setColor(myColor);
-                AppModel.INSTANCE.getHttpApiModel().sendMessage(message);
+                httpApiModel.sendMessage(message);
                 editTextInput.setText("");
             }
         });
@@ -60,10 +66,9 @@ public class ChatActivity extends Activity implements PushCallback, ConnectCallb
         recyclerViewMessages.setLayoutManager(linearLayoutManager);
         recyclerViewMessages.setAdapter(chatMessagesAdapter);
         recyclerViewMessages.scrollToPosition(chatMessagesAdapter.getItemCount() - 1);
-        proxyClient = AppModel.INSTANCE.getProxyClient();
-        proxyClient.getConfig().setConnectCallback(this)
+        proxyClient = new ProxyClient(new Config(this).setHost(PUSH_SERVICE_URL).setConnectCallback(this)
                 .setPushCallback(this)
-                .setRequestSerializer(new JsonSerializer());
+                .setRequestSerializer(new JsonSerializer()));
         proxyClient.subscribeAndReceiveTtlPackets(chatTopic);
         updateConnect();
     }
@@ -92,6 +97,7 @@ public class ChatActivity extends Activity implements PushCallback, ConnectCallb
 
     @Override
     public void onPush(String topic, byte[] data) {
+        Log.i(TAG, "on push " + topic);
         if (chatTopic.equals(topic)) {
             try {
                 Message message = new Gson().fromJson(new String(data, "UTF-8"), Message.class);
