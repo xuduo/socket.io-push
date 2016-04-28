@@ -102,7 +102,7 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
                 }
             }
 
-            client = new SocketIOProxyClient(host);
+            client = new SocketIOProxyClient(host,this.getApplicationContext());
             client.setResponseHandler(this);
             client.setPushId(pushId);
             client.setPushCallback(this);

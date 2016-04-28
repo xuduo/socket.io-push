@@ -1,5 +1,6 @@
 package com.yy.httpproxy.socketio;
 
+import android.content.Context;
 import android.os.Handler;
 import android.util.Base64;
 import android.util.Log;
@@ -10,6 +11,7 @@ import com.yy.httpproxy.requester.RequestInfo;
 import com.yy.httpproxy.requester.ResponseHandler;
 import com.yy.httpproxy.service.ConnectionService;
 import com.yy.httpproxy.stats.Stats;
+import com.yy.httpproxy.subscribe.CachedSharedPreference;
 import com.yy.httpproxy.subscribe.ConnectCallback;
 import com.yy.httpproxy.subscribe.PushCallback;
 import com.yy.httpproxy.subscribe.PushSubscriber;
@@ -48,7 +50,7 @@ public class SocketIOProxyClient implements PushSubscriber {
     private PushCallback pushCallback;
     private String pushId;
     private NotificationCallback notificationCallback;
-    private String lastUnicastId;
+    private CachedSharedPreference cachedSharedPreference;
     private Map<String, Boolean> topics = new HashMap<>();
     private Map<String, String> topicToLastPacketId = new HashMap<>();
     private ResponseHandler responseHandler;
@@ -56,6 +58,7 @@ public class SocketIOProxyClient implements PushSubscriber {
     private boolean connected = false;
     private String uid;
     private Stats stats = new Stats();
+
 
     public void setResponseHandler(ResponseHandler responseHandler) {
         this.responseHandler = responseHandler;
@@ -115,7 +118,7 @@ public class SocketIOProxyClient implements PushSubscriber {
         }
     }
 
-    public void unbindUid(){
+    public void unbindUid() {
         if (pushId != null && socket.connected()) {
             socket.emit("unbindUid");
         }
@@ -142,8 +145,9 @@ public class SocketIOProxyClient implements PushSubscriber {
                             lastPacketIds.put(entry.getKey(), entry.getValue());
                         }
                     }
-                    if (lastUnicastId != null) {
-                        object.put("lastUnicastId", lastUnicastId);
+                    String lastUniCastId = cachedSharedPreference.get("lastUnicastId");
+                    if (lastUniCastId != null) {
+                        object.put("lastUnicastId", lastUniCastId);
                     }
                 }
                 socket.emit("pushId", object);
@@ -197,13 +201,12 @@ public class SocketIOProxyClient implements PushSubscriber {
         if (id != null && ttl != null) {
             Log.v(TAG, "on push topic " + topic + " id " + id);
             if (unicast != null) {
-                lastUnicastId = id;
+                cachedSharedPreference.save("lastUnicastId", id);
             } else if (reciveTtl) {
                 topicToLastPacketId.put(topic, id);
             }
         }
     }
-
 
     private final Emitter.Listener pushListener = new Emitter.Listener() {
         @Override
@@ -311,7 +314,7 @@ public class SocketIOProxyClient implements PushSubscriber {
 
     private void postStatsTask() {
         handler.removeCallbacks(statsTask);
-        handler.postDelayed(statsTask,  10 * 60 * 1000L);
+        handler.postDelayed(statsTask, 10 * 60 * 1000L);
     }
 
     public void reportStats(String path, int successCount, int errorCount, int latency) {
@@ -342,7 +345,8 @@ public class SocketIOProxyClient implements PushSubscriber {
 
     private Socket socket;
 
-    public SocketIOProxyClient(String host) {
+    public SocketIOProxyClient(String host, Context context) {
+        cachedSharedPreference = new CachedSharedPreference(context);
         AndroidLoggingHandler.reset(new AndroidLoggingHandler());
         java.util.logging.Logger.getLogger("").setLevel(Level.FINEST);
         topics.put("noti", true);
@@ -452,7 +456,7 @@ public class SocketIOProxyClient implements PushSubscriber {
     public void setNotificationCallback(NotificationCallback notificationCallback) {
         this.notificationCallback = notificationCallback;
     }
-
+    
     public String getUid() {
         return uid;
     }

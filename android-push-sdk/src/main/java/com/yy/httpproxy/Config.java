@@ -2,15 +2,13 @@ package com.yy.httpproxy;
 
 import android.content.Context;
 
-import com.yy.httpproxy.requester.HttpRequester;
-import com.yy.httpproxy.serializer.PushSerializer;
 import com.yy.httpproxy.serializer.RequestSerializer;
 import com.yy.httpproxy.socketio.RemoteClient;
+import com.yy.httpproxy.subscribe.CachedSharedPreference;
 import com.yy.httpproxy.subscribe.ConnectCallback;
 import com.yy.httpproxy.subscribe.PushCallback;
 import com.yy.httpproxy.subscribe.PushIdGenerator;
-import com.yy.httpproxy.subscribe.PushSubscriber;
-import com.yy.httpproxy.subscribe.SharedPreferencePushIdGenerator;
+import com.yy.httpproxy.subscribe.RandomPushIdGenerator;
 
 /**
  * Created by xuduo on 10/19/15.
@@ -29,7 +27,12 @@ public class Config {
 
     public Config(Context context) {
         this.context = context;
-        this.pushId = new SharedPreferencePushIdGenerator(context).generatePushId();
+        CachedSharedPreference cachedSharedPreference = new CachedSharedPreference(context);
+        this.pushId = cachedSharedPreference.get("pushId");
+        if(this.pushId == null){
+            this.pushId = new RandomPushIdGenerator(context).generatePushId();
+            cachedSharedPreference.save("pushId",this.pushId);
+        }
     }
 
     public RemoteClient getRemoteClient() {
