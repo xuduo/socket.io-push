@@ -42,6 +42,8 @@ function setArgs(args) {
         level: 'error',
         datePattern: 'yyyy-MM-dd.log',
         filename: dir + "/" + "error_",
+        maxSize: 1,
+        maxFiles: 2,
         timestamp: function () {
             return new Date().toLocaleString();
         },
@@ -65,9 +67,9 @@ function setArgs(args) {
     }
 
     logger = new (winston.Logger)({
-        transports: transports
+        transports: transports,
+        levels: {error: 0, warn: 1, info: 2, verbose: 4, debug: 3}
     });
-
 }
 
 var LogProxy = function (logger, tag) {
@@ -93,8 +95,16 @@ var meta = {};
 var Logger = function Logger(tag) {
     if ((typeof tag) == 'string') {
         return new LogProxy(logger, tag);
-    } else {
+    } else if (tag) {
         setArgs(tag);
+    } else {
+        var args = {
+            workId: 1,
+            dir: 'log',
+            debug: 1,
+            foreground: 1
+        }
+        setArgs(args);
     }
 };
 

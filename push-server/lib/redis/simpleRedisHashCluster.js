@@ -161,8 +161,6 @@ function handleCommand(command, callArguments, client) {
         return;
     }
 
-    logger.debug("handleCommand[%s %j]", command, callArguments);
-
     return client.callBuffer.apply(client, [command].concat(toArray(callArguments)));
 }
 

@@ -202,7 +202,7 @@ public class SocketIOProxyClient implements PushSubscriber {
             Log.v(TAG, "on push topic " + topic + " id " + id);
             if (unicast != null) {
                 cachedSharedPreference.save("lastUnicastId", id);
-            } else if (reciveTtl) {
+            } else if (reciveTtl && topic != null) {
                 topicToLastPacketId.put(topic, id);
             }
         }

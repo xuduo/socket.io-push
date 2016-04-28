@@ -10,3 +10,4 @@ pids
 pid_debug
 logs
 ip
+localstorage/
