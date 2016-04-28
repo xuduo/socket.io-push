@@ -15,6 +15,7 @@ var maxTllPacketPerTopic = -50;
 
 TTLService.prototype.addPacketAndEmit = function (topic, event, timeToLive, packet, io, unicast) {
     if (event == "noti") {
+        packet.id = randomstring.generate(12);
         packet.timestamp = Date.now();
     }
     if (timeToLive > 0) {
