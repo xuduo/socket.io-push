@@ -8,7 +8,8 @@ var logger = require('../log/index.js')('SimpleRedisHashCluster');
 const REDIS_MASTER = 'master';    // ioreids use when fetch sentinel
 const REDIS_SLAVE = 'slave';     // ioreids use when fetch sentinel
 
-function SimpleRedisHashCluster(config, completeCallback) {
+function SimpleRedisHashCluster(config) {
+    if (!(this instanceof SimpleRedisHashCluster)) return new SimpleRedisHashCluster(config);
     this.messageCallbacks = [];
     this.write = getClientsFromIpList(config.write);
     this.read = getClientsFromIpList(config.read);
@@ -42,7 +43,6 @@ function SimpleRedisHashCluster(config, completeCallback) {
             }
         });
     }
-    completeCallback(this);
 }
 
 function getClientsFromSentinel(sentinels, names, role, subscribe) {

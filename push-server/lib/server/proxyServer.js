@@ -3,6 +3,7 @@ var logger = require('../log/index.js')('ProxyServer');
 var http = require('http');
 
 function ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService) {
+    if (!(this instanceof ProxyServer)) return new ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService);
     this.io = io;
 
     io.on('connection', function (socket) {

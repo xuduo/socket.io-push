@@ -2,6 +2,7 @@ module.exports = ApiThreshold;
 var logger = require('../log/index.js')('ApiThreshold');
 
 function ApiThreshold(redis) {
+    if (!(this instanceof ApiThreshold)) return new ApiThreshold(redis);
     this.watchedTopics = [];
     this.redis = redis;
 }

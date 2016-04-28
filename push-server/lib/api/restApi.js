@@ -1,6 +1,5 @@
 module.exports = RestApi;
 var restify = require('restify');
-var debug = require('debug')('RestApi');
 var logger = require('../log/index.js')('RestApi');
 
 function RestApi(io, topicOnline, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth, uidStore) {

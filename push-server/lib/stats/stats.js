@@ -4,6 +4,7 @@ var logger = require('../log/index.js')('Stats');
 var randomstring = require("randomstring");
 
 function Stats(redis, port) {
+    if (!(this instanceof Stats)) return new Stats(redis, port);
     this.redis = redis;
     this.sessionCount = {ios: 0, android: 0, total: 0};
     this.redisIncrBuffer = require('./redisIncrBuffer.js')(redis);

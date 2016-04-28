@@ -2,6 +2,7 @@ module.exports = AdminCommand;
 var logger = require('../log/index.js')('AdminCommand');
 
 function AdminCommand(redis, stats, packetSevice, proxyServer, apiThrehold) {
+    if (!(this instanceof AdminCommand)) return new AdminCommand(redis, stats, packetSevice, proxyServer, apiThrehold);
 
     redis.on("message", function (channel, message) {
         if (channel == "adminCommand") {

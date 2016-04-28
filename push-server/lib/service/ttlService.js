@@ -4,6 +4,7 @@ var logger = require('../log/index.js')('TTLService');
 var randomstring = require("randomstring");
 
 function TTLService(redis) {
+    if (!(this instanceof TTLService)) return new TTLService(redis);
     this.redis = redis;
 }
 
