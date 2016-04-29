@@ -1,15 +1,16 @@
-module.exports = ApnService;
+module.exports = ApnProvider;
 
-var logger = require('../log/index.js')('ApnService');
+var logger = require('../log/index.js')('ApnProvider');
 
 var util = require('../util/util.js');
 var apn = require('apn');
 var apnTokenTTL = 3600 * 24 * 7;
 var request = require('superagent');
 
-function ApnService(apnConfigs, sliceServers, redis, stats) {
-    if (!(this instanceof ApnService)) return new ApnService(apnConfigs, sliceServers, redis, stats);
+function ApnProvider(apnConfigs, sliceServers, redis, stats) {
+    if (!(this instanceof ApnProvider)) return new ApnProvider(apnConfigs, sliceServers, redis, stats);
     this.redis = redis;
+    this.type = "apn";
     this.apnConnections = {};
     this.stats = stats;
     this.sliceServers = sliceServers;
@@ -52,7 +53,7 @@ function ApnService(apnConfigs, sliceServers, redis, stats) {
 
 }
 
-ApnService.prototype.sendOne = function (apnData, notification, timeToLive) {
+ApnProvider.prototype.sendOne = function (apnData, notification, timeToLive) {
     var bundleId = apnData.bundleId;
     var apnConnection = this.apnConnections[bundleId];
     if (apnConnection) {
@@ -63,7 +64,14 @@ ApnService.prototype.sendOne = function (apnData, notification, timeToLive) {
     }
 };
 
-ApnService.prototype.sliceSendAll = function (notification, timeToLive, pattern) {
+ApnProvider.prototype.addToken = function (data) {
+    logger.debug("addToken %j", data);
+    if (data.bundleId && data.apnToken) {
+        this.redis.hset("apnTokens#" + data.bundleId, data.apnToken, Date.now());
+    }
+};
+
+ApnProvider.prototype.sliceSendAll = function (notification, timeToLive, pattern) {
     var self = this;
     var note = toApnNotification(notification, timeToLive);
     this.bundleIds.forEach(function (bundleId) {
@@ -75,7 +83,7 @@ ApnService.prototype.sliceSendAll = function (notification, timeToLive, pattern)
     });
 };
 
-ApnService.prototype.sendToApn = function (tokenToTime, bundleId, note) {
+ApnProvider.prototype.sendToApn = function (tokenToTime, bundleId, note) {
     var apnConnection = this.apnConnections[bundleId];
     var timestamp = Date.now();
     if (tokenToTime) {
@@ -111,7 +119,8 @@ ApnService.prototype.sendToApn = function (tokenToTime, bundleId, note) {
 }
 var hexChars = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'a', 'b', 'c', 'd', 'e', 'f'];
 
-ApnService.prototype.sendAll = function (notification, timeToLive) {
+ApnProvider.prototype.sendAll = function (notification, timeToLive) {
+    logger.info("sendAll %j", notification);
     var self = this;
     if (self.sliceServers) {
         var serverIndex = 0;
@@ -139,7 +148,9 @@ ApnService.prototype.sendAll = function (notification, timeToLive) {
         var note = toApnNotification(notification, timeToLive);
         this.bundleIds.forEach(function (bundleId) {
             self.redis.hgetall("apnTokens#" + bundleId, function (err, replies) {
-                self.sendToApn(replies, bundleId, note);
+                if (replies) {
+                    self.sendToApn(replies, bundleId, note);
+                }
             });
         });
     }

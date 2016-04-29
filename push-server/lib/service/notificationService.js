@@ -6,32 +6,21 @@ var apn = require('apn');
 var apnTokenTTL = 3600 * 24 * 7;
 
 
-function NotificationService(apnConfigs, redis, ttlService) {
-    if (!(this instanceof NotificationService)) return new NotificationService(apnConfigs, redis, ttlService);
+function NotificationService(providerFactory, redis, ttlService) {
+    if (!(this instanceof NotificationService)) return new NotificationService(providerFactory, redis, ttlService);
     this.redis = redis;
     this.ttlService = ttlService;
-    var self = this;
-    apnConfigs.forEach(function (apnConfig) {
-        if (!self.defaultBundleId) {
-            self.defaultBundleId = apnConfig.bundleId;
-        }
-    });
-
-    logger.debug("defaultBundleId %s", this.defaultBundleId);
+    this.providerFactory = providerFactory;
 }
 
-NotificationService.prototype.setApnToken = function (pushId, apnToken, bundleId) {
-    if (pushId && apnToken) {
-        if (!bundleId) {
-            bundleId = this.defaultBundleId;
-        }
-        try {
-            new Buffer(apnToken, 'hex');
-        } catch (err) {
-            logger.debug("invalid apnToken format %s", apnToken);
-            return;
-        }
-        var apnData = JSON.stringify({bundleId: bundleId, apnToken: apnToken});
+NotificationService.prototype.setThirdPartyToken = function (data) {
+    logger.debug("setThirdPartyToken ", data);
+    if (data && data.pushId && data.apnToken) {
+        var pushId = data.pushId;
+        delete data.pushId;
+        this.providerFactory.addToken(data);
+        var apnData = JSON.stringify(data);
+        var apnToken = data.apnToken;
         var self = this;
         this.redis.get("apnTokenToPushId#" + apnToken, function (err, oldPushId) {
             logger.debug("oldPushId %s", oldPushId);
@@ -41,7 +30,6 @@ NotificationService.prototype.setApnToken = function (pushId, apnToken, bundleId
             }
             self.redis.set("apnTokenToPushId#" + apnToken, pushId);
             self.redis.set("pushIdToApnData#" + pushId, apnData);
-            self.redis.hset("apnTokens#" + bundleId, apnToken, Date.now());
             self.redis.expire("pushIdToApnData#" + pushId, apnTokenTTL);
             self.redis.expire("apnTokenToPushId#" + apnToken, apnTokenTTL);
         });
@@ -55,7 +43,7 @@ NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, not
             logger.debug("pushIdToApnData %s %s", pushId, JSON.stringify(reply));
             if (reply) {
                 var apnData = JSON.parse(reply);
-                self.apnService.sendOne(apnData, notification, timeToLive);
+                self.providerFactory.sendOne(apnData, notification, timeToLive);
             } else {
                 logger.debug("send notification to android %s", pushId);
                 self.ttlService.addPacketAndEmit(pushId, 'noti', timeToLive, notification, io, true);
@@ -67,5 +55,5 @@ NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, not
 
 NotificationService.prototype.sendAll = function (notification, timeToLive, io) {
     this.ttlService.addPacketAndEmit("noti", 'noti', timeToLive, notification, io, false);
-    this.apnService.sendAll(notification, timeToLive);
+    this.providerFactory.sendAll(notification, timeToLive);
 };

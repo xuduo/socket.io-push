@@ -85,10 +85,8 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
         });
 
         socket.on('apnToken', function (data) {
-            logger.debug("on apnToken %j", data);
-            var pushId = data.pushId;
-            var apnToken = data.apnToken;
-            notificationService.setApnToken(pushId, apnToken, data.bundleId);
+            logger.debug("on apnToken %s %j", socket.pushId, data);
+            notificationService.setThirdPartyToken(data);
         });
 
         socket.on('packetProxy', function (data) {
