@@ -11,22 +11,12 @@
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-
-
-
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!-- 根据地理位置推送消息需要事先上报地理位置信息，需要如下权限，不上报则不需要， -->
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
-
-
-
-
-
-
 
     <application
         android:allowBackup="true"

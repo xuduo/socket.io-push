@@ -109,7 +109,6 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
             client.setPushCallback(this);
             client.setNotificationCallback(this);
             client.setConnectCallback(this);
-            HuaweiNotification huaweiNotification=new HuaweiNotification(this);
         }
     }
 
