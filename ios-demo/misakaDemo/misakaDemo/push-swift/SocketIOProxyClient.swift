@@ -52,7 +52,6 @@ public class SocketIOProxyClient : NSObject {
             print("socket connect ")
             self.connected = true
             self.sendPushIdAndTopicToServer()
-            self.sendApnTokenToServer()
         }
         
         socket!.on("pushId") {data, ack in
@@ -64,6 +63,7 @@ public class SocketIOProxyClient : NSObject {
                 uid = "";
             }
             self.connectCallback?.onConnect(uid!)
+            self.sendApnTokenToServer()
         }
         
         socket!.on("disconnect") {data, ack in
@@ -160,6 +160,7 @@ public class SocketIOProxyClient : NSObject {
             let data = NSMutableDictionary()
             data.setValue(apnToken, forKey: "apnToken")
             data.setValue(pushId, forKey: "pushId")
+            data.setValue("apn", forKey: "type")
             data.setValue(NSBundle.mainBundle().bundleIdentifier, forKey: "bundleId")
             self.socket!.emit("apnToken", data)
             print("send apnToken \(apnToken)")
