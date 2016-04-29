@@ -17,7 +17,21 @@ Android客户端SDK
             <intent-filter>
                 <action android:name="com.yy.httpproxy.service.RemoteService.INTENT" />
             </intent-filter>
-     </receiver>
+        </receiver>
+
+               <service android:name="com.yy.httpproxy.service.BindService" android:process=":push" android:enabled="true"/>
+                <service android:name="com.yy.httpproxy.service.ConnectionService" android:process=":push" android:enabled="true"/>
+                <service android:name="com.yy.httpproxy.service.ForegroundService" android:process=":push" android:enabled="true"/>
+                <service android:name="com.yy.httpproxy.service.DummyService" android:process=":push" android:enabled="true"/>
+
+
+
+                <receiver android:name="com.yy.httpproxy.service.BootBroadcastReceiver">
+                    <intent-filter>
+                        <action android:name="android.intent.action.BOOT_COMPLETED" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </receiver>
 ```     
 
 

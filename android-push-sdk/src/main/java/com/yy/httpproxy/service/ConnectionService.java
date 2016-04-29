@@ -14,6 +14,7 @@ import com.yy.httpproxy.requester.ResponseHandler;
 import com.yy.httpproxy.socketio.SocketIOProxyClient;
 import com.yy.httpproxy.subscribe.ConnectCallback;
 import com.yy.httpproxy.subscribe.PushCallback;
+import com.yy.httpproxy.thirdparty.HuaweiNotification;
 
 import org.json.JSONObject;
 
@@ -108,6 +109,7 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
             client.setPushCallback(this);
             client.setNotificationCallback(this);
             client.setConnectCallback(this);
+            HuaweiNotification huaweiNotification=new HuaweiNotification(this);
         }
     }
 

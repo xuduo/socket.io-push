@@ -24,7 +24,7 @@ import com.yy.misaka.demo.entity.Message;
 import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
-public class ChatActivity extends Activity implements PushCallback, ConnectCallback {
+public class ChatActivity extends Activity implements PushCallback, ConnectCallback{
 
     public final static String chatTopic = "chatRoom";
     public final static String TAG = "ChatActivity";
@@ -78,6 +78,12 @@ public class ChatActivity extends Activity implements PushCallback, ConnectCallb
         intent.putExtra("nickName", nickName);
         intent.setClass(context, ChatActivity.class);
         context.startActivity(intent);
+    }
+
+    @Override
+    public void onBackPressed() {
+        android.os.Process.killProcess(android.os.Process.myPid());    //获取PID
+        System.exit(0);
     }
 
     private void updateConnect() {
