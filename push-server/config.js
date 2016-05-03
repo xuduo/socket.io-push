@@ -20,6 +20,10 @@ config.apns = [
     }
 ];
 
+config.huawei = {
+    client_id: 10513719,
+    client_secret: "9l7fwfxt0m37qt61a1rh3w0lg9hjza1l"
+}
 
 config.apiAuth = function (path, req, logger) {
     var ip = req.headers['x-real-ip'] || req.connection.remoteAddress;

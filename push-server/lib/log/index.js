@@ -91,19 +91,22 @@ var meta = {};
 
 });
 
+var defaultArgs = {
+    workId: 1,
+    dir: 'log',
+    debug: 1,
+    foreground: 1
+}
 var Logger = function Logger(tag) {
     if ((typeof tag) == 'string') {
+        if (!logger) {
+            setArgs(defaultArgs)
+        }
         return new LogProxy(logger, tag);
     } else if (tag) {
         setArgs(tag);
     } else {
-        var args = {
-            workId: 1,
-            dir: 'log',
-            debug: 1,
-            foreground: 1
-        }
-        setArgs(args);
+        setArgs(defaultArgs);
     }
 };
 

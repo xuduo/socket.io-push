@@ -15,6 +15,7 @@ import com.yy.httpproxy.subscribe.CachedSharedPreference;
 import com.yy.httpproxy.subscribe.ConnectCallback;
 import com.yy.httpproxy.subscribe.PushCallback;
 import com.yy.httpproxy.subscribe.PushSubscriber;
+import com.yy.httpproxy.thirdparty.NotificationProvider;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,6 +48,7 @@ public class SocketIOProxyClient implements PushSubscriber {
 
     private static final int PROTOCOL_VERSION = 1;
     private static String TAG = "SocketIOProxyClient";
+    private final NotificationProvider notificationProvider;
     private PushCallback pushCallback;
     private String pushId;
     private NotificationCallback notificationCallback;
@@ -168,8 +170,23 @@ public class SocketIOProxyClient implements PushSubscriber {
             if (connectCallback != null) {
                 connectCallback.onConnect(uid);
             }
+            sendTokenToServer();
         }
     };
+
+    public void sendTokenToServer() {
+        if (notificationProvider != null && notificationProvider.getToken() != null && socket.connected()) {
+            Log.i(TAG, "sendTokenToServer " + pushId);
+            JSONObject object = new JSONObject();
+            try {
+                object.put("token", notificationProvider.getToken());
+                object.put("type", notificationProvider.getType());
+                socket.emit("token", object);
+            } catch (JSONException e) {
+                Log.e(TAG, "sendTokenToServer error ", e);
+            }
+        }
+    }
 
     private final Emitter.Listener notificationListener = new Emitter.Listener() {
         @Override
@@ -345,11 +362,14 @@ public class SocketIOProxyClient implements PushSubscriber {
 
     private Socket socket;
 
-    public SocketIOProxyClient(String host, Context context) {
+    public SocketIOProxyClient(Context context, String host, NotificationProvider provider) {
         cachedSharedPreference = new CachedSharedPreference(context);
         AndroidLoggingHandler.reset(new AndroidLoggingHandler());
         java.util.logging.Logger.getLogger("").setLevel(Level.FINEST);
-        topics.put("noti", true);
+        this.notificationProvider = provider;
+        if (provider == null) {
+            topics.put("noti", true);
+        }
         try {
             IO.Options opts = new IO.Options();
             opts.transports = new String[]{"websocket"};
@@ -456,7 +476,7 @@ public class SocketIOProxyClient implements PushSubscriber {
     public void setNotificationCallback(NotificationCallback notificationCallback) {
         this.notificationCallback = notificationCallback;
     }
-    
+
     public String getUid() {
         return uid;
     }

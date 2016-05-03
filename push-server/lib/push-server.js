@@ -33,12 +33,15 @@ function PushServer(config) {
         topicOnline = require('./stats/topicOnline.js')(cluster, io, stats.id, config.topicOnlineFilter);
     }
     if (apiPort) {
-
-        var providerFactory = require('./service/notificationProviderFactory.js')(config.apns, config.apnsSliceServers, cluster, stats);
+        var providerFactory = require('./service/notificationProviderFactory.js')();
         notificationService.providerFactory = providerFactory;
-        if(config.apns){
+        if (config.apns) {
             var apnService = require('./service/apnProvider.js')(config.apns, config.apnsSliceServers, cluster, stats);
             providerFactory.addProvider(apnService);
+        }
+        if (config.huawei) {
+            var huaweiProvider = require('./service/huaweiProvider.js')(config.huawei);
+            providerFactory.addProvider(huaweiProvider);
         }
         this.restApi = require('./api/restApi.js')(io, topicOnline, stats, notificationService, apiPort, ttlService, cluster, apiThreshold, apnService, config.apiAuth, uidStore);
     }

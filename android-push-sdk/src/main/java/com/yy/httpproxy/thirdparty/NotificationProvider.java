@@ -7,11 +7,10 @@ import java.util.Set;
  */
 public interface NotificationProvider {
 
-    Set getPropertyKeySet();
 
-    void initialize(java.util.Map properties);
+    String getToken();
 
-    boolean sendMessageNotification(String message);
+    String getType();
 
-
+    void setToken(String token);
 }

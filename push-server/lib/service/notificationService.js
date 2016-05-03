@@ -3,7 +3,7 @@ module.exports = NotificationService;
 var logger = require('../log/index.js')('NotificationService');
 var util = require('../util/util.js');
 var apn = require('apn');
-var apnTokenTTL = 3600 * 24 * 7;
+var tokenTTL = 3600 * 24 * 7;
 
 
 function NotificationService(providerFactory, redis, ttlService) {
@@ -15,45 +15,55 @@ function NotificationService(providerFactory, redis, ttlService) {
 
 NotificationService.prototype.setThirdPartyToken = function (data) {
     logger.debug("setThirdPartyToken ", data);
-    if (data && data.pushId && data.apnToken) {
+    if (data && data.pushId && data.token) {
         var pushId = data.pushId;
         delete data.pushId;
         this.providerFactory.addToken(data);
-        var apnData = JSON.stringify(data);
-        var apnToken = data.apnToken;
+        var tokenData = JSON.stringify(data);
+        var token = data.token;
         var self = this;
-        this.redis.get("apnTokenToPushId#" + apnToken, function (err, oldPushId) {
+        var tokenToPushIdKey = "tokenToPushId#" + data.type + "#" + token;
+        this.redis.get(tokenToPushIdKey, function (err, oldPushId) {
             logger.debug("oldPushId %s", oldPushId);
             if (oldPushId && oldPushId != pushId) {
-                self.redis.del("pushIdToApnData#" + oldPushId);
-                logger.debug("remove old pushId to apnToken %s %s", oldPushId, apnData);
+                self.redis.del("pushIdToToken#" + oldPushId);
+                logger.debug("remove old pushId to token %s %s", oldPushId, tokenData);
             }
-            self.redis.set("apnTokenToPushId#" + apnToken, pushId);
-            self.redis.set("pushIdToApnData#" + pushId, apnData);
-            self.redis.expire("pushIdToApnData#" + pushId, apnTokenTTL);
-            self.redis.expire("apnTokenToPushId#" + apnToken, apnTokenTTL);
+            self.redis.set(tokenToPushIdKey, pushId);
+            var pushIdToTokenKey = "pushIdToToken#" + pushId;
+            self.redis.set(pushIdToTokenKey, tokenData);
+            self.redis.expire(pushIdToTokenKey, tokenTTL);
+            self.redis.expire(tokenToPushIdKey, tokenTTL);
         });
     }
 };
-
+NotificationService.prototype.getTokenDataByPushId = function (pushId, callback) {
+    this.redis.get("pushIdToToken#" + pushId, function (err, reply) {
+        logger.debug("pushIdToToken %s %j", pushId, reply);
+        var token;
+        if (reply) {
+            token = JSON.parse(reply);
+        }
+        callback(token);
+    });
+}
 NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, notification, io) {
     var self = this;
     pushIds.forEach(function (pushId) {
-        self.redis.get("pushIdToApnData#" + pushId, function (err, reply) {
-            logger.debug("pushIdToApnData %s %s", pushId, JSON.stringify(reply));
-            if (reply) {
-                var apnData = JSON.parse(reply);
-                self.providerFactory.sendOne(apnData, notification, timeToLive);
-            } else {
-                logger.debug("send notification to android %s", pushId);
+        self.getTokenDataByPushId(pushId, function (token) {
+            if (token) {
+                self.providerFactory.sendOne(notification, token, timeToLive);
+            } else if (self.ttlService) {
+                logger.debug("send notification in socket.io connection %s", pushId);
                 self.ttlService.addPacketAndEmit(pushId, 'noti', timeToLive, notification, io, true);
             }
         });
     });
-
 };
 
 NotificationService.prototype.sendAll = function (notification, timeToLive, io) {
-    this.ttlService.addPacketAndEmit("noti", 'noti', timeToLive, notification, io, false);
+    if (this.ttlService) {
+        this.ttlService.addPacketAndEmit("noti", 'noti', timeToLive, notification, io, false);
+    }
     this.providerFactory.sendAll(notification, timeToLive);
 };

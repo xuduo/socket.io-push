@@ -2,8 +2,10 @@ package com.yy.httpproxy.service;
 
 import android.app.Notification;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Message;
@@ -14,15 +16,20 @@ import com.yy.httpproxy.requester.ResponseHandler;
 import com.yy.httpproxy.socketio.SocketIOProxyClient;
 import com.yy.httpproxy.subscribe.ConnectCallback;
 import com.yy.httpproxy.subscribe.PushCallback;
-import com.yy.httpproxy.thirdparty.HuaweiNotification;
+import com.yy.httpproxy.thirdparty.HuaweiNotificationProvider;
+import com.yy.httpproxy.thirdparty.NotificationProvider;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ConnectionService extends Service implements ConnectCallback, PushCallback, ResponseHandler, SocketIOProxyClient.NotificationCallback {
 
-    private final String TAG = "ConnectionService";
+    private static final String TAG = "ConnectionService";
     public static SocketIOProxyClient client;
     private NotificationHandler notificationHandler;
+    private static NotificationProvider notificationProvider;
     private static ConnectionService instance;
 
     @Override
@@ -102,15 +109,23 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
                     notificationHandler = new DefaultNotificationHandler();
                 }
             }
-
-            client = new SocketIOProxyClient(host,this.getApplicationContext());
+            List<String> enabledProviders = new ArrayList<>();
+            enabledProviders.add("huawei");
+            notificationProvider = getProvider(this.getApplicationContext(), enabledProviders);
+            client = new SocketIOProxyClient(this.getApplicationContext(), host, notificationProvider);
             client.setResponseHandler(this);
             client.setPushId(pushId);
             client.setPushCallback(this);
             client.setNotificationCallback(this);
             client.setConnectCallback(this);
-            HuaweiNotification huaweiNotification=new HuaweiNotification(this);
+
         }
+    }
+
+    public NotificationProvider getProvider(Context context, List<String> enabledProviders) {
+        Log.i(TAG, "Build.DISPLAY " + Build.DISPLAY);
+        HuaweiNotificationProvider huaweiNotificationProvider = new HuaweiNotificationProvider(context);
+        return huaweiNotificationProvider;
     }
 
     @Override
@@ -186,5 +201,13 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
     @Override
     public void onDisconnect() {
         sendConnect();
+    }
+
+    public static void setToken(String token) {
+        if (notificationProvider != null && client != null) {
+            Log.i(TAG, "setToken " + token);
+            notificationProvider.setToken(token);
+            client.sendTokenToServer();
+        }
     }
 }

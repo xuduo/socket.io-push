@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+public class BuildProperties {
     private final Properties properties;
 
     private BuildProperties() throws IOException {

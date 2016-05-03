@@ -4,7 +4,8 @@ var logger = require('../log/index.js')('HuaweiProvider');
 
 var util = require('../util/util.js');
 var request = require('request');
-var apiUrl = "https://login.vmall.com/"
+var tokenUrl = "https://login.vmall.com/oauth2/token";
+var apiUrl = "https://api.vmall.com/rest.php";
 
 function HuaweiProvider(config) {
     if (!(this instanceof HuaweiProvider)) return new HuaweiProvider(config);
@@ -12,56 +13,114 @@ function HuaweiProvider(config) {
     this.client_id = config.client_id;
     this.client_secret = config.client_secret;
     this.access_token_expire = 0;
+    this.type = "huawei";
 }
 
-HuaweiProvider.prototype.sendOne = function (apnData, notification, timeToLive) {
-
+HuaweiProvider.prototype.sendOne = function (notification, tokenData, timeToLive, callback) {
+    var self = this;
+    this.checkToken(function () {
+        logger.debug("sendOne ", notification, timeToLive);
+        var postData = self.getPostData(1, notification, tokenData, timeToLive);
+        request.post({
+            url: apiUrl,
+            form: postData
+        }, function (error, response, body) {
+            logger.info("sendOne result", error, response.statusCode, body);
+            if (!error && response.statusCode == 200 && callback) {
+                callback();
+            }
+        })
+    });
 };
+
+HuaweiProvider.prototype.getPostData = function (push_type, notification, tokenData, timeToLive) {
+    var postData = {
+        access_token: this.access_token,
+        nsp_svc: "openpush.openapi.notification_send",
+        nsp_fmt: "JSON",
+        nsp_ts: Date.now(),
+        push_type: push_type,
+        android: JSON.stringify({
+            notification_title: notification.android.title,
+            notification_content: notification.android.message,
+            extras: [notification.android.payload],
+            doings: 1
+        })
+    };
+    if (tokenData && tokenData.token) {
+        postData.tokens = tokenData.token;
+    }
+    if (timeToLive > 0) {
+        postData.expire_time = formatHuaweiDate(new Date(Date.now() + timeToLive));
+        logger.debug("postData.expire_time ", postData.expire_time);
+    }
+    return postData;
+}
 
 HuaweiProvider.prototype.addToken = function (data) {
 
 };
 
-HuaweiProvider.prototype.sendAll = function (notification, timeToLive) {
-    if (!this.access_token) {
+HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback) {
+    var self = this;
+    this.checkToken(function () {
+        logger.debug("sendAll ", notification, timeToLive);
+        var postData = self.getPostData(2, notification, 0, timeToLive);
         request.post({
-            baseUrl: apiUrl,
-            uri: "/oauth2/token",
-            form: {
-                grant_type: "client_credentials",
-                client_id: 10513719,
-                client_secret: "9l7fwfxt0m37qt61a1rh3w0lg9hjza1l"
-            }
+            url: apiUrl,
+            form: postData
         }, function (error, response, body) {
-            console.log(body);
-            if (!error && response.statusCode == 200) {
-                console.log(body) // Show the HTML for the Google homepage.
+            logger.info("sendAll result", error, response.statusCode, body);
+            if (!error && response.statusCode == 200 && callback) {
+                callback();
             }
         })
-    }
+    });
 };
 
 HuaweiProvider.prototype.checkToken = function (callback) {
     var self = this;
     if (this.access_token && Date.now() < this.access_token_expire) {
+        logger.debug("token valid");
         callback();
         return;
     } else {
+        logger.info("request token");
         request.post({
-            baseUrl: apiUrl,
-            uri: "/oauth2/token",
+            url: tokenUrl,
             form: {
                 grant_type: "client_credentials",
-                client_id: 10513719,
-                client_secret: "9l7fwfxt0m37qt61a1rh3w0lg9hjza1l"
+                client_id: self.client_id,
+                client_secret: self.client_secret
             }
         }, function (error, response, body) {
-            console.log(body);
             if (!error && response.statusCode == 200) {
                 var data = JSON.parse(body);
                 self.access_token = data.access_token;
                 self.access_token_expire = Date.now() + data.expires_in * 1000 - 60 * 1000;
+                logger.info("get access token success", data);
+                callback();
+            } else {
+                logger.error("get access token error", body);
             }
         });
     }
 };
+
+function formatHuaweiDate(date) {
+    var date = new Date(),
+        tzo = -date.getTimezoneOffset(),
+        dif = tzo >= 0 ? '+' : '-',
+        pad = function (num) {
+            var norm = Math.abs(Math.floor(num));
+            return (norm < 10 ? '0' : '') + norm;
+        };
+    return date.getFullYear()
+        + '-' + pad(date.getMonth() + 1)
+        + '-' + pad(date.getDate())
+        + 'T' + pad(date.getHours())
+        + ':' + pad(date.getMinutes())
+        + ':' + pad(date.getSeconds())
+        + dif + pad(tzo / 60)
+        + ':' + pad(tzo % 60);
+}
