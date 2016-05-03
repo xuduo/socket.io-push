@@ -24,8 +24,12 @@ public class DefaultNotificationHandler implements NotificationHandler {
 
     }
 
+    public static String getIntentName(Context context){
+        return context.getApplicationInfo().packageName + INTENT_TAIL;
+    }
+
     protected void sendArrived(Context context, PushedNotification pushedNotification) {
-        String intentName = context.getApplicationInfo().packageName + INTENT_TAIL;
+        String intentName = getIntentName(context);
         Intent arrive = new Intent(intentName);
         arrive.putExtra("cmd", BindService.CMD_NOTIFICATION_ARRIVED);
         arrive.putExtra("id", pushedNotification.id);
@@ -34,7 +38,7 @@ public class DefaultNotificationHandler implements NotificationHandler {
     }
 
     protected void showNotification(Context context, PushedNotification pushedNotification) {
-        String intentName = context.getApplicationInfo().packageName + INTENT_TAIL;
+        String intentName = getIntentName(context);
         Intent pushIntent = new Intent(intentName);
         pushIntent.putExtra("cmd", BindService.CMD_NOTIFICATION_CLICKED);
         pushIntent.putExtra("id", pushedNotification.id);

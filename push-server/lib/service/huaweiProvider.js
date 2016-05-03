@@ -43,7 +43,7 @@ HuaweiProvider.prototype.getPostData = function (push_type, notification, tokenD
         android: JSON.stringify({
             notification_title: notification.android.title,
             notification_content: notification.android.message,
-            extras: [notification.android.payload],
+            extras: [notification.id, notification.android],
             doings: 1
         })
     };
