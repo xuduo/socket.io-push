@@ -7,10 +7,21 @@ describe('huawei test', function () {
 
     it('test ttl to single', function (done) {
         var huaweiProvider = require('../lib/service/huaweiProvider.js')(config);
-        var notification = {};
+        var notificationAll = {
+            android: {title: "sendAll", message: "sendAll Msg", payload: {test: "wwwwqqq"}},
+            id: "RW3KgipECMe1",
+            timestamp: Date.now()
+        };
         var timeToLive = 10000;
-        huaweiProvider.sendAll(notification,timeToLive,function(){
-            done();
+        huaweiProvider.sendAll(notificationAll, timeToLive, function () {
+            var notificationOne = {
+                android: {title: "sendOne", message: "sendOne Msg", payload: {test: "wwwwqqq"}},
+                id: "RW3KgipECMe1",
+                timestamp: Date.now()
+            };
+            huaweiProvider.sendOne(notificationOne, {token: "03574580439242232000001425000001"}, 60 * 60 * 1000, function () {
+                done();
+            });
         });
     });
 

@@ -84,10 +84,22 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
             socket.leave(topic);
         });
 
-        socket.on('apnToken', function (data) {
-            logger.debug("on apnToken %s %j", socket.pushId, data);
+        var token = function (data) {
+            logger.debug("on token %s %j", socket.pushId, data);
+            if (socket.pushId) {
+                data.pushId = socket.pushId;
+            }
+            if (!data.type) {
+                data.type = "apn";
+            }
+            if (data.apnToken) {
+                data.token = data.apnToken;
+                delete data.apnToken;
+            }
             notificationService.setThirdPartyToken(data);
-        });
+        };
+        socket.on('apnToken', token);
+        socket.on('token', token);
 
         socket.on('packetProxy', function (data) {
             data.pushId = socket.pushId;

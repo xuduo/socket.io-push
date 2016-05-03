@@ -53,21 +53,21 @@ function ApnProvider(apnConfigs, sliceServers, redis, stats) {
 
 }
 
-ApnProvider.prototype.sendOne = function (apnData, notification, timeToLive) {
+ApnProvider.prototype.sendOne = function (notification, apnData, timeToLive) {
     var bundleId = apnData.bundleId;
     var apnConnection = this.apnConnections[bundleId];
     if (apnConnection) {
         this.stats.addApnTotal(1);
         var note = toApnNotification(notification, timeToLive);
-        apnConnection.pushNotification(note, apnData.apnToken);
-        logger.info("send to notification to ios %s %s", apnData.bundleId, apnData.apnToken);
+        apnConnection.pushNotification(note, apnData.token);
+        logger.info("send to notification to ios %s %s", apnData.bundleId, apnData.token);
     }
 };
 
 ApnProvider.prototype.addToken = function (data) {
     logger.debug("addToken %j", data);
-    if (data.bundleId && data.apnToken) {
-        this.redis.hset("apnTokens#" + data.bundleId, data.apnToken, Date.now());
+    if (data.bundleId && data.token) {
+        this.redis.hset("apnTokens#" + data.bundleId, data.token, Date.now());
     }
 };
 

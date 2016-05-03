@@ -19,10 +19,11 @@ NotificationProviderFactory.prototype.addToken = function (data) {
     }
 };
 
-NotificationProviderFactory.prototype.sendOne = function (data, notification, timeToLive) {
+NotificationProviderFactory.prototype.sendOne = function (notification, data, timeToLive) {
     var provider = this.providers[data.type || "apn"];
+    logger.debug("sendOne %j", data);
     if (provider) {
-        provider.sendOne(data, notification, timeToLive);
+        provider.sendOne(notification, data, timeToLive);
     }
 };
 
