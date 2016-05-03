@@ -13,6 +13,6 @@ public class HuaweiNotification {
     public HuaweiNotification(Context context){
         Log.d("HuaweiNotification","init");
         PushManager.requestToken(context);
+        Log.d("HuaweiNotification","haha");
     }
-
 }
