@@ -43,7 +43,7 @@ HuaweiProvider.prototype.getPostData = function (push_type, notification, tokenD
         android: JSON.stringify({
             notification_title: notification.android.title,
             notification_content: notification.android.message,
-            extras: [notification.android.payload],
+            extras: [notification.id, notification.android],
             doings: 1
         })
     };
@@ -108,8 +108,7 @@ HuaweiProvider.prototype.checkToken = function (callback) {
 };
 
 function formatHuaweiDate(date) {
-    var date = new Date(),
-        tzo = -date.getTimezoneOffset(),
+    var tzo = -date.getTimezoneOffset(),
         dif = tzo >= 0 ? '+' : '-',
         pad = function (num) {
             var norm = Math.abs(Math.floor(num));

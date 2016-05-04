@@ -63,7 +63,8 @@ NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, not
 
 NotificationService.prototype.sendAll = function (notification, timeToLive, io) {
     if (this.ttlService) {
-        this.ttlService.addPacketAndEmit("noti", 'noti', timeToLive, notification, io, false);
+        this.ttlService.addPacketAndEmit("noti", 'noti', timeToLive, {android: notification.android}, io, false);
+        this.ttlService.addPacketAndEmit("bnoti", 'bnoti', timeToLive, {browser: notification.browser || notification.android}, io, false);
     }
     this.providerFactory.sendAll(notification, timeToLive);
 };

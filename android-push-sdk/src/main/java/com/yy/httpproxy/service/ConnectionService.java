@@ -18,6 +18,8 @@ import com.yy.httpproxy.subscribe.ConnectCallback;
 import com.yy.httpproxy.subscribe.PushCallback;
 import com.yy.httpproxy.thirdparty.HuaweiNotificationProvider;
 import com.yy.httpproxy.thirdparty.NotificationProvider;
+import com.yy.httpproxy.util.OsVersion;
+import com.yy.httpproxy.util.ServiceCheckUtil;
 
 import org.json.JSONObject;
 
@@ -109,9 +111,7 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
                     notificationHandler = new DefaultNotificationHandler();
                 }
             }
-            List<String> enabledProviders = new ArrayList<>();
-            enabledProviders.add("huawei");
-            notificationProvider = getProvider(this.getApplicationContext(), enabledProviders);
+            notificationProvider = getProvider(this.getApplicationContext());
             client = new SocketIOProxyClient(this.getApplicationContext(), host, notificationProvider);
             client.setResponseHandler(this);
             client.setPushId(pushId);
@@ -122,10 +122,17 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
         }
     }
 
-    public NotificationProvider getProvider(Context context, List<String> enabledProviders) {
-        Log.i(TAG, "Build.DISPLAY " + Build.DISPLAY);
-        HuaweiNotificationProvider huaweiNotificationProvider = new HuaweiNotificationProvider(context);
-        return huaweiNotificationProvider;
+    public NotificationProvider getProvider(Context context) {
+        NotificationProvider provider = null;
+        if (OsVersion.isHuawei() && ServiceCheckUtil.huaweiServiceDeclared(context)) {
+            Log.i(TAG, "is huawei enable HuaweiNotificationProvider");
+            provider = new HuaweiNotificationProvider(context);
+        } else if (OsVersion.isXiaomi()) {
+
+        } else {
+            Log.i(TAG, "no provider");
+        }
+        return provider;
     }
 
     @Override
