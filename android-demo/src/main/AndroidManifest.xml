@@ -4,7 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -14,9 +14,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
-    <!-- 根据地理位置推送消息需要事先上报地理位置信息，需要如下权限，不上报则不需要， -->
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/> <!-- huawei -->
+
 
     <application
         android:allowBackup="true"
@@ -60,7 +59,7 @@
         </receiver>
 
 
-        <!-- 第三方相关 :接收Push消息（注册、Push消息、Push连接状态、标签，LBS上报结果）广播 -->
+        <!-- 华为配置开始-->
         <receiver android:name="com.yy.httpproxy.thirdparty.HuaweiNotificationReceiver" android:process=":push" >
             <intent-filter>
                 <!-- 必须,用于接收token-->
@@ -76,10 +75,7 @@
             </intent-filter>
             <meta-data android:name="CS_cloud_ablitity" android:value="@string/hwpush_ability_value"/>
         </receiver>
-        <!-- 备注：Push相关的android组件需要添加到业务的AndroidManifest.xml,
-        	 Push相关android组件运行在另外一个进程是为了防止Push服务异常而影响主业务 -->
 
-        <!-- PushSDK:PushSDK接收外部请求事件入口 -->
         <receiver
             android:name="com.huawei.android.pushagent.PushEventReceiver"
             android:process=":huaweipush" >
@@ -107,38 +103,12 @@
                 android:name="CS_cloud_version"
                 android:value="\u0032\u0037\u0030\u0035" />
         </receiver>
-
-        <!-- PushSDK:Push服务 -->
         <service
             android:name="com.huawei.android.pushagent.PushService"
             android:process=":huaweipush" >
         </service>
+        <!-- 华为配置结束-->
 
-        <!-- PushSDK:富媒体呈现页面，用于呈现服务器下发的富媒体消息 -->
-        <!-- locale|layoutDirection 切换语言后不重新创建activity -->
-        <activity
-            android:name="com.huawei.android.pushselfshow.richpush.RichPushActivity"
-            android:process=":push"
-            android:theme="@style/hwpush_NoActionBar"
-            android:configChanges="orientation|screenSize|locale|layoutDirection"
-            android:screenOrientation="portrait">
-            <meta-data android:name="hwc-theme"
-                android:value="androidhwext:style/Theme.Emui"/>
-            <intent-filter>
-                <action android:name="com.huawei.android.push.intent.RICHPUSH" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-
-        <activity
-            android:name="com.huawei.android.pushselfshow.permission.RequestPermissionsActivity"
-            android:theme="@android:style/Theme.DeviceDefault.Light.Dialog.NoActionBar"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|locale|layoutDirection"
-            android:exported="false">
-        </activity>
     </application>
 
 </manifest>
