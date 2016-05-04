@@ -85,19 +85,23 @@
                 <action android:name="com.huawei.intent.action.PUSH_ON" />
                 <action android:name="com.huawei.android.push.PLUGIN" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_ADDED" />
-                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+        </receiver>
 
-                <data android:scheme="package" />
+        <receiver
+            android:name="com.huawei.android.pushagent.PushBootReceiver"
+            android:process=":huaweipush" >
+            <intent-filter>
+                <action android:name="com.huawei.android.push.intent.REGISTER" />
             </intent-filter>
+            <meta-data
+                android:name="CS_cloud_version"
+                android:value="\u0032\u0037\u0030\u0035" />
         </receiver>
         <receiver
             android:name="com.huawei.android.pushagent.PushBootReceiver"
             android:process=":huaweipush" >
             <intent-filter>
                 <action android:name="com.huawei.android.push.intent.REGISTER" />
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>
             <meta-data
                 android:name="CS_cloud_version"
