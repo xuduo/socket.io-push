@@ -18,7 +18,7 @@ describe('push test', function () {
 
     it('connect', function (done) {
         var connected = 0;
-        pushClient =  require('../lib/push-client.js')('http://localhost:' + config.io_port, {
+        pushClient =  require('../lib/client/push-client.js')('http://localhost:' + config.io_port, {
             transports: ['websocket', 'polling'],
             useNotification: true
         });
@@ -29,7 +29,7 @@ describe('push test', function () {
             }
         });
 
-        pushClient2 = require('../lib/push-client.js')('http://localhost:' + config.io_port, {
+        pushClient2 = require('../lib/client/push-client.js')('http://localhost:' + config.io_port, {
             transports: ['websocket', 'polling'],
             useNotification: true
         });
@@ -282,8 +282,8 @@ describe('push test', function () {
         var str = JSON.stringify(data);
 
         var notificationCallback = function (data) {
-            expect(data.android.title).to.be.equal(title);
-            expect(data.android.message).to.be.equal(message);
+            expect(data.browser.title).to.be.equal(title);
+            expect(data.browser.message).to.be.equal(message);
             done();
         }
         pushClient.on('notification', notificationCallback);

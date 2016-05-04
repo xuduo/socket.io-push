@@ -1,5 +1,5 @@
 module.exports = {
-  entry: './lib/push-client.js',
+  entry: './lib/client/push-client.js',
   output: {
     library: 'PushClient',
     libraryTarget: 'umd',

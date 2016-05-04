@@ -4,13 +4,17 @@ var EventEmitter = require('events').EventEmitter;
 var clientId = 0;
 var receiveTTL = 2;
 var doNotReceiveTTL = 1;
+var notiTopic = 'bnoti';
 
 function PushClient(url, opt) {
     if (!(this instanceof PushClient)) return new PushClient(url, opt);
     opt.forceNew = true;
+    if (!opt.transports) {
+        opt.transports = ['websocket'];
+    }
     clientId++;
     var self = this;
-    this.topics = {'noti': receiveTTL};
+    this.topics = {};
     this.socket = require('socket.io-client')(url, opt);
     this.initStorage();
     if (opt.pushId) {
@@ -44,7 +48,8 @@ function PushClient(url, opt) {
     this.socket.on('push', pushHandler.bind(this));
     this.socket.on('p', pushHandler.bind(this));
     if (opt.useNotification) {
-        this.socket.on('noti', notiHandler.bind(this));
+        this.topics[notiTopic] = receiveTTL;
+        this.socket.on(notiTopic, notiHandler.bind(this));
     }
 }
 
@@ -61,8 +66,7 @@ PushClient.prototype.setItem = function (key, val) {
 // private
 PushClient.prototype.initStorage = function () {
     if (typeof localStorage === "undefined" || localStorage === null) {
-        var LocalStorage = require('node-localstorage').LocalStorage;
-        localStorage = new LocalStorage('./localstorage');
+        localStorage = require('./localStorage')();
     }
 }
 
@@ -123,7 +127,7 @@ var pushHandler = function (data) {
 
 var notiHandler = function (data) {
     console.log("notiHandler data: " + JSON.stringify(data));
-    this.updateLastPacketId("noti", data);
+    this.updateLastPacketId(notiTopic, data);
     this.event.emit("notification", data);
 }
 
@@ -146,6 +150,3 @@ PushClient.prototype.unsubscribeTopic = function (topic) {
     delete this.topics[topic];
     this.socket.emit("unsubscribeTopic", {topic: topic});
 }
-
-
-

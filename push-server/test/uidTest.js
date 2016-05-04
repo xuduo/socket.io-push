@@ -17,7 +17,7 @@ var pushClient;
 describe('push test', function () {
 
     it('connect', function (done) {
-        pushClient = require('../lib/push-client.js')('http://localhost:' + config.io_port, {
+        pushClient = require('../lib/client/push-client.js')('http://localhost:' + config.io_port, {
             transports: ['websocket', 'polling'],
             useNotification: true
         });
