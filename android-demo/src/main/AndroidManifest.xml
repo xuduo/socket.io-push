@@ -75,7 +75,6 @@
             </intent-filter>
             <meta-data android:name="CS_cloud_ablitity" android:value="@string/hwpush_ability_value"/>
         </receiver>
-
         <receiver
             android:name="com.huawei.android.pushagent.PushEventReceiver"
             android:process=":huaweipush" >
@@ -85,17 +84,6 @@
                 <action android:name="com.huawei.intent.action.PUSH_ON" />
                 <action android:name="com.huawei.android.push.PLUGIN" />
             </intent-filter>
-        </receiver>
-
-        <receiver
-            android:name="com.huawei.android.pushagent.PushBootReceiver"
-            android:process=":huaweipush" >
-            <intent-filter>
-                <action android:name="com.huawei.android.push.intent.REGISTER" />
-            </intent-filter>
-            <meta-data
-                android:name="CS_cloud_version"
-                android:value="\u0032\u0037\u0030\u0035" />
         </receiver>
         <receiver
             android:name="com.huawei.android.pushagent.PushBootReceiver"
