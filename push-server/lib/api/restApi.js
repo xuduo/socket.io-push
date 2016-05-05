@@ -143,6 +143,7 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
         logger.debug("notification ", req.params);
 
         if (pushAll === 'true') {
+            logger.info('notification pushAll ', req.params);
             notificationService.sendAll(notification, timeToLive, io);
             res.send({code: "success"});
             return next();

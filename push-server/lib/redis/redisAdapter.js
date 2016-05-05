@@ -164,6 +164,7 @@ function adapter(uri, opts, stats) {
         }
         if (needRedisSub) {
             logger.debug("skip re-subscribe to room %s", room);
+            if (fn) fn(null);
             return;
         }
         sub.subscribe(channel, function (err) {

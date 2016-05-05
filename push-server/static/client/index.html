@@ -5,29 +5,29 @@
     <title>Client Demo</title>
     <style>
         * {
-        padding: 0px;
-        margin: 0px;
+            padding: 0px;
+            margin: 0px;
         }
 
         body {
-        width: 100%;
-        font-family: fantasy;
-        font-size: 13px;
+            width: 100%;
+            font-family: fantasy;
+            font-size: 13px;
         }
 
         h1 {
-        text-align: center;
+            text-align: center;
         }
 
         #myDiv {
-        margin-top: 50px;
-        width: 100%;
-        text-align: center;
+            margin-top: 50px;
+            width: 100%;
+            text-align: center;
         }
 
         table {
-        margin-left: auto;
-        margin-right: auto;
+            margin-left: auto;
+            margin-right: auto;
         }
 
     </style>
@@ -78,16 +78,20 @@
         <tr align=left>
             <div>
                 <td width="100" align=right>url: &nbsp&nbsp&nbsp</td>
-                <td width="300" colspan="3"><input id="urlValue" name="timeToLive" value="http://localhost:10001"/><input type="button" onclick="connect()"
-                                                                                                                          value="connect"/></td>
+                <td width="300" colspan="3"><input id="urlValue" name="timeToLive"
+                                                   value="http://localhost:10001"/><input type="button"
+                                                                                          onclick="connect()"
+                                                                                          value="connect"/></td>
             </div>
         </tr>
 
         <tr align=left>
             <div>
                 <td width="100" align=right>url: &nbsp&nbsp&nbsp</td>
-                <td width="300" colspan="3"><input id="topic" name="topic" value="testTopic"/><input type="button" onclick="sub()"
-                                                                                                                          value="subscribeTopic"/></td>
+                <td width="300" colspan="3"><input id="topic" name="topic" value="testTopic"/><input type="button"
+                                                                                                     onclick="sub()"
+                                                                                                     value="subscribeTopic"/>
+                </td>
             </div>
         </tr>
 
@@ -106,8 +110,8 @@
 
     var pushClient;
 
-    function connect(){
-        pushClient = new PushClient($("#urlValue").val(), {transports: ['websocket', 'polling']});
+    function connect() {
+        pushClient = new PushClient($("#urlValue").val(), {useNotification: true});
         console.log('pushId ' + pushClient.pushId);
         $("#pushId").html(pushClient.pushId);
         pushClient.on('push', function (topic, data) {
@@ -116,11 +120,11 @@
         });
     }
 
-    function sub(){
+    function sub() {
         subscribeTopic($("#topic").val());
     }
 
-    function subscribeTopic(topic){
+    function subscribeTopic(topic) {
         pushClient.subscribeTopic(topic);
     }
 
