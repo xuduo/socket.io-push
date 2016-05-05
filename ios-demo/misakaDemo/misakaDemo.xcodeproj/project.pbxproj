@@ -36,6 +36,7 @@
 		73C9A0B61CBD27EE0058330C /* SocketPacketOc.m in Sources */ = {isa = PBXBuildFile; fileRef = 73C9A0AD1CBD27EE0058330C /* SocketPacketOc.m */; };
 		73C9A0B71CBD27EE0058330C /* SocketParserOc.m in Sources */ = {isa = PBXBuildFile; fileRef = 73C9A0AF1CBD27EE0058330C /* SocketParserOc.m */; };
 		73C9A0B81CBD27EE0058330C /* SocketStringReaderOc.m in Sources */ = {isa = PBXBuildFile; fileRef = 73C9A0B11CBD27EE0058330C /* SocketStringReaderOc.m */; };
+		C3797B521CDA0F1500BF1A53 /* ChatInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3797B511CDA0F1500BF1A53 /* ChatInfo.swift */; };
 		D25FADC91BDE588500BC758E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D25FADC81BDE588500BC758E /* AppDelegate.swift */; };
 		D25FADCB1BDE588500BC758E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D25FADCA1BDE588500BC758E /* ViewController.swift */; };
 		D25FADCE1BDE588500BC758E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D25FADCC1BDE588500BC758E /* Main.storyboard */; };
@@ -98,6 +99,7 @@
 		73C9A0B11CBD27EE0058330C /* SocketStringReaderOc.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SocketStringReaderOc.m; path = "push-oc/SocketStringReaderOc.m"; sourceTree = "<group>"; };
 		8DEC250981E78FDA6F206CB6 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
 		944D66DB61090BE9A1F6685B /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
+		C3797B511CDA0F1500BF1A53 /* ChatInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatInfo.swift; sourceTree = "<group>"; };
 		D25FADC51BDE588500BC758E /* misakaDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = misakaDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D25FADC81BDE588500BC758E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D25FADCA1BDE588500BC758E /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -209,6 +211,7 @@
 				73C9A0731CBD27380058330C /* push-oc */,
 				73C9A0721CBD272C0058330C /* push-swift */,
 				D25FADC81BDE588500BC758E /* AppDelegate.swift */,
+				C3797B511CDA0F1500BF1A53 /* ChatInfo.swift */,
 				D25FADCA1BDE588500BC758E /* ViewController.swift */,
 				7344B8AA1C19772A002E49ED /* DrawView.swift */,
 				7344B8A81C19727B002E49ED /* Dot.swift */,
@@ -379,6 +382,7 @@
 				7367B3E21CCE5EF400CEBA58 /* SocketIOClient.swift in Sources */,
 				7367B3E51CCE5EF400CEBA58 /* SocketLogger.swift in Sources */,
 				7344B8AB1C19772A002E49ED /* DrawView.swift in Sources */,
+				C3797B521CDA0F1500BF1A53 /* ChatInfo.swift in Sources */,
 				73C9A0B71CBD27EE0058330C /* SocketParserOc.m in Sources */,
 				7367B3DB1CCE5EF400CEBA58 /* SocketEngineClient.swift in Sources */,
 				73C9A0B81CBD27EE0058330C /* SocketStringReaderOc.m in Sources */,

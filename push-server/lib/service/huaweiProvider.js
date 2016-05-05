@@ -44,7 +44,7 @@ HuaweiProvider.prototype.getPostData = function (push_type, notification, tokenD
             notification_title: notification.android.title,
             notification_content: notification.android.message,
             extras: [notification.id, notification.android],
-            doings: 1
+            doings: 2
         })
     };
     if (tokenData && tokenData.token) {
