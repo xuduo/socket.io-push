@@ -43,8 +43,10 @@ function PushServer(config) {
             var huaweiProvider = require('./service/huaweiProvider.js')(config.huawei);
             providerFactory.addProvider(huaweiProvider);
         }
+        if (config.xiaomi) {
+            var xiaomiProvider = require('./service/xiaomiProvider.js')(config.xiaomi);
+            providerFactory.addProvider(xiaomiProvider);
+        }
         this.restApi = require('./api/restApi.js')(io, topicOnline, stats, notificationService, apiPort, ttlService, cluster, apiThreshold, apnService, config.apiAuth, uidStore);
     }
 }
-
-

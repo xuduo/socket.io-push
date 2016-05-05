@@ -15,12 +15,10 @@ TTLService.prototype.onPushId = function (socket, lastPacketId) {
 var maxTllPacketPerTopic = -50;
 
 TTLService.prototype.addPacketAndEmit = function (topic, event, timeToLive, packet, io, unicast) {
-    if (event == "noti") {
-        packet.id = randomstring.generate(12);
-        packet.timestamp = Date.now();
-    }
     if (timeToLive > 0) {
-        packet.id = randomstring.generate(12);
+        if(!packet.id){
+            packet.id = randomstring.generate(12);
+        }
         logger.debug("addPacket %s %s %s", topic, event, timeToLive);
         packet.ttl = 1;
         if (unicast) {

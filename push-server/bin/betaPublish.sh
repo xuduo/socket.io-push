@@ -1,0 +1,1 @@
+npm publish ./ --tag=beta && cnpm sync socket.io-push

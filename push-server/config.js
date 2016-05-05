@@ -25,6 +25,10 @@ config.huawei = {
     client_secret: "9l7fwfxt0m37qt61a1rh3w0lg9hjza1l"
 }
 
+config.xiaomi = {
+    app_secret: "ynJJ6b+MkCLyw1cdrg/72w=="
+}
+
 config.apiAuth = function (path, req, logger) {
     var ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
     logger.info("%s caller ip %s", path, ip);

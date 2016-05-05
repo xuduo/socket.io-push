@@ -4,7 +4,7 @@ var logger = require('../log/index.js')('NotificationService');
 var util = require('../util/util.js');
 var apn = require('apn');
 var tokenTTL = 3600 * 24 * 7;
-
+var randomstring = require("randomstring");
 
 function NotificationService(providerFactory, redis, ttlService) {
     if (!(this instanceof NotificationService)) return new NotificationService(providerFactory, redis, ttlService);
@@ -62,6 +62,8 @@ NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, not
 };
 
 NotificationService.prototype.sendAll = function (notification, timeToLive, io) {
+    notification.id = randomstring.generate(12);
+    notification.timestamp = Date.now();
     if (this.ttlService) {
         this.ttlService.addPacketAndEmit("noti", 'noti', timeToLive, {android: notification.android}, io, false);
         this.ttlService.addPacketAndEmit("bnoti", 'bnoti', timeToLive, {browser: notification.browser || notification.android}, io, false);
