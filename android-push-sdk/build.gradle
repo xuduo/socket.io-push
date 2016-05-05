@@ -30,6 +30,7 @@ dependencies {
     provided 'com.google.code.gson:gson:2.3.1'
     provided files('libs/android.jar')
     provided files('libs/HwPush_SDK_V2705.jar')
+    provided files('libs/MiPush_SDK_Client_2_2_21.jar')
 }
 
 group = "com.yy"

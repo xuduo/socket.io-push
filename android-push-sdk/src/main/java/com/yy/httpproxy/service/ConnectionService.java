@@ -5,7 +5,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Message;
@@ -18,13 +17,11 @@ import com.yy.httpproxy.subscribe.ConnectCallback;
 import com.yy.httpproxy.subscribe.PushCallback;
 import com.yy.httpproxy.thirdparty.HuaweiNotificationProvider;
 import com.yy.httpproxy.thirdparty.NotificationProvider;
+import com.yy.httpproxy.thirdparty.XiaomiNotificationProvider;
 import com.yy.httpproxy.util.OsVersion;
 import com.yy.httpproxy.util.ServiceCheckUtil;
 
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ConnectionService extends Service implements ConnectCallback, PushCallback, ResponseHandler, SocketIOProxyClient.NotificationCallback {
 
@@ -52,7 +49,6 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
             instance.startForeground(12345, builder.build());
         }
     }
-
 
     private String getFromIntentOrPref(Intent intent, String name) {
         String value = null;
@@ -124,11 +120,12 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
 
     public NotificationProvider getProvider(Context context) {
         NotificationProvider provider = null;
-        if (OsVersion.isHuawei() && ServiceCheckUtil.huaweiServiceDeclared(context)) {
+        if (OsVersion.isHuawei(this) && ServiceCheckUtil.huaweiServiceDeclared(context)) {
             Log.i(TAG, "is huawei enable HuaweiNotificationProvider");
             provider = new HuaweiNotificationProvider(context);
-        } else if (OsVersion.isXiaomi()) {
-
+        } else if (OsVersion.isXiaomi(this) && ServiceCheckUtil.xiaomiServiceDeclared(context)) {
+            Log.i(TAG, "is xiaomi enable XiaomiNotificationProvider");
+            provider = new XiaomiNotificationProvider(context);
         } else {
             Log.i(TAG, "no provider");
         }

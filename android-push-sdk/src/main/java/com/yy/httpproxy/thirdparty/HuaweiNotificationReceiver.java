@@ -4,9 +4,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.huawei.android.pushagent.api.PushEventReceiver;
 import com.yy.httpproxy.service.BindService;
