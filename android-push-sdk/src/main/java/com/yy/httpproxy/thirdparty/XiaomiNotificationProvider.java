@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
+import android.content.res.Resources;
 import android.util.Log;
 
 import com.xiaomi.channel.commonutils.logger.LoggerInterface;
@@ -65,7 +66,9 @@ public class XiaomiNotificationProvider implements NotificationProvider {
             ComponentName cn=new ComponentName(context, ConnectionService.class);
             ServiceInfo info=context.getPackageManager()
                     .getServiceInfo(cn, PackageManager.GET_META_DATA);
-            appConfig=info.metaData.getString("metaDataName");
+            String stringId=info.metaData.getString(metaDataName);
+            Resources res = context.getResources();
+            appConfig = res.getString(res.getIdentifier(stringId,"string",context.getPackageName()));
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
