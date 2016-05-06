@@ -8,12 +8,12 @@ import com.huawei.android.pushagent.api.PushManager;
 /**
  * Created by Administrator on 2016/4/29.
  */
-public class HuaweiNotificationProvider implements NotificationProvider {
+public class HuaweiProvider implements NotificationProvider {
 
     private String token;
 
-    public HuaweiNotificationProvider(Context context) {
-        Log.i("HuaweiNotification", "init");
+    public HuaweiProvider(Context context) {
+        Log.i("HuaweiProvider", "init");
         PushManager.requestToken(context);
     }
 

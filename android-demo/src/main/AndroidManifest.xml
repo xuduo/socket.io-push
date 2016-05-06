@@ -105,11 +105,11 @@
 
 
         <!-- 小米配置开始-->
+        <!-- 被杀后,push进程无法通过intent 拉起main进程,XiaomiReceiver 要跑在主进程-->
         <meta-data android:name="XIAOMI_APP_ID"
             android:value="@string/XIAOMI_APP_ID" />
         <meta-data android:name="XIAOMI_APP_KEY"
             android:value="@string/XIAOMI_APP_KEY" />
-        <!-- 被杀后,push进程无法通过intent 拉起main进程,所以MainProcessReceiver接收点击事件-->
         <receiver
             android:exported="true"
             android:name="com.yy.httpproxy.thirdparty.XiaomiReceiver"

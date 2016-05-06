@@ -14,20 +14,14 @@ public class SystemProperty {
         this.mContext = mContext;
     }
 
-    public String getOrThrow(String key) throws NoSuchPropertyException {
+    public String get(String key) {
         try {
             ClassLoader classLoader = mContext.getClassLoader();
             Class SystemProperties = classLoader.loadClass("android.os.SystemProperties");
             Method methodGet = SystemProperties.getMethod("get", String.class);
             return (String) methodGet.invoke(SystemProperties, key);
-        } catch (ClassNotFoundException e) {
-            throw new NoSuchPropertyException(e.toString());
-        } catch (NoSuchMethodException e) {
-            throw new NoSuchPropertyException(e.toString());
-        } catch (InvocationTargetException e) {
-            throw new NoSuchPropertyException(e.toString());
-        } catch (IllegalAccessException e) {
-            throw new NoSuchPropertyException(e.toString());
+        } catch (Exception e) {
+            return null;
         }
     }
 

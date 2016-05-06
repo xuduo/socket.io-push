@@ -10,17 +10,15 @@ public class OsVersion {
 
     public static boolean isXiaomi(Context context) {
         final SystemProperty prop = new SystemProperty(context);
-        boolean b = prop.getOrThrow(KEY_MIUI_VERSION_NAME).equals("V5")
-                || prop.getOrThrow(KEY_MIUI_VERSION_NAME).equals("V6")
-                || prop.getOrThrow(KEY_MIUI_VERSION_NAME).equals("V7");
-        Log.d("OsVersion", b+"");
+        boolean b = prop.get(KEY_MIUI_VERSION_NAME) != null;
+        Log.d("OsVersion xiaomi", b + "");
         return b;
     }
 
     public static boolean isHuawei(Context context) {
         final SystemProperty prop = new SystemProperty(context);
-        boolean b =prop.getOrThrow(KEY_EMUI_VERSION_CODE).equals("true");
-        Log.d("OsVersionHuawei", b+"");
+        boolean b = prop.get(KEY_EMUI_VERSION_CODE).equals("true");
+        Log.d("OsVersion huawei", b + "");
         return b;
     }
 

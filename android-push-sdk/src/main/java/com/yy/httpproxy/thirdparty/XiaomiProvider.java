@@ -9,12 +9,12 @@ import com.xiaomi.channel.commonutils.logger.LoggerInterface;
 import com.xiaomi.mipush.sdk.Logger;
 import com.xiaomi.mipush.sdk.MiPushClient;
 
-public class XiaomiNotificationProvider implements NotificationProvider {
+public class XiaomiProvider implements NotificationProvider {
 
     public final static String TAG = "XiaomiProvider";
     private String token;
 
-    public XiaomiNotificationProvider(Context context) {
+    public XiaomiProvider(Context context) {
 
         String appId = getMetaDataValue(context, "XIAOMI_APP_ID");
         String appKey = getMetaDataValue(context, "XIAOMI_APP_KEY");
