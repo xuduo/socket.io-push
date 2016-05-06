@@ -35,7 +35,7 @@ Android客户端SDK
         <service android:name="com.yy.httpproxy.service.DummyService" android:process=":push" android:enabled="true"/>
 
         <!-- 华为相关配置开始-->
-        <receiver android:name="com.yy.httpproxy.thirdparty.HuaweiNotificationReceiver" android:process=":push" >
+        <receiver android:name="com.yy.httpproxy.thirdparty.HuaweiReceiver" android:process=":push" >
             <intent-filter>
                 <!-- 必须,用于接收token-->
                 <action android:name="com.huawei.android.push.intent.REGISTRATION" />

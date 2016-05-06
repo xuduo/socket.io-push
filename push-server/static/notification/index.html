@@ -5,29 +5,29 @@
     <title></title>
     <style>
         * {
-        padding: 0px;
-        margin: 0px;
+            padding: 0px;
+            margin: 0px;
         }
 
         body {
-        width: 100%;
-        font-family: fantasy;
-        font-size: 13px;
+            width: 100%;
+            font-family: fantasy;
+            font-size: 13px;
         }
 
         h1 {
-        text-align: center;
+            text-align: center;
         }
 
         #myDiv {
-        margin-top: 50px;
-        width: 100%;
-        text-align: center;
+            margin-top: 50px;
+            width: 100%;
+            text-align: center;
         }
 
         table {
-        margin-left: auto;
-        margin-right: auto;
+            margin-left: auto;
+            margin-right: auto;
         }
 
     </style>
@@ -67,17 +67,23 @@
 <div id="myDiv">
     <table cellspacing="10" cellpadding="0" width="400">
         <tr align=left>
-            <td width="100" align=right>标&nbsp&nbsp&nbsp题 :</td>
-            <td width="300" colspan="3"><input id="title" name="id" type="text"></td>
+            <td width="100" align=right>title :&nbsp&nbsp&nbsp</td>
+            <td width="300" colspan="3"><input id="title" name="id" type="text" value="test title"></td>
         </tr>
 
         <tr align=left>
-            <td width="100" align=right>消息编辑框:&nbsp&nbsp&nbsp</td>
+            <td width="100" align=right>message:&nbsp&nbsp&nbsp</td>
             <td width="300" colspan="3"><textarea id="content" name="content" cols="40" rows="4"
-                                                  placeholder="内容输入框" value=""></textarea></td>
+                                                  >test content</textarea></td>
         </tr>
 
-        <tr align=left >
+        <tr align=left>
+            <td width="100" align=right>payload:&nbsp&nbsp&nbsp</td>
+            <td width="300" colspan="3"><textarea id="payload" name="content" cols="40" rows="4"
+                                                >{"abc":123}</textarea></td>
+        </tr>
+
+        <tr align=left>
             <td width="100" align=right><font size="2">pushAll</font>
             </td>
 
@@ -168,8 +174,8 @@
 //        }
 
         var data = {
-            "android": {"title": $("#title").val(), "message": $("#content").val()},
-            "apn": {"alert": $("#content").val(), "payload": {}}
+            "android": {"title": $("#title").val(), "message": $("#content").val(), payload: JSON.parse($("#payload").val())},
+            "apn": {"alert": $("#content").val(), payload: JSON.parse($("#payload").val())}
         }
         var str = JSON.stringify(data);
 

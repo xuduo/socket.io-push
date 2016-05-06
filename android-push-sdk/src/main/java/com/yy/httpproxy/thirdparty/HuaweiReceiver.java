@@ -17,25 +17,23 @@ import org.json.JSONArray;
 /**
  * Created by Administrator on 2016/4/29.
  */
-public class HuaweiNotificationReceiver extends PushEventReceiver {
+public class HuaweiReceiver extends PushEventReceiver {
 
     private static final String TAG = "HuaweiReceiver";
 
     @Override
     public void onToken(Context context, String token, Bundle extras) {
         String belongId = extras.getString("belongId");
-        String content = "xxxxx，token = " + token + ",belongId = " + belongId;
-        Log.i(TAG, content);
+        Log.i(TAG, "token = " + token + ",belongId = " + belongId);
         ConnectionService.setToken(token);
     }
 
     @Override
     public boolean onPushMsg(Context context, byte[] msg, Bundle bundle) {
         try {
-            String content = "收到一条Push消息： " + new String(msg, "UTF-8");
+            String content = "onPushMsg： " + new String(msg, "UTF-8");
             Log.d(TAG, content);
         } catch (Exception e) {
-            e.printStackTrace();
         }
         return false;
     }

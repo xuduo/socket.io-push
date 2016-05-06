@@ -12,6 +12,7 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.yy.httpproxy.requester.ResponseHandler;
+import com.yy.httpproxy.socketio.RemoteClient;
 import com.yy.httpproxy.socketio.SocketIOProxyClient;
 import com.yy.httpproxy.subscribe.ConnectCallback;
 import com.yy.httpproxy.subscribe.PushCallback;
@@ -162,8 +163,7 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
     }
 
     @Override
-    public void onNotification(String id, JSONObject data) {
-        PushedNotification notification = new PushedNotification(id, data);
+    public void onNotification(PushedNotification notification) {
         notificationHandler.handlerNotification(this, BindService.bound, notification);
     }
 
@@ -212,6 +212,18 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
             Log.i(TAG, "setToken " + token);
             notificationProvider.setToken(token);
             client.sendTokenToServer();
+        } else {
+            Log.i(TAG, "setToken from main process");
+            RemoteClient.setToken(token);
+        }
+    }
+
+    public static void publishNotification(PushedNotification pushedNotification) {
+        if (ConnectionService.instance != null) {
+            ConnectionService.instance.onNotification(pushedNotification);
+        } else {
+            Log.i(TAG, "publishNotification from main process");
+            RemoteClient.publishNotification(pushedNotification);
         }
     }
 }

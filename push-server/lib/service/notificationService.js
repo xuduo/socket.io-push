@@ -49,6 +49,7 @@ NotificationService.prototype.getTokenDataByPushId = function (pushId, callback)
 }
 NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, notification, io) {
     var self = this;
+    addIdAndTimestamp(notification);
     pushIds.forEach(function (pushId) {
         self.getTokenDataByPushId(pushId, function (token) {
             if (token) {
@@ -62,11 +63,19 @@ NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, not
 };
 
 NotificationService.prototype.sendAll = function (notification, timeToLive, io) {
-    notification.id = randomstring.generate(12);
-    notification.timestamp = Date.now();
+    addIdAndTimestamp(notification);
     if (this.ttlService) {
         this.ttlService.addPacketAndEmit("noti", 'noti', timeToLive, {android: notification.android}, io, false);
         this.ttlService.addPacketAndEmit("bnoti", 'bnoti', timeToLive, {browser: notification.browser || notification.android}, io, false);
     }
     this.providerFactory.sendAll(notification, timeToLive);
 };
+
+function addIdAndTimestamp(notification) {
+    if (!notification.id) {
+        notification.id = randomstring.generate(12);
+    }
+    if (!notification.timestamp) {
+        notification.timestamp = Date.now();
+    }
+}

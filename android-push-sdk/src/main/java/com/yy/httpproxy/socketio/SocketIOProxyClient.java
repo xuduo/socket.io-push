@@ -10,6 +10,7 @@ import com.yy.httpproxy.requester.RequestException;
 import com.yy.httpproxy.requester.RequestInfo;
 import com.yy.httpproxy.requester.ResponseHandler;
 import com.yy.httpproxy.service.ConnectionService;
+import com.yy.httpproxy.service.PushedNotification;
 import com.yy.httpproxy.stats.Stats;
 import com.yy.httpproxy.subscribe.CachedSharedPreference;
 import com.yy.httpproxy.subscribe.ConnectCallback;
@@ -85,7 +86,7 @@ public class SocketIOProxyClient implements PushSubscriber {
 
 
     public interface NotificationCallback {
-        void onNotification(String id, JSONObject notification);
+        void onNotification(PushedNotification notification);
     }
 
     private final Emitter.Listener connectListener = new Emitter.Listener() {
@@ -197,7 +198,7 @@ public class SocketIOProxyClient implements PushSubscriber {
                     JSONObject android = data.optJSONObject("android");
                     Log.v(TAG, "on notification topic " + android);
                     String id = data.optString("id", null);
-                    notificationCallback.onNotification(id, android);
+                    notificationCallback.onNotification(new PushedNotification(id, android));
                     updateLastPacketId(id, data.optString("ttl", null), data.optString("unicast", null), "noti");
                     long timestamp = data.optLong("timestamp", 0);
                     if (timestamp > 0 && id != null) {

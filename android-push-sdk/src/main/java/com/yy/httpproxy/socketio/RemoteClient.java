@@ -15,8 +15,10 @@ import com.yy.httpproxy.ProxyClient;
 import com.yy.httpproxy.requester.HttpRequester;
 import com.yy.httpproxy.requester.RequestInfo;
 import com.yy.httpproxy.service.ConnectionService;
+import com.yy.httpproxy.service.DefaultNotificationHandler;
 import com.yy.httpproxy.service.DummyService;
 import com.yy.httpproxy.service.BindService;
+import com.yy.httpproxy.service.PushedNotification;
 import com.yy.httpproxy.subscribe.PushSubscriber;
 
 import java.util.HashMap;
@@ -35,6 +37,8 @@ public class RemoteClient implements PushSubscriber, HttpRequester {
     public static final int CMD_UNSUBSCRIBE_BROADCAST = 5;
     public static final int CMD_STATS = 6;
     public static final int CMD_UNBIND_UID = 7;
+    public static final int CMD_SET_TOKEN = 8;
+    public static final int CMD_THIRD_PARTY_ON_NOTIFICATION = 9;
     private Map<String, Boolean> topics = new HashMap<>();
     private ProxyClient proxyClient;
     private Messenger mService;
@@ -42,6 +46,7 @@ public class RemoteClient implements PushSubscriber, HttpRequester {
     private final Messenger messenger = new Messenger(new IncomingHandler());
     private Context context;
     private boolean connected = false;
+    private static RemoteClient instance;
 
     public void unsubscribeBroadcast(String topic) {
         Message msg = Message.obtain(null, CMD_UNSUBSCRIBE_BROADCAST, 0, 0);
@@ -111,6 +116,7 @@ public class RemoteClient implements PushSubscriber, HttpRequester {
             Message msg = Message.obtain(null, CMD_REGISTER_CLIENT, 0, 0);
             msg.replyTo = messenger;
             sendMsg(msg);
+            instance = RemoteClient.this;
 
             for (Map.Entry<String, Boolean> topic : topics.entrySet()) {
                 doSubscribe(topic.getKey(), topic.getValue());
@@ -193,4 +199,26 @@ public class RemoteClient implements PushSubscriber, HttpRequester {
     public void setProxyClient(ProxyClient proxyClient) {
         this.proxyClient = proxyClient;
     }
+
+    public static void setToken(String token) {
+        if (instance != null) {
+            Message msg = Message.obtain(null, CMD_SET_TOKEN, 0, 0);
+            Bundle bundle = new Bundle();
+            bundle.putString("token", token);
+            msg.setData(bundle);
+            instance.sendMsg(msg);
+        }
+    }
+
+    public static void publishNotification(PushedNotification pushedNotification) {
+        if (instance != null) {
+            Message msg = Message.obtain(null, CMD_THIRD_PARTY_ON_NOTIFICATION, 0, 0);
+            Bundle bundle = new Bundle();
+            bundle.putString("id", pushedNotification.id);
+            bundle.putSerializable("notification", pushedNotification.values);
+            msg.setData(bundle);
+            instance.sendMsg(msg);
+        }
+    }
+
 }

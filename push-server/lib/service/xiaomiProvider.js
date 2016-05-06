@@ -34,7 +34,11 @@ XiaomiProvider.prototype.sendOne = function (notification, tokenData, timeToLive
 XiaomiProvider.prototype.getPostData = function (notification, tokenData, timeToLive) {
     logger.debug("getPostData notification ", notification);
     var postData = {
-        pass_through: 1,
+        pass_through: 0,
+        title: notification.android.title,
+        description: notification.android.message,
+        notify_id: notification.id,
+        "extra.notify_foreground": 0,
         payload: JSON.stringify({android: notification.android, id: notification.id})
     };
     if (tokenData && tokenData.token) {

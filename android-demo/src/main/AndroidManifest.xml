@@ -71,7 +71,7 @@
 
 
         <!-- 华为配置开始-->
-        <receiver android:name="com.yy.httpproxy.thirdparty.HuaweiNotificationReceiver" android:process=":push" >
+        <receiver android:name="com.yy.httpproxy.thirdparty.HuaweiReceiver" android:process=":push" >
             <intent-filter>
                 <!-- 必须,用于接收token-->
                 <action android:name="com.huawei.android.push.intent.REGISTRATION" />
@@ -110,10 +110,11 @@
 
 
         <!-- 小米配置开始-->
+        <!-- 被杀后,push进程无法通过intent 拉起main进程,所以MainProcessReceiver接收点击事件-->
         <receiver
             android:exported="true"
-            android:name="com.yy.httpproxy.thirdparty.XiaomiNotificationReceiver"
-            android:process=":push">
+            android:name="com.yy.httpproxy.thirdparty.XiaomiReceiver"
+           >
             <intent-filter>
                 <action android:name="com.xiaomi.mipush.RECEIVE_MESSAGE" />
             </intent-filter>
@@ -132,15 +133,13 @@
         <service
             android:enabled="true"
             android:exported="true"
-            android:process=":push"
             android:name="com.xiaomi.mipush.sdk.PushMessageHandler" />
         <service android:enabled="true"
-            android:process=":push"
             android:name="com.xiaomi.mipush.sdk.MessageHandleService" />
         <!--注：此service必须在2.2.5版本以后（包括2.2.5版本）加入-->
         <receiver
             android:exported="true"
-            android:name="com.xiaomi.push.service.receivers.NetworkStatusReceiver" android:process=":push">
+            android:name="com.xiaomi.push.service.receivers.NetworkStatusReceiver">
         </receiver>
         <receiver
             android:exported="false"

@@ -12,6 +12,8 @@ import android.util.Log;
 import com.yy.httpproxy.requester.RequestInfo;
 import com.yy.httpproxy.socketio.RemoteClient;
 
+import java.util.HashMap;
+
 public class BindService extends Service {
 
     public static final int CMD_PUSH = 2;
@@ -30,6 +32,7 @@ public class BindService extends Service {
         public void handleMessage(Message msg) {
             int cmd = msg.what;
             Bundle bundle = msg.getData();
+            Log.d(TAG, "receive msg " + cmd);
             if (cmd == RemoteClient.CMD_SUBSCRIBE_BROADCAST) {
                 String topic = bundle.getString("topic");
                 boolean receiveTtlPackets = bundle.getBoolean("receiveTtlPackets", false);
@@ -54,6 +57,14 @@ public class BindService extends Service {
                 ConnectionService.client.reportStats(path, successCount, errorCount, latency);
             } else if (cmd == RemoteClient.CMD_UNBIND_UID) {
                 ConnectionService.client.unbindUid();
+            } else if (cmd == RemoteClient.CMD_SET_TOKEN) {
+                String token = bundle.getString("token");
+                ConnectionService.setToken(token);
+            } else if (cmd == RemoteClient.CMD_THIRD_PARTY_ON_NOTIFICATION) {
+                String id = bundle.getString("id");
+                HashMap<String, Object> values = (HashMap<String, Object>) bundle.getSerializable("notification");
+                PushedNotification notification = new PushedNotification(id, values);
+                ConnectionService.publishNotification(notification);
             }
         }
     }
