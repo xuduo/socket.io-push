@@ -18,12 +18,9 @@ public class XiaomiNotificationProvider implements NotificationProvider {
 
     public XiaomiNotificationProvider(Context context) {
 
-        String appId = "2882303761517467652";
-        String appKey = "5981746732652";
-//        String appId = getMetaDataValue(context, "APP_ID");
-//        String appKey = getMetaDataValue(context, "APP_KEY");
-        String token = MiPushClient.getRegId(context);
-        Log.d(TAG, appId + " " + appKey + " token " + token);
+        String appId = getMetaDataValue(context, "APP_ID");
+        String appKey = getMetaDataValue(context, "APP_KEY");
+        Log.d(TAG, appId + " " + appKey);
         MiPushClient.registerPush(context, appId, appKey);
 
         LoggerInterface newLogger = new LoggerInterface() {
@@ -63,16 +60,15 @@ public class XiaomiNotificationProvider implements NotificationProvider {
     }
 
     private static String getMetaDataValue(Context context, String metaDataName) {
-        String appConfig = null;
+        String stringId = null;
         try {
             ComponentName cn = new ComponentName(context, ConnectionService.class);
             ServiceInfo info = context.getPackageManager()
                     .getServiceInfo(cn, PackageManager.GET_META_DATA);
-            appConfig = info.metaData.getString("metaDataName");
+            stringId = info.metaData.getString(metaDataName);
         } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
         }
-        return appConfig;
+        return stringId;
     }
 
 }

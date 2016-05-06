@@ -54,7 +54,7 @@ public class ChatActivity extends Activity implements PushCallback, ConnectCallb
             public void onClick(View v) {
                 Message message = new Message();
                 message.setMessage(String.valueOf(editTextInput.getText()));
-                message.setNickName(OsVersion.getPhoneVersion());
+                message.setNickName(OsVersion.getPhoneVersion(ChatActivity.this));
                 message.setColor(myColor);
                 httpApiModel.sendMessage(message);
                 editTextInput.setText("");
