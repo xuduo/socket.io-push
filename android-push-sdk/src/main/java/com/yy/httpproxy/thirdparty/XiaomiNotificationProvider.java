@@ -14,7 +14,7 @@ import com.yy.httpproxy.service.ConnectionService;
 
 public class XiaomiNotificationProvider implements NotificationProvider {
 
-    public final static String TAG = "XiaomiProvider";
+    public final static String TAG = "XiaomiNotificationProvider";
 
     public XiaomiNotificationProvider(Context context) {
 

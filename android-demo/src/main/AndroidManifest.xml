@@ -51,9 +51,9 @@
         <service android:name="com.yy.httpproxy.service.BindService" android:process=":push" android:enabled="true"/>
         <service android:name="com.yy.httpproxy.service.ConnectionService" android:process=":push" android:enabled="true">
             <meta-data android:name="APP_ID"
-                android:value="2882303761517467652" />
+            android:value="APP_ID" />
             <meta-data android:name="APP_KEY"
-                android:value="5981746732652" />
+            android:value="APP_KEY" />
         </service>
         <service android:name="com.yy.httpproxy.service.ForegroundService" android:process=":push" android:enabled="true"/>
         <service android:name="com.yy.httpproxy.service.DummyService" android:process=":push" android:enabled="true"/>
