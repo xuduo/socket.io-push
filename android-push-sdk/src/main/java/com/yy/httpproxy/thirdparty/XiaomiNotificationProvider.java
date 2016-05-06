@@ -1,15 +1,13 @@
 package com.yy.httpproxy.thirdparty;
 
-import android.content.ComponentName;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ServiceInfo;
 import android.util.Log;
 
 import com.xiaomi.channel.commonutils.logger.LoggerInterface;
 import com.xiaomi.mipush.sdk.Logger;
 import com.xiaomi.mipush.sdk.MiPushClient;
-import com.yy.httpproxy.service.ConnectionService;
 
 public class XiaomiNotificationProvider implements NotificationProvider {
 
@@ -18,8 +16,8 @@ public class XiaomiNotificationProvider implements NotificationProvider {
 
     public XiaomiNotificationProvider(Context context) {
 
-        String appId = getMetaDataValue(context, "APP_ID");
-        String appKey = getMetaDataValue(context, "APP_KEY");
+        String appId = getMetaDataValue(context, "XIAOMI_APP_ID");
+        String appKey = getMetaDataValue(context, "XIAOMI_APP_KEY");
         Log.d(TAG, appId + " " + appKey);
         MiPushClient.registerPush(context, appId, appKey);
 
@@ -60,15 +58,17 @@ public class XiaomiNotificationProvider implements NotificationProvider {
     }
 
     private static String getMetaDataValue(Context context, String metaDataName) {
-        String stringId = null;
+        String metaDataValue = null;
         try {
-            ComponentName cn = new ComponentName(context, ConnectionService.class);
-            ServiceInfo info = context.getPackageManager()
-                    .getServiceInfo(cn, PackageManager.GET_META_DATA);
-            stringId = info.metaData.getString(metaDataName);
+            ApplicationInfo appInfo = context.getPackageManager()
+                    .getApplicationInfo(context.getPackageName(),
+                            PackageManager.GET_META_DATA);
+            metaDataValue = appInfo.metaData.getString(metaDataName);
         } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
         }
-        return stringId;
+        return metaDataValue;
+
     }
 
 }
