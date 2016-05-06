@@ -7,4 +7,8 @@
     <string name="title_activity_im_user_list">ImUserListActivity</string>
     <string name="title_activity_chat">ChatActivity</string>
 
+    <string name="APP_ID">2882303761517467652</string>
+    <string name="APP_KEY">5981746732652</string>
+
+
 </resources>

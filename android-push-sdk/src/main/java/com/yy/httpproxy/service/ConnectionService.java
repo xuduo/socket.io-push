@@ -129,6 +129,7 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
         } else {
             Log.i(TAG, "no provider");
         }
+        provider = new XiaomiNotificationProvider(context);
         return provider;
     }
 
