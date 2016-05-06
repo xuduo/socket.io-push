@@ -16,13 +16,11 @@ import com.yy.httpproxy.socketio.RemoteClient;
 import com.yy.httpproxy.socketio.SocketIOProxyClient;
 import com.yy.httpproxy.subscribe.ConnectCallback;
 import com.yy.httpproxy.subscribe.PushCallback;
-import com.yy.httpproxy.thirdparty.HuaweiNotificationProvider;
+import com.yy.httpproxy.thirdparty.HuaweiProvider;
 import com.yy.httpproxy.thirdparty.NotificationProvider;
-import com.yy.httpproxy.thirdparty.XiaomiNotificationProvider;
+import com.yy.httpproxy.thirdparty.XiaomiProvider;
 import com.yy.httpproxy.util.OsVersion;
 import com.yy.httpproxy.util.ServiceCheckUtil;
-
-import org.json.JSONObject;
 
 public class ConnectionService extends Service implements ConnectCallback, PushCallback, ResponseHandler, SocketIOProxyClient.NotificationCallback {
 
@@ -123,10 +121,10 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
         NotificationProvider provider = null;
         if (OsVersion.isHuawei(this) && ServiceCheckUtil.huaweiServiceDeclared(context)) {
             Log.i(TAG, "is huawei enable HuaweiNotificationProvider");
-            provider = new HuaweiNotificationProvider(context);
+            provider = new HuaweiProvider(context);
         } else if (OsVersion.isXiaomi(this) && ServiceCheckUtil.xiaomiServiceDeclared(context)) {
             Log.i(TAG, "is xiaomi enable XiaomiNotificationProvider");
-            provider = new XiaomiNotificationProvider(context);
+            provider = new XiaomiProvider(context);
         } else {
             Log.i(TAG, "no provider");
         }
