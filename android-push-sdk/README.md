@@ -17,12 +17,6 @@ Android客户端SDK
         <uses-permission android:name="android.permission.WAKE_LOCK" />
         <!-- 华为推送所需权限-->
         <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-        <!-- 小米推送所需权限-->
-        <uses-permission android:name="android.permission.GET_TASKS" /><!-- xiaomi -->
-        <uses-permission android:name="android.permission.VIBRATE"/><!-- xiaomi -->
-        <!-- 以下的两个com.yy.misaka.demo应当换成自己工程的包名-->
-        <permission android:name="com.yy.misaka.demo.permission.MIPUSH_RECEIVE" android:protectionLevel="signature" /><!-- xiaomi -->
-        <uses-permission android:name="com.yy.misaka.demo.permission.MIPUSH_RECEIVE" /><!-- xiaomi -->
 
         <!-- 自定义类YYNotificationReceiver,处理通知栏点击事件-->
         <receiver
@@ -36,13 +30,7 @@ Android客户端SDK
 
         <!-- 以下四个服务是在一个远端进程中运行，所以必须设定android:process的值 -->
         <service android:name="com.yy.httpproxy.service.BindService" android:process=":push" android:enabled="true"/>
-        <service android:name="com.yy.httpproxy.service.ConnectionService" android:process=":push" android:enabled="true">
-            <!-- 以下的APP_ID和APP_KEY应该换成自己项目所申请的小米推送的值 -->
-            <meta-data android:name="APP_ID"
-                android:value="2882303761517467652" />
-            <meta-data android:name="APP_KEY"
-                android:value="5981746732652" />
-        </service>
+        <service android:name="com.yy.httpproxy.service.ConnectionService" android:process=":push" android:enabled="true"/>
         <service android:name="com.yy.httpproxy.service.ForegroundService" android:process=":push" android:enabled="true"/>
         <service android:name="com.yy.httpproxy.service.DummyService" android:process=":push" android:enabled="true"/>
 
@@ -83,48 +71,7 @@ Android客户端SDK
             android:process=":huaweipush" >
         </service>
         <!-- 华为相关配置结束-->
-        <!-- 小米配置开始-->
-        <receiver
-            android:exported="true"
-            android:name="com.yy.httpproxy.thirdparty.XiaomiNotificationReceiver"
-            android:process=":push">
-            <intent-filter>
-                <action android:name="com.xiaomi.mipush.RECEIVE_MESSAGE" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="com.xiaomi.mipush.MESSAGE_ARRIVED" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="com.xiaomi.mipush.ERROR" />
-            </intent-filter>
-        </receiver>
 
-        <service
-            android:enabled="true"
-            android:process=":xiaomipush"
-            android:name="com.xiaomi.push.service.XMPushService"/>
-        <service
-            android:enabled="true"
-            android:exported="true"
-            android:process=":push"
-            android:name="com.xiaomi.mipush.sdk.PushMessageHandler" />
-        <service android:enabled="true"
-            android:process=":push"
-            android:name="com.xiaomi.mipush.sdk.MessageHandleService" />
-        <!--注：此service必须在2.2.5版本以后（包括2.2.5版本）加入-->
-        <receiver
-            android:exported="true"
-            android:name="com.xiaomi.push.service.receivers.NetworkStatusReceiver" android:process=":push">
-        </receiver>
-        <receiver
-            android:exported="false"
-            android:process=":xiaomipush"
-            android:name="com.xiaomi.push.service.receivers.PingReceiver" >
-            <intent-filter>
-                <action android:name="com.xiaomi.push.PING_TIMER" />
-            </intent-filter>
-        </receiver>
-        <!-- 小米配置结束-->
 
 ```
 ###创建ProxyClient

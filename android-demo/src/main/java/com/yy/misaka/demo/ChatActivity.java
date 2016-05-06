@@ -17,10 +17,10 @@ import com.yy.httpproxy.ProxyClient;
 import com.yy.httpproxy.serializer.JsonSerializer;
 import com.yy.httpproxy.subscribe.ConnectCallback;
 import com.yy.httpproxy.subscribe.PushCallback;
-import com.yy.httpproxy.util.OsVersion;
 import com.yy.misaka.demo.adapter.ChatMessagesAdapter;
 import com.yy.misaka.demo.appmodel.HttpApiModel;
 import com.yy.misaka.demo.entity.Message;
+import com.yy.httpproxy.util.OsVersion;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Random;
@@ -54,7 +54,7 @@ public class ChatActivity extends Activity implements PushCallback, ConnectCallb
             public void onClick(View v) {
                 Message message = new Message();
                 message.setMessage(String.valueOf(editTextInput.getText()));
-                message.setNickName(OsVersion.getPhoneVersion(ChatActivity.this));
+                message.setNickName(OsVersion.getPhoneVersion());
                 message.setColor(myColor);
                 httpApiModel.sendMessage(message);
                 editTextInput.setText("");
