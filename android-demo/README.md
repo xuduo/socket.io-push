@@ -76,7 +76,7 @@ public interface PushCallback {
 }
 ```
 
-####接收通知(使用DefaultNotificationHandler)
+####接收通知(使用DefaultNotificationHandler/DelegateToClientNotificationHandler)
 sdk默认会弹出系统通知
 arrive和click后会调用receiver的方法
 ```java
@@ -91,6 +91,10 @@ public class YYNotificationReceiver extends NotificationReceiver {
         context.startActivity(intent);
     }
 
+    /**
+     *  如果使用DelegateToClientNotificationHandler ,UI进程存活的时候,会调用此方法,不弹出通知.
+     *  UI进程被杀,push进程存活的时候,使用默认的样式弹出
+     */
     @Override
     public void onNotificationArrived(Context context, PushedNotification notification) {
         Log.d("YYNotificationReceiver", "onNotificationArrived " + notification.id + " values " + notification.values);
@@ -98,9 +102,12 @@ public class YYNotificationReceiver extends NotificationReceiver {
 
 }
 ```
-
+启动时的配置,配置使用
+```java
+config.setNotificationHandler("yourFullyQualifiedHandlerClassName"); //不能混淆这个类
+```
 ####自定义弹出通知(使用自定义NotificationHandler)
-可以用代码根据服务器下发的notification中的自定义payload字段,展示不同的效果
+可以用代码根据业务服务器下发的notification中的自定义payload字段,展示不同的效果
 
 注意!NotificationHandler的实例,是在push进程中的!
 
@@ -111,7 +118,7 @@ public interface NotificationHandler {
      *
      * @param context context
      * @param binded UI进程 是否存活
-     * @param notification 服务器下发的notification
+     * @param notification  业务服务器下发的notification
      */
     void handlerNotification(Context context, boolean binded, PushedNotification notification);
 
@@ -119,5 +126,52 @@ public interface NotificationHandler {
 ```
 启动时的配置,设置NotificationHandler
 ```java
-config.setNotificationHandler("yourFullyQualifiedHandlerClassName");
+config.setNotificationHandler("yourFullyQualifiedHandlerClassName"); //不能混淆这个类
 ```
+
+####绑定UID
+绑定UID是业务服务器调用push-server接口进行绑定的(pushId - uid)的关系
+```java
+public interface ConnectCallback {
+
+    /**
+     *  
+     * @param uid 连接push-server后,在服务器绑定的uid
+     */
+    void onConnect(String uid);
+
+    void onDisconnect();
+
+}
+```
+解绑Uid
+```java
+proxyClient.unbindUid();
+```
+
+####集成小米push
+
+本系统透明集成了小米push,开启方法
+
+1. 添加小米push jar依赖
+2. AndroidManifest.xml配置了小米push相关配置,参见demo
+3. 当前手机运行MiUi系统
+
+注意项
+
+1. SDK会自动上报小米的regId,并不需要业务代码改动
+2. 对于开启的手机,无法使用自定义NotificationHandler控制notification弹出
+3. 可以通过push-server配置,应用在前台的时候,不弹出通知(小米push功能)
+
+####集成华为push
+
+本系统透明集成了华为push,开启方法
+
+1. 添加华为push jar依赖,拷贝一堆资源文件(华为push自带)
+2. AndroidManifest.xml配置了华为push相关配置,参见demo
+3. 当前手机运行华为系统
+
+注意项
+
+1. SDK会自动上报华为的token,并不需要业务代码改动
+2. 对于开启的手机,无法使用自定义NotificationHandler控制notification弹出
