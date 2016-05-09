@@ -175,3 +175,14 @@ proxyClient.unbindUid();
 
 1. SDK会自动上报华为的token,并不需要业务代码改动
 2. 对于开启的手机,无法使用自定义NotificationHandler控制notification弹出
+
+####UI进程单独使用push功能
+
+```java
+    String pushId = new RandomPushIdGenerator().generatePushId(pushId); //生成随机pushId
+    SocketIOProxyClient client = new SocketIOProxyClient(this.getApplicationContext(), host, null);
+    client.setPushId(pushId);   //设置pushId
+    client.setPushCallback(this); // push回调
+    client.setNotificationCallback(this); //notification回调
+    client.setConnectCallback(this); //连接回调
+```
