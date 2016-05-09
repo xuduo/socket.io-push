@@ -12,7 +12,7 @@ socket.io-push
 
 ###文档
 * [服务器 push-server](push-server)
-* [Android SDK & Demo](demo-android)
+* [Android SDK & Demo](android-demo)
 * [IOS SDK & Demo](ios-demo)
 * [Browser](push-server/lib/client)
 
