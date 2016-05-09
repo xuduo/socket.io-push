@@ -19,6 +19,7 @@
 
     <uses-permission android:name="android.permission.GET_TASKS" /><!-- xiaomi -->
     <uses-permission android:name="android.permission.VIBRATE"/><!-- xiaomi -->
+
     <permission android:name="com.yy.misaka.demo.permission.MIPUSH_RECEIVE" android:protectionLevel="signature" /><!-- xiaomi -->
     <uses-permission android:name="com.yy.misaka.demo.permission.MIPUSH_RECEIVE" /><!-- xiaomi -->
 
@@ -58,7 +59,7 @@
             android:enabled="true"
             android:exported="true" >
 
-            <!-- 这里com.xiaomi.mipushdemo.DemoMessageRreceiver改成app中定义的完整类名 -->
+            <!-- 这里com.yy.misaka.demo 改成app包名 -->
             <intent-filter>
                 <action android:name="com.yy.misaka.demo.YY_NOTIFICATION" />
             </intent-filter>

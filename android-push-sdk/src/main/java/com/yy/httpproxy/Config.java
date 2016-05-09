@@ -27,12 +27,7 @@ public class Config {
 
     public Config(Context context) {
         this.context = context;
-        CachedSharedPreference cachedSharedPreference = new CachedSharedPreference(context);
-        this.pushId = cachedSharedPreference.get("pushId");
-        if(this.pushId == null){
-            this.pushId = new RandomPushIdGenerator().generatePushId();
-            cachedSharedPreference.save("pushId",this.pushId);
-        }
+        this.pushId = new RandomPushIdGenerator().generatePushId(context);
     }
 
     public RemoteClient getRemoteClient() {

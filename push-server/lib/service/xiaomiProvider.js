@@ -13,6 +13,7 @@ function XiaomiProvider(config) {
         'Authorization': 'key=' + config.app_secret
     };
     this.type = "xiaomi";
+    this.notify_foreground = config.notify_foreground || 1;
 }
 
 XiaomiProvider.prototype.sendOne = function (notification, tokenData, timeToLive, callback) {
@@ -34,11 +35,10 @@ XiaomiProvider.prototype.sendOne = function (notification, tokenData, timeToLive
 XiaomiProvider.prototype.getPostData = function (notification, tokenData, timeToLive) {
     logger.debug("getPostData notification ", notification);
     var postData = {
-        pass_through: 0,
         title: notification.android.title,
         description: notification.android.message,
         notify_id: notification.id,
-        "extra.notify_foreground": 0,
+        "extra.notify_foreground": this.notify_foreground,
         payload: JSON.stringify({android: notification.android, id: notification.id})
     };
     if (tokenData && tokenData.token) {

@@ -42,20 +42,20 @@ public class XiaomiReceiver extends PushMessageReceiver {
 
     @Override
     public void onNotificationMessageArrived(Context context, MiPushMessage message) {
-        Log.v(TAG, "onNotificationMessageArrived is called. " + message.toString());
-
-        String content = message.getContent();
-
-        try {
-
-            JSONObject obj = new JSONObject(content);
-
-            ConnectionService.publishNotification(new PushedNotification(obj.getString("id"), obj.getJSONObject("android")));
-            Log.d(TAG, content);
-
-        } catch (Exception e) {
-            Log.e(TAG, "onNotificationMessageArrived Could not parse malformed JSON: \"" + content + "\"", e);
-        }
+//        Log.v(TAG, "onNotificationMessageArrived is called. " + message.toString());
+//        String content = message.getContent();
+//        if (!message.isNotified() && !message.isArrivedMessage()) {
+//            try {
+//
+//                JSONObject obj = new JSONObject(content);
+//
+//                ConnectionService.publishNotification(new PushedNotification(obj.getString("id"), obj.getJSONObject("android")));
+//                Log.d(TAG, content);
+//
+//            } catch (Exception e) {
+//                Log.e(TAG, "onNotificationMessageArrived Could not parse malformed JSON: \"" + content + "\"", e);
+//            }
+//        }
     }
 
     @Override
