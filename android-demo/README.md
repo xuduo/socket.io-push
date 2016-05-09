@@ -18,6 +18,8 @@ compile 'com.yy:android-push-sdk:version'
 ####AndroidManifest.xml添加receiver,service,permission
 参见Demo的[AndroidManifest.xml](src/main/AndroidManifest.xml)
 
+
+
 #####初始化ProxyClient
 每次UI进程启动需要初始化,初始化后会自动启动push进程.
 ```java
@@ -43,6 +45,8 @@ Proxy proxyClient = new ProxyClient(new Config(this)
   }
 ```
 
+
+
 #####获取pushId
 
 由客户端自动生成, proxyClient实例化后即可获得
@@ -53,6 +57,7 @@ String pushId = proxyClient.getPushId();
 ```
 
 
+
 ####subscribe/unsbuscribe topic
 
 调用不需考虑当时是否连线, 重连也不需要重新sub/unsub,sdk里已经处理
@@ -61,6 +66,8 @@ proxyClient.subscribeBroadcast("aTopic"); //对于某个topic的push,需要客�
 proxyClient.subscribeAndReceiveTtlPackets("aTopic"); //同上,这个方法会接收服务器的重传
 proxyClient.unsubscribeBroadcast("aTopic");
 ```
+
+
 
 ####接收push
 ```java
@@ -75,6 +82,8 @@ public interface PushCallback {
     void onPush(String topic, byte[] data);
 }
 ```
+
+
 
 ####接收通知(使用DefaultNotificationHandler/DelegateToClientNotificationHandler)
 sdk默认会弹出系统通知
@@ -106,6 +115,9 @@ public class YYNotificationReceiver extends NotificationReceiver {
 ```java
 config.setNotificationHandler("yourFullyQualifiedHandlerClassName"); //不能混淆这个类
 ```
+
+
+
 ####自定义弹出通知(使用自定义NotificationHandler)
 可以用代码根据业务服务器下发的notification中的自定义payload字段,展示不同的效果
 
@@ -129,6 +141,8 @@ public interface NotificationHandler {
 config.setNotificationHandler("yourFullyQualifiedHandlerClassName"); //不能混淆这个类
 ```
 
+
+
 ####绑定UID
 绑定UID是业务服务器调用push-server接口进行绑定的(pushId - uid)的关系
 ```java
@@ -149,6 +163,8 @@ public interface ConnectCallback {
 proxyClient.unbindUid();
 ```
 
+
+
 ####集成小米push
 
 本系统透明集成了小米push,开启方法
@@ -163,6 +179,8 @@ proxyClient.unbindUid();
 2. 对于开启的手机,无法使用自定义NotificationHandler控制notification弹出
 3. 可以通过push-server配置,应用在前台的时候,不弹出通知(小米push功能)
 
+
+
 ####集成华为push
 
 本系统透明集成了华为push,开启方法
@@ -175,6 +193,8 @@ proxyClient.unbindUid();
 
 1. SDK会自动上报华为的token,并不需要业务代码改动
 2. 对于开启的手机,无法使用自定义NotificationHandler控制notification弹出
+
+
 
 ####UI进程单独使用push功能
 
