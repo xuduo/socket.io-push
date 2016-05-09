@@ -61,6 +61,7 @@ public class SocketIOProxyClient implements PushSubscriber {
     private boolean connected = false;
     private String uid;
     private Stats stats = new Stats();
+    private String host = "";
 
 
     public void setResponseHandler(ResponseHandler responseHandler) {
@@ -84,6 +85,9 @@ public class SocketIOProxyClient implements PushSubscriber {
         this.connectCallback = connectCallback;
     }
 
+    public String getHost() {
+        return host;
+    }
 
     public interface NotificationCallback {
         void onNotification(PushedNotification notification);
@@ -367,6 +371,7 @@ public class SocketIOProxyClient implements PushSubscriber {
         cachedSharedPreference = new CachedSharedPreference(context);
         AndroidLoggingHandler.reset(new AndroidLoggingHandler());
         java.util.logging.Logger.getLogger("").setLevel(Level.FINEST);
+        this.host = host;
         this.notificationProvider = provider;
         if (provider == null) {
             topics.put("noti", true);
@@ -415,6 +420,13 @@ public class SocketIOProxyClient implements PushSubscriber {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public void disconnect() {
+        socket.disconnect();
+        this.connectCallback = null;
+        this.notificationCallback = null;
+        this.pushCallback = null;
     }
 
     public void request(RequestInfo requestInfo) {

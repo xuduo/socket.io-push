@@ -65,6 +65,10 @@ public class ProxyClient implements PushCallback {
         config.getRemoteClient().unsubscribeBroadcast(topic);
     }
 
+    public void exit(){
+        config.getRemoteClient().exit();
+    }
+
     public void unbindUid(){
         config.getRemoteClient().unbindUid();
     }

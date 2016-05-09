@@ -19,7 +19,7 @@ import com.yy.httpproxy.subscribe.PushCallback;
 import com.yy.httpproxy.thirdparty.HuaweiProvider;
 import com.yy.httpproxy.thirdparty.NotificationProvider;
 import com.yy.httpproxy.thirdparty.XiaomiProvider;
-import com.yy.httpproxy.util.OsVersion;
+import com.yy.httpproxy.util.ProviderFactory;
 import com.yy.httpproxy.util.ServiceCheckUtil;
 
 public class ConnectionService extends Service implements ConnectCallback, PushCallback, ResponseHandler, SocketIOProxyClient.NotificationCallback {
@@ -65,13 +65,15 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        instance = this;
-        startForegroundService();
         String host = "null";
         if (intent != null) {
             host = intent.getStringExtra("host");
         }
         Log.d(TAG, "onStartCommand " + host);
+        if (instance == null) {
+            instance = this;
+            startForegroundService();
+        }
         initClient(intent);
         return Service.START_STICKY;
     }
@@ -83,8 +85,13 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
     }
 
     private void initClient(Intent intent) {
+        String host = getFromIntentOrPref(intent, "host");
+        if (client != null && !host.equals(client.getHost())) {
+            Log.i(TAG, "host changed re create client");
+            client.disconnect();
+            client = null;
+        }
         if (client == null) {
-            String host = getFromIntentOrPref(intent, "host");
             String pushId = getFromIntentOrPref(intent, "pushId");
             String handlerClassName = getFromIntentOrPref(intent, "notificationHandler");
             Class handlerClass;
@@ -106,35 +113,23 @@ public class ConnectionService extends Service implements ConnectCallback, PushC
                     notificationHandler = new DefaultNotificationHandler();
                 }
             }
-            notificationProvider = getProvider(this.getApplicationContext());
+            notificationProvider = ProviderFactory.getProvider(this.getApplicationContext());
             client = new SocketIOProxyClient(this.getApplicationContext(), host, notificationProvider);
             client.setResponseHandler(this);
             client.setPushId(pushId);
             client.setPushCallback(this);
             client.setNotificationCallback(this);
             client.setConnectCallback(this);
-
         }
-    }
-
-    public NotificationProvider getProvider(Context context) {
-        NotificationProvider provider = null;
-        if (OsVersion.isHuawei(this) && ServiceCheckUtil.huaweiServiceDeclared(context)) {
-            Log.i(TAG, "is huawei enable HuaweiNotificationProvider");
-            provider = new HuaweiProvider(context);
-        } else if (OsVersion.isXiaomi(this) && ServiceCheckUtil.xiaomiServiceDeclared(context)) {
-            Log.i(TAG, "is xiaomi enable XiaomiNotificationProvider");
-            provider = new XiaomiProvider(context);
-        } else {
-            Log.i(TAG, "no provider");
-        }
-        return provider;
     }
 
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
         super.onDestroy();
+        client.disconnect();
+        instance = null;
+        client = null;
     }
 
     @Override

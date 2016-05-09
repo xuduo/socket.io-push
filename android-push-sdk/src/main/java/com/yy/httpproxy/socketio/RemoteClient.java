@@ -72,6 +72,11 @@ public class RemoteClient implements PushSubscriber, HttpRequester {
         sendMsg(msg);
     }
 
+    public void exit(){
+        context.stopService(new Intent(context, ConnectionService.class));
+        context.stopService(new Intent(context, BindService.class));
+    }
+
     private class IncomingHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
