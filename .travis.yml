@@ -1,0 +1,9 @@
+language: node_js
+
+node_js:
+  - "5.1"
+
+services:
+  - redis-server
+
+before_script: cd push-server
