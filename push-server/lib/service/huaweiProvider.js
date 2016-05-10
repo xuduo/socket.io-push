@@ -66,7 +66,7 @@ HuaweiProvider.prototype.addToken = function (data) {
 HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback) {
     var self = this;
     this.checkToken(function (tokenError) {
-        if(!tokenError){
+        if (!tokenError) {
             logger.debug("sendAll ", notification, timeToLive);
             var postData = self.getPostData(2, notification, 0, timeToLive);
             request.post({
@@ -74,13 +74,13 @@ HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback)
                 form: postData
             }, function (error, response, body) {
                 logger.info("sendAll result", error, response.statusCode, body);
-                if (!error && response.statusCode == 200 && callback) {
+                if (!error && callback) {
                     callback();
-                } else {
+                } else if (callback) {
                     callback(error);
                 }
             })
-        } else {
+        } else if (callback) {
             callback(tokenError);
         }
     });

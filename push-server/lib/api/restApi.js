@@ -10,10 +10,7 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
 
     this.apiAuth = apiAuth;
 
-    var server = restify.createServer({
-        name: 'myapp',
-        version: '1.0.0'
-    });
+    var server = restify.createServer();
 
     this.server = server;
 
@@ -130,11 +127,24 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
             res.send({code: "error", message: 'not authorized'});
             return next();
         }
+
         var notification = JSON.parse(req.params.notification);
         if (!notification) {
             res.statusCode = 400;
             res.send({code: "error", message: 'notification is required'});
             return next();
+        }
+
+        if (!notification.android.payload) {
+            notification.android.payload = {};
+        }
+
+        if (req.params.payload) {
+            var payload = JSON.parse(req.params.payload);
+            notification.android.payload = payload;
+        }
+        if (notification.apn && notification.apn.payload) {
+            delete notification.apn.payload;
         }
 
         var pushId = req.params.pushId;

@@ -129,7 +129,6 @@ Stats.prototype.incr = function (key, timestamp) {
     var hourKey = hourStrip(timestamp);
     key = key + "#" + hourKey;
     this.redisIncrBuffer.incrby(key, 1);
-    logger.debug("incr %s %s", key, hourKey);
 };
 
 Stats.prototype.incrby = function (key, timestamp, by) {
@@ -137,7 +136,6 @@ Stats.prototype.incrby = function (key, timestamp, by) {
         var hourKey = hourStrip(timestamp);
         key = key + "#" + hourKey;
         this.redisIncrBuffer.incrby(key, by);
-        logger.debug("incrby %s %s by %d ", key, hourKey, by);
     }
 };
 

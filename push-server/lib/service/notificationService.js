@@ -37,6 +37,7 @@ NotificationService.prototype.setThirdPartyToken = function (data) {
         });
     }
 };
+
 NotificationService.prototype.getTokenDataByPushId = function (pushId, callback) {
     this.redis.get("pushIdToToken#" + pushId, function (err, reply) {
         logger.debug("pushIdToToken %s %j", pushId, reply);
@@ -47,6 +48,7 @@ NotificationService.prototype.getTokenDataByPushId = function (pushId, callback)
         callback(token);
     });
 }
+
 NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, notification, io) {
     var self = this;
     addIdAndTimestamp(notification);
@@ -65,8 +67,7 @@ NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, not
 NotificationService.prototype.sendAll = function (notification, timeToLive, io) {
     addIdAndTimestamp(notification);
     if (this.ttlService) {
-        this.ttlService.addPacketAndEmit("noti", 'noti', timeToLive, {android: notification.android}, io, false);
-        this.ttlService.addPacketAndEmit("bnoti", 'bnoti', timeToLive, {browser: notification.browser || notification.android}, io, false);
+        this.ttlService.addPacketAndEmit("noti", 'noti', timeToLive, notification, io, false);
     }
     this.providerFactory.sendAll(notification, timeToLive);
 };

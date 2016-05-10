@@ -7,11 +7,11 @@ var expect = chai.expect;
 
 describe('api auth', function () {
 
-    before(function(){
+    before(function () {
         global.pushServer = require('../lib/push-server.js')(config);
     });
 
-    after(function(){
+    after(function () {
         global.pushServer.close();
     });
 
@@ -51,8 +51,22 @@ describe('api auth', function () {
             .set('Accept', 'application/json')
             .end(function (err, res) {
                 expect(JSON.parse(res.text).code).to.be.equal("error");
-                done();
+                request
+                    .post(apiUrl + '/api/notification')
+                    .send({
+                        pushId: '',
+                        pushAll: 'true',
+                        topic: 'message',
+                        data: 'test'
+                    })
+                    .set('Accept', 'application/json')
+                    .end(function (err, res) {
+                        expect(JSON.parse(res.text).code).to.be.equal("error");
+                        done();
+                    });
             });
+
+
     });
 
     it('check ip', function (done) {

@@ -4,7 +4,6 @@ var EventEmitter = require('events').EventEmitter;
 var clientId = 0;
 var receiveTTL = 2;
 var doNotReceiveTTL = 1;
-var notiTopic = 'bnoti';
 
 function PushClient(url, opt) {
     if (!(this instanceof PushClient)) return new PushClient(url, opt);
@@ -51,8 +50,8 @@ function PushClient(url, opt) {
     this.socket.on('push', pushHandler.bind(this));
     this.socket.on('p', pushHandler.bind(this));
     if (opt.useNotification) {
-        this.topics[notiTopic] = receiveTTL;
-        this.socket.on(notiTopic, notiHandler.bind(this));
+        this.topics['noti'] = receiveTTL;
+        this.socket.on('noti', notiHandler.bind(this));
     }
 }
 
@@ -130,7 +129,11 @@ var pushHandler = function (data) {
 
 var notiHandler = function (data) {
     console.log("notiHandler data: " + JSON.stringify(data));
-    this.updateLastPacketId(notiTopic, data);
+    data.title = data.android.title;
+    data.message = data.android.message;
+    data.payload = data.android.payload;
+    delete data.android;
+    this.updateLastPacketId('noti', data);
     this.event.emit("notification", data);
 }
 

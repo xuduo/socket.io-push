@@ -54,6 +54,10 @@ function ApnProvider(apnConfigs, sliceServers, redis, stats) {
 }
 
 ApnProvider.prototype.sendOne = function (notification, apnData, timeToLive) {
+    if (!notification.apn) {
+        logger.debug("no apn info skip");
+        return;
+    }
     var bundleId = apnData.bundleId;
     var apnConnection = this.apnConnections[bundleId];
     if (apnConnection) {
@@ -121,6 +125,10 @@ var hexChars = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'a', 'b', 'c',
 
 ApnProvider.prototype.sendAll = function (notification, timeToLive) {
     logger.info("sendAll %j", notification);
+    if (!notification.apn) {
+        logger.debug("no apn info skip");
+        return;
+    }
     var self = this;
     if (self.sliceServers) {
         var serverIndex = 0;
@@ -177,8 +185,8 @@ function toApnNotification(notification, timeToLive) {
         secondsToLive = 600;
     }
     note.expiry = Math.floor(Date.now() / 1000) + secondsToLive;
-    if (notification.apn.payload) {
-        note.payload = notification.apn.payload;
+    if (notification.android.payload) {
+        note.payload = notification.android.payload;
     } else {
         note.payload = {};
     }
