@@ -5,7 +5,7 @@ var config = {
 
 describe('huawei test', function () {
 
-    it('test ttl to single', function (done) {
+    it('huawei', function (done) {
         var huaweiProvider = require('../lib/service/huaweiProvider.js')(config);
         var notificationAll = {
             android: {title: "sendAll", message: "sendAll Msg", payload: {test: "wwwwqqq"}}
