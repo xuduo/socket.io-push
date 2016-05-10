@@ -6,6 +6,7 @@ var util = require('../util/util.js');
 var request = require('request');
 var sendOneUrl = "https://api.xmpush.xiaomi.com/v3/message/regid";
 var sendAllUrl = "https://api.xmpush.xiaomi.com/v3/message/all";
+var timeout = 5000;
 
 function XiaomiProvider(config) {
     if (!(this instanceof XiaomiProvider)) return new XiaomiProvider(config);
@@ -20,7 +21,8 @@ XiaomiProvider.prototype.sendOne = function (notification, tokenData, timeToLive
     request.post({
         url: sendOneUrl,
         form: this.getPostData(notification, tokenData, timeToLive),
-        headers: this.headers
+        headers: this.headers,
+        timeout: timeout
     }, function (error, response, body) {
         logger.info("sendAll result", error, response.statusCode, body);
         if (!error && response.statusCode == 200 && callback) {
@@ -58,7 +60,8 @@ XiaomiProvider.prototype.sendAll = function (notification, timeToLive, callback)
     request.post({
         url: sendAllUrl,
         form: this.getPostData(notification, 0, timeToLive),
-        headers: this.headers
+        headers: this.headers,
+        timeout: timeout
     }, function (error, response, body) {
         logger.info("sendAll result", error, response.statusCode, body);
         if (!error && response.statusCode == 200 && callback) {

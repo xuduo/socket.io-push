@@ -6,6 +6,7 @@ var util = require('../util/util.js');
 var request = require('request');
 var tokenUrl = "https://login.vmall.com/oauth2/token";
 var apiUrl = "https://api.vmall.com/rest.php";
+var timeout = 5000;
 
 function HuaweiProvider(config) {
     if (!(this instanceof HuaweiProvider)) return new HuaweiProvider(config);
@@ -23,7 +24,8 @@ HuaweiProvider.prototype.sendOne = function (notification, tokenData, timeToLive
         var postData = self.getPostData(1, notification, tokenData, timeToLive);
         request.post({
             url: apiUrl,
-            form: postData
+            form: postData,
+            timeout: timeout
         }, function (error, response, body) {
             logger.info("sendOne result", error, response.statusCode, body);
             if (!error && response.statusCode == 200 && callback) {
@@ -63,18 +65,24 @@ HuaweiProvider.prototype.addToken = function (data) {
 
 HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback) {
     var self = this;
-    this.checkToken(function () {
-        logger.debug("sendAll ", notification, timeToLive);
-        var postData = self.getPostData(2, notification, 0, timeToLive);
-        request.post({
-            url: apiUrl,
-            form: postData
-        }, function (error, response, body) {
-            logger.info("sendAll result", error, response.statusCode, body);
-            if (!error && response.statusCode == 200 && callback) {
-                callback();
-            }
-        })
+    this.checkToken(function (tokenError) {
+        if(!tokenError){
+            logger.debug("sendAll ", notification, timeToLive);
+            var postData = self.getPostData(2, notification, 0, timeToLive);
+            request.post({
+                url: apiUrl,
+                form: postData
+            }, function (error, response, body) {
+                logger.info("sendAll result", error, response.statusCode, body);
+                if (!error && response.statusCode == 200 && callback) {
+                    callback();
+                } else {
+                    callback(error);
+                }
+            })
+        } else {
+            callback(tokenError);
+        }
     });
 };
 
@@ -92,9 +100,10 @@ HuaweiProvider.prototype.checkToken = function (callback) {
                 grant_type: "client_credentials",
                 client_id: self.client_id,
                 client_secret: self.client_secret
-            }
+            },
+            timeout: timeout
         }, function (error, response, body) {
-            if (!error && response.statusCode == 200) {
+            if (!error) {
                 var data = JSON.parse(body);
                 self.access_token = data.access_token;
                 self.access_token_expire = Date.now() + data.expires_in * 1000 - 60 * 1000;
@@ -102,6 +111,7 @@ HuaweiProvider.prototype.checkToken = function (callback) {
                 callback();
             } else {
                 logger.error("get access token error", body);
+                callback(error);
             }
         });
     }
