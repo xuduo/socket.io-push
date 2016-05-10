@@ -24,7 +24,7 @@ function topicOnline(redis, io, id, filterTopics) {
     this.timeValidWithIn = 20000;
     var self = this;
     setInterval(function () {
-        if (self.io.nsps['/']) {
+        if (self.io.nsps) {
             var result = self.io.nsps['/'].adapter.rooms;
             for (var key in result) {
                 if (result[key].length > 0 && filterTopic(key, self.filters)) {
