@@ -10,7 +10,7 @@ function PushServer(config) {
 
     var cluster = require('./redis/simpleRedisHashCluster.js')(config.redis);
 
-    var io = require('socket.io')(ioPort, {
+    this.io = require('socket.io')(ioPort, {
         pingTimeout: config.pingTimeout,
         pingInterval: config.pingInterval,
         transports: ['websocket', 'polling']
@@ -19,18 +19,18 @@ function PushServer(config) {
     var Stats = require('./stats/stats.js');
     var stats = new Stats(cluster, ioPort);
     var socketIoRedis = require('./redis/redisAdapter.js')({pubClient: cluster, subClient: cluster}, null, stats);
-    io.adapter(socketIoRedis);
+    this.io.adapter(socketIoRedis);
     var packetService = require('./service/packetService.js')(cluster, cluster);
 
     var uidStore = require('./redis/uidStore.js')(cluster);
     var ttlService = require('./service/ttlService.js')(cluster);
     var notificationService = require('./service/notificationService.js')(config.apns, cluster, ttlService);
-    var proxyServer = require('./server/proxyServer.js')(io, stats, packetService, notificationService, uidStore, ttlService);
+    var proxyServer = require('./server/proxyServer.js')(this.io, stats, packetService, notificationService, uidStore, ttlService);
     var apiThreshold = require('./api/apiThreshold.js')(cluster);
     var adminCommand = require('./server/adminCommand.js')(cluster, stats, packetService, proxyServer, apiThreshold);
     var topicOnline;
     if (config.topicOnlineFilter) {
-        topicOnline = require('./stats/topicOnline.js')(cluster, io, stats.id, config.topicOnlineFilter);
+        topicOnline = require('./stats/topicOnline.js')(cluster, this.io, stats.id, config.topicOnlineFilter);
     }
     if (apiPort) {
         var providerFactory = require('./service/notificationProviderFactory.js')();
@@ -47,6 +47,13 @@ function PushServer(config) {
             var xiaomiProvider = require('./service/xiaomiProvider.js')(config.xiaomi);
             providerFactory.addProvider(xiaomiProvider);
         }
-        this.restApi = require('./api/restApi.js')(io, topicOnline, stats, notificationService, apiPort, ttlService, cluster, apiThreshold, apnService, config.apiAuth, uidStore);
+        this.restApi = require('./api/restApi.js')(this.io, topicOnline, stats, notificationService, apiPort, ttlService, cluster, apiThreshold, apnService, config.apiAuth, uidStore);
     }
 }
+
+PushServer.prototype.close = function () {
+    this.io.close();
+    if (this.restApi) {
+        this.restApi.close();
+    }
+};

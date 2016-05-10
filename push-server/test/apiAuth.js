@@ -7,6 +7,14 @@ var expect = chai.expect;
 
 describe('api auth', function () {
 
+    before(function(){
+        global.pushServer = require('../lib/push-server.js')(config);
+    });
+
+    after(function(){
+        global.pushServer.close();
+    });
+
     it('check should pass', function (done) {
         request
             .post(apiUrl + '/api/push')
@@ -22,8 +30,6 @@ describe('api auth', function () {
                 done();
             });
     });
-
-    var pushServer = require('../lib/push-server.js')(config);
 
 
     it('check should not pass', function (done) {

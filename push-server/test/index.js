@@ -1,14 +1,4 @@
 var request = require('superagent');
-var config = require('../config.js');
-var oldApiPort = config.api_port;
-config.api_port = 0;
-var pushService = require('../lib/push-server.js')(config);
-var pushClient;
-var pushClient2;
-config.io_port = config.io_port + 1;
-config.api_port = oldApiPort;
-var apiService = require('../lib/push-server.js')(config);
-var apiUrl = 'http://localhost:' + config.api_port;
 
 var chai = require('chai');
 
@@ -16,22 +6,38 @@ var expect = chai.expect;
 
 describe('push test', function () {
 
-    it('connect', function (done) {
-        var connected = 0;
-        pushClient =  require('../lib/client/push-client.js')('http://localhost:' + config.io_port, {
+    before(function () {
+        var config = require('../config.js');
+        var oldApiPort = config.api_port;
+        config.api_port = 0;
+        global.pushService = require('../lib/push-server.js')(config);
+        config.io_port = config.io_port + 1;
+        config.api_port = oldApiPort;
+        global.apiService = require('../lib/push-server.js')(config);
+        global.apiUrl = 'http://localhost:' + config.api_port;
+        global.pushClient = require('../lib/client/push-client.js')('http://localhost:' + config.io_port, {
             transports: ['websocket', 'polling'],
             useNotification: true
         });
+        global.pushClient2 = require('../lib/client/push-client.js')('http://localhost:' + config.io_port, {
+            transports: ['websocket', 'polling'],
+            useNotification: true
+        });
+
+    });
+
+    after(function () {
+        global.apiService.close();
+        global.pushService.close();
+    });
+
+    it('connect', function (done) {
+        var connected = 0;
         pushClient.on('connect', function (data) {
             expect(data.pushId).to.be.equal(pushClient.pushId);
             if (++connected == 2) {
                 done();
             }
-        });
-
-        pushClient2 = require('../lib/client/push-client.js')('http://localhost:' + config.io_port, {
-            transports: ['websocket', 'polling'],
-            useNotification: true
         });
 
         pushClient2.on('connect', function (data) {
@@ -57,7 +63,7 @@ describe('push test', function () {
 
         pushClient.on('push', messageCallback);
 
-        pushClient2.on('push',function(topic, data){
+        pushClient2.on('push', function (topic, data) {
             expect(topic).to.be.equal('');
             expect(data.message).to.be.equal('ok');
             if (++rec == 2) {

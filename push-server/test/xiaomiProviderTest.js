@@ -12,9 +12,6 @@ describe('xiaomi test', function () {
         var timeToLive = 10000;
         xiaomiProvider.sendAll(notificationAll, timeToLive, function () {
             done();
-            //huaweiProvider.sendOne(notificationOne, {token: "03574580439242232000001425000001"}, 60 * 60 * 1000, function () {
-            //    done();
-            //});
         });
     });
 
@@ -23,7 +20,7 @@ describe('xiaomi test', function () {
         var notificationOne = {
             android: {title: "sendOne", message: "sendOne Msg", payload: {test: "wwwwqqq"}}
         };
-        xiaomiProvider.sendOne(notificationOne, {token: "03574580439242232000001425000001"}, 60 * 60 * 1000, function () {
+        xiaomiProvider.sendOne(notificationOne, {token: "mQO6QyoRCz/Mazl83rjqph2fXSlxqaJ7hy/rnqEeMjo="}, 60 * 60 * 1000, function () {
             done();
         });
     });

@@ -15,6 +15,8 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
         version: '1.0.0'
     });
 
+    this.server = server;
+
     server.on('uncaughtException', function (req, res, route, err) {
         try {
             logger.error("RestApi uncaughtException " + err.stack + " \n params: \n" + JSON.stringify(req.params));
@@ -344,6 +346,10 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
     });
 
 }
+
+RestApi.prototype.close = function () {
+    this.server.close();
+};
 
 function parseArrayParam(param) {
     var arr;

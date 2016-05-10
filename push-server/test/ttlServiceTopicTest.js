@@ -1,8 +1,5 @@
 var request = require('superagent');
-require('../lib/log/index.js')();
 var config = require('../config.js');
-var oldApiPort = config.api_port;
-var pushService = require('../lib/push-server.js')(config);
 
 var apiUrl = 'http://localhost:' + config.api_port;
 
@@ -11,6 +8,14 @@ var randomstring = require("randomstring");
 var expect = chai.expect;
 
 describe('push test', function () {
+
+    before(function(){
+        global.pushServer = require('../lib/push-server.js')(config);
+    });
+
+    after(function(){
+        global.pushServer.close();
+    });
 
     it('test ttl to topic', function (done) {
 
@@ -50,6 +55,7 @@ describe('push test', function () {
                                 pushClient.connect();
                                 pushClient.on('push', function (topic, data) {
                                     expect(data.message).to.equal(3);
+                                    pushClient.disconnect();
                                     done();
                                 });
                             });
