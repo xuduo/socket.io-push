@@ -1,6 +1,10 @@
-socket.io-push
+socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?branch=master)](https://travis-ci.org/xuduo/socket.io-push)
 =======================
 基于socket.io协议实现的类似小米,极光,个推的系统.
+
+
+[![NPM](https://nodei.co/npm/socket.io-push.png?compact=true)](https://npmjs.org/package/socket.io-push)
+
 
 ###特点
 * 送达率比同类产品都高,因为透明集成了小米,华为push,这两个厂商的手机,进程被杀,也可以收到通知
