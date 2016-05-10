@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController,ConnectCallback,PushCallback,PushCallbackDelegate{
+class ViewController: UIViewController,ConnectCallback,PushCallback/*,PushCallbackDelegate*/{
     
     let url = "http://spush.yy.com/api/push?pushAll=true&topic=chatRoom&json=%@&timeToLive="
     
@@ -22,7 +22,7 @@ class ViewController: UIViewController,ConnectCallback,PushCallback,PushCallback
     weak var tapView : UIView?
     let reuseId = "chatContentCell"
     
-    private var userName : String!
+    var userName : String!
     
     private var chats : [ChatInfo]!
     
@@ -38,9 +38,9 @@ class ViewController: UIViewController,ConnectCallback,PushCallback,PushCallback
         socketIOClient = (UIApplication.sharedApplication().delegate as! AppDelegate).socketIOClient
         socketIOClient.pushCallback = self
         socketIOClient.connectCallback = self
-        let pushId = PushIdGeneratorBase.init().generatePushId;
-        socketIOClient.setPushId(pushId())
-        socketIOClient.subscribeBroadcast("chatRoom")
+        let pushId = PushIdGeneratorBase().generatePushId()
+        socketIOClient.setPushId(pushId)
+        socketIOClient.subscribeBroadcast("chatRoom",receiveTtl :.Receive)
         
         
         
@@ -89,9 +89,9 @@ class ViewController: UIViewController,ConnectCallback,PushCallback,PushCallback
         
     }
     
-    func log(level: String!, format: String!, args: CVaListPointer) {
-        print("oc client log " + format,args);
-    }
+//    func loge(level: String, format: String, args:va_list) {
+//        print("oc client log " + format,args);
+//    }
     
     func onPushOc(topic: String!, nsstring: String!) {
         print("onPushOc %@ %@",topic,nsstring);

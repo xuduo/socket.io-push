@@ -10,13 +10,18 @@ import Foundation
 
 public class PushIdGeneratorBase : NSObject  {
     
-    public static func randomAlphaNumeric(var count:Int) -> String
+    
+    private let pushGeneratorKey = "SharedPreferencePushGenerator"
+    
+    public static func randomAlphaNumeric(count:Int) -> String
     {
+        var cnt = count
         var randomStr = "";
-        while (count-- >= 0) {
+        while (cnt >= 0) {
+            cnt = cnt - 1
             randomStr = randomStr + String(self.oneRandomAlphaNumeric());
         }
-        return randomStr;
+        return randomStr
     }
     
     public static func oneRandomAlphaNumeric() -> Character {
@@ -30,10 +35,11 @@ public class PushIdGeneratorBase : NSObject  {
     
     
     public func generatePushId() -> String {
-        var strPushID : String? = NSUserDefaults.standardUserDefaults().objectForKey("SharedPreferencePushGenerator") as? String
+        
+        var strPushID = StorageUtil.sharedInstance().getItem(pushGeneratorKey) as? String
         if (nil == strPushID) {
             strPushID = PushIdGeneratorBase.randomAlphaNumeric(32);
-            NSUserDefaults.standardUserDefaults().setObject(strPushID!, forKey: "SharedPreferencePushGenerator")
+            StorageUtil.sharedInstance().setItem(strPushID, forKey: pushGeneratorKey)
         }
         return strPushID!;
     }
