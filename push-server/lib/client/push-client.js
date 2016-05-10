@@ -8,6 +8,9 @@ var notiTopic = 'bnoti';
 
 function PushClient(url, opt) {
     if (!(this instanceof PushClient)) return new PushClient(url, opt);
+    if (!opt) {
+        opt = {};
+    }
     opt.forceNew = true;
     if (!opt.transports) {
         opt.transports = ['websocket'];
@@ -133,7 +136,9 @@ var notiHandler = function (data) {
 
 PushClient.prototype.on = function (event, callback) {
     this.event.removeAllListeners(event);
-    this.event.on(event, callback);
+    if (callback) {
+        this.event.on(event, callback);
+    }
 };
 
 PushClient.prototype.subscribeTopic = function (topic) {

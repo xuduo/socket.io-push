@@ -42,7 +42,7 @@ TTLService.prototype.addPacketAndEmit = function (topic, event, timeToLive, pack
 };
 
 TTLService.prototype.getPackets = function (topic, lastId, socket, unicast) {
-    if (lastId || unicast) {
+    if (lastId) {
         var redis = this.redis;
         var listKey = "ttl#packet#" + topic;
         redis.lrange(listKey, 0, -1, function (err, list) {

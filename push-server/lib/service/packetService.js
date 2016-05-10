@@ -26,7 +26,6 @@ PacketService.prototype.publishPacket = function (data) {
 
 PacketService.prototype.publishDisconnect = function (socket) {
     if (this.redis) {
-        logger.debug("publishDisconnect pushId %s", socket.pushId);
         var self = this;
         this.redis.get("pushIdSocketId#" + socket.pushId, function (err, lastSocketId) {
             // reply is null when the key is missing
@@ -46,11 +45,9 @@ PacketService.prototype.publishDisconnect = function (socket) {
 
 PacketService.prototype.publishConnect = function (socket) {
     if (this.redis) {
-        logger.debug("publishConnect pushId %s", socket.pushId);
         var self = this;
         this.redis.get("pushIdSocketId#" + socket.pushId, function (err, lastSocketId) {
             // reply is null when the key is missing
-            logger.debug("publishConnect query redis %s", lastSocketId);
             if (lastSocketId) {
                 logger.debug("reconnect do not publish", lastSocketId);
             } else {

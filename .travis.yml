@@ -1,18 +1,21 @@
 language: node_js
-
 node_js:
-  - "5.1"
-
+- '5.1'
 services:
-  - redis-server
-
+- redis-server
 before_install:
-  - cd push-server
-  - npm install -g npm@2.7.3
-
+- cd push-server
 after_success:
 - npm install -g istanbul
 - npm install coveralls
 - istanbul cover node_modules/.bin/_mocha --report lcovonly -- -R spec
 - ./node_modules/.bin/coveralls < ./coverage/lcov.info
 - rm -rf ./coverage
+deploy:
+  provider: npm
+  email: xuudoo@gmail.com
+  api_key:
+    secure: NTnnY0qfth+e7KyPQITiU95uA5vTeFiHdoM+CEcQmkXRJ6ptiutrJ9WWLuECcyJBKGV+HblOUcAgXX6W63+TBETSyF4r1T6yxmxdFGFzTFCp2Y4cgdQ2XDN7gSNygZkpGtHiRo7W/c1+UqBDHeE+ciDOO8XEgKKcswXWFJcGHzd6bMyX88e3V08CTpOl/i6rW4xIeH25Z1X/du6vpSBg4cFNMRDOJTBYMlYYXWrxR4/EsVj1VxF7/kDGQrz1ttzsRXTZXNOAvDMEDrPAwDsdhasjz7ve4LTR7+WvG0iyvQZE79QR3hluPZMLWz4Vs3GdA62rrvJIgtJNfM89+o4ylzJ1JwGzYTYjm8+l4N+podqK+94ZRDVb1OCpGZwbrumSbilnnULGPKg3XuT3KjIaZ8cRJwMy21SsZItPvS06BDWzF7sRe01ypmgoJaetSHnkBIKj4eklFP8aimOkatJOg+nbPB6GOEqunbuKmkZu43BlSrJebMiYUMCvwmWm+zW4q6KzVTJBYqE04o3Mh8J+vXgxmgifFUrJ2vVGd0cfIwzLPRiMUcrpOww1ONgiNn2ughE/9FBviulispVHD/GuWR3ugaGh25d8EbdKQCSI/Ub+Eei/HG0r9EN8uMjeKadJ70kS3erGizXgh31S9ii78GbWyarxX4p/yXNP5mF2lr4=
+  on:
+    tags: true
+    repo: xuduo/socket.io-push
