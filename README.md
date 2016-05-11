@@ -16,8 +16,8 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 
 ###文档
 * [服务器 push-server](push-server)
-* [Android SDK & Demo](android-demo)
-* [IOS SDK & Demo](ios-demo)
+* [Android SDK & Demo](https://github.com/xuduo/socket.io-push-android)
+* [IOS SDK & Demo](https://github.com/xuduo/socket.io-push-ios)
 * [Browser](push-server/lib/client)
 
 ###名词
