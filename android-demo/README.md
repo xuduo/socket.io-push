@@ -1,17 +1,24 @@
 ##Android 接入文档
 demo实现了一个聊天室功能,
+
 #####添加maven/gradle依赖
+
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yy/android-push-sdk/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yy/android-push-sdk)
+
+
 maven
 ```xml
 <dependency>
     <groupId>com.yy</groupId>
     <artifactId>android-push-sdk</artifactId>
-    <version>version</version>
+    <version>${version}</version>
 </dependency>
 ```
+
+
 gradle
-```
-compile 'com.yy:android-push-sdk:version'
+```groovy
+compile 'com.yy:android-push-sdk:${versoion}'
 ```
 [最新版本](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.yy%22%20AND%20a%3A%22android-push-sdk%22)
 
