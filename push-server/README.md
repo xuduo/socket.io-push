@@ -105,9 +105,7 @@ uid -> string[],如 ["123","456"] 通过addPushIdToUid接口绑定的uid
 
 --- 以上参数3选一,指定推送对象
 
-data -> string, base64编码的二进制数据,透传数据,客户端会接收到
-
-json -> jsonString, 同data,如果json数据, 推荐用json字段
+json -> jsonString, 透传数据,客户端会接收到
 
 --- 以上参数2选一
 
@@ -130,8 +128,9 @@ notification -> 通知消息内容 需要url encode
 
 ```
 {
-  "android" : {"title":"title","message":"message" , "payload" : {"abc":123} },
-  "apn":  {"alert":"message" , "badge":5, "sound":"default", "payload":{"abc":123} }
+  "android" : {"title":"title","message":"message" },
+  "apn":  {"alert":"message" , "badge":5, "sound":"default" },
+  "payload":{"abc":123}
 }
 ```
 
