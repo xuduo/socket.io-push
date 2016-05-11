@@ -10,7 +10,7 @@
   "repository": {
     "type": "git",
     "url": "git@github.com:xuduo/socket.io-push.git"
-  },sudo
+  },
   "dependencies": {
     "apn": "1.7.5",
     "async": "0.9.0",
