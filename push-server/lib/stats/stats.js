@@ -119,10 +119,10 @@ Stats.prototype.removeSession = function (count) {
     this.sessionCount.total -= count;
 };
 
-var mSecPerHour = 60 * 60 * 1000
+var mSecPerHour = 60 * 60 * 1000;
 
 function hourStrip(timestamp) {
-    return Math.ceil(timestamp / mSecPerHour) * mSecPerHour;
+    return Math.floor(timestamp / mSecPerHour) * mSecPerHour;
 }
 
 Stats.prototype.incr = function (key, timestamp) {

@@ -116,8 +116,8 @@
         scaleType: "date",
         tooltipTemplate: "<%=valueLabel%> (<%=argLabel%>)",
         scaleDateFormat: "mm-dd",
-        scaleTimeFormat: "hh:MM",
-        scaleDateTimeFormat: "hh:MM"
+        scaleTimeFormat: "HH:MM",
+        scaleDateTimeFormat: "mm-dd HH:MM"
     };
 
     var optionsDay = {
@@ -238,6 +238,7 @@
     }
 
     function convert(name, serverData, timestamps) {
+        var offset = new Date().getTimezoneOffset() * 60 * 1000 * -1;
         var chartData = [
             {
                 label: name,
@@ -250,7 +251,7 @@
                 data: []
             }];
         for (var i = 0; i < timestamps.length; i++) {
-            chartData[0].data.push({x: new Date(timestamps[i]), y: serverData[i]});
+            chartData[0].data.push({x: new Date(timestamps[i] + offset), y: serverData[i]});
         }
         return chartData;
     }
