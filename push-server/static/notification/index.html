@@ -62,7 +62,7 @@
     }
 </script>
 
-<h1>Push Test</h1>
+<h1>Notification Api Test</h1>
 
 <div id="myDiv">
     <table cellspacing="10" cellpadding="0" width="400">
@@ -74,13 +74,13 @@
         <tr align=left>
             <td width="100" align=right>message:&nbsp&nbsp&nbsp</td>
             <td width="300" colspan="3"><textarea id="content" name="content" cols="40" rows="4"
-                                                  >test content</textarea></td>
+            >test content</textarea></td>
         </tr>
 
         <tr align=left>
             <td width="100" align=right>payload:&nbsp&nbsp&nbsp</td>
             <td width="300" colspan="3"><textarea id="payload" name="content" cols="40" rows="4"
-                                                >{"abc":123}</textarea></td>
+            >{"abc":123}</textarea></td>
         </tr>
 
         <tr align=left>
@@ -174,8 +174,9 @@
 //        }
 
         var data = {
-            "android": {"title": $("#title").val(), "message": $("#content").val(), payload: JSON.parse($("#payload").val())},
-            "apn": {"alert": $("#content").val(), payload: JSON.parse($("#payload").val())}
+            "android": {"title": $("#title").val(), "message": $("#content").val()},
+            "apn": {"alert": $("#content").val()},
+            "payload": JSON.parse($("#payload").val())
         }
         var str = JSON.stringify(data);
 

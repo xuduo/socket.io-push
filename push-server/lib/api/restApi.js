@@ -135,14 +135,15 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
             return next();
         }
 
+        if (notification.payload) {
+            notification.android.payload = notification.payload;
+            delete notification.payload;
+        }
+
         if (!notification.android.payload) {
             notification.android.payload = {};
         }
 
-        if (req.params.payload) {
-            var payload = JSON.parse(req.params.payload);
-            notification.android.payload = payload;
-        }
         if (notification.apn && notification.apn.payload) {
             delete notification.apn.payload;
         }

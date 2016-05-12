@@ -157,7 +157,7 @@ commands.list.forEach(function (command) {
 
 function handleCommand(command, callArguments, client) {
     if (!client) {
-        logger.error("handleCommand error %j", callArguments);
+        logger.error("handleCommand error no client %j", callArguments);
         return;
     }
 

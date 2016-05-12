@@ -15,7 +15,9 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
             stats.removePlatformSession(socket.platform);
             if (socket.pushId) {
                 logger.debug("publishDisconnect %s", socket.pushId);
-                packetService.publishDisconnect(socket);
+                if (packetService) {
+                    packetService.publishDisconnect(socket);
+                }
             }
         });
 
@@ -56,7 +58,9 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                             socket.uid = uid;
                         }
                         socket.pushId = data.id;
-                        packetService.publishConnect(socket);
+                        if (packetService) {
+                            packetService.publishConnect(socket);
+                        }
                         socket.emit('pushId', reply);
                         logger.debug('join room socket.id %s ,pushId %s', socket.id, socket.pushId);
                         var lastPacketIds = data.lastPacketIds;
@@ -106,7 +110,9 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
             if (socket.uid) {
                 data.uid = socket.uid;
             }
-            packetService.publishPacket(data);
+            if (packetService) {
+                packetService.publishPacket(data);
+            }
         });
 
         socket.on('unbindUid', function () {

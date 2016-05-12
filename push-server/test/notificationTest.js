@@ -89,7 +89,8 @@ describe('push test', function () {
         var title = 'hello',
             message = 'hello world';
         var data = {
-            "android": {"title": title, "message": message},
+            android: {"title": title, "message": message},
+            payload :{"ppp": 123}
         }
         var str = JSON.stringify(data);
 
@@ -107,7 +108,6 @@ describe('push test', function () {
                 pushId: '',
                 pushAll: 'true',
                 notification: str,
-                payload: JSON.stringify({"ppp": 123})
             })
             .set('Accept', 'application/json')
             .end(function (err, res) {

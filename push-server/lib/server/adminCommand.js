@@ -11,9 +11,9 @@ function AdminCommand(redis, stats, packetSevice, proxyServer, apiThrehold) {
             if (command.command == 'packetDropThreshold') {
                 logger.debug( 'setting packetDropThreshold %d', stats.packetDropThreshold);
                 stats.packetDropThreshold = command.packetDropThreshold;
-            } else if (command.command == 'stopPacketService') {
+            } else if (command.command == 'stopPacketService' && packetSevice) {
                 packetSevice.stopped = true;
-            } else if (command.command == 'startPacketService') {
+            } else if (command.command == 'startPacketService' && packetSevice) {
                 packetSevice.stopped = false;
             } else if (command.command == 'topicOnline') {
                 var online = proxyServer.getTopicOnline(command.topic);
