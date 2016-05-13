@@ -1,3 +1,9 @@
+#### js sdk
+[source](../../static/js/push-client-1.0.js)
+
+[minified](../../static/js/push-client-1.0.min.js)
+
+
 #### 初始化
 
 ```javascript
