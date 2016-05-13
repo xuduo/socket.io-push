@@ -50,7 +50,7 @@ function PushServer(config) {
             var xiaomiProvider = require('./service/xiaomiProvider.js')(config.xiaomi);
             providerFactory.addProvider(xiaomiProvider);
         }
-        this.restApi = require('./api/restApi.js')(this.io, topicOnline, stats, notificationService, apiPort, ttlService, cluster, apiThreshold, apnService, config.apiAuth, uidStore);
+        this.restApi = require('./api/restApi.js')(this.io, topicOnline, stats, notificationService, config, ttlService, cluster, apiThreshold, apnService, config.apiAuth, uidStore);
     }
 }
 

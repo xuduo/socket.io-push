@@ -2,9 +2,9 @@ module.exports = RestApi;
 var restify = require('restify');
 var logger = require('../log/index.js')('RestApi');
 
-function RestApi(io, topicOnline, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth, uidStore) {
+function RestApi(io, topicOnline, stats, notificationService, config, ttlService, redis, apiThreshold, apnService, apiAuth, uidStore) {
 
-    if (!(this instanceof RestApi)) return new RestApi(io, topicOnline, stats, notificationService, port, ttlService, redis, apiThreshold, apnService, apiAuth, uidStore);
+    if (!(this instanceof RestApi)) return new RestApi(io, topicOnline, stats, notificationService, config, ttlService, redis, apiThreshold, apnService, apiAuth, uidStore);
 
     var self = this;
 
@@ -331,6 +331,11 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
         return next();
     });
 
+    server.get('/api/config', function (req, res, next) {
+        res.send(config);
+        return next();
+    });
+
     server.get('/api/ip', function (req, res, next) {
         var ip = req.connection.remoteAddress;
         ip = ip.substr(ip.lastIndexOf(':') + 1, ip.length);
@@ -352,7 +357,7 @@ function RestApi(io, topicOnline, stats, notificationService, port, ttlService, 
         return next();
     });
 
-    server.listen(port, function () {
+    server.listen(config.api_port, function () {
         logger.debug('%s listening at %s', server.name, server.url);
     });
 
