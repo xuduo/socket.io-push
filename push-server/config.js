@@ -63,4 +63,6 @@ config.redis = {
 config.io_port = 10001;
 config.api_port = 11001;
 
+config.ttl_protocol_version = 2;
+
 module.exports = config;

@@ -50,9 +50,7 @@ describe('push test', function () {
 
     it('Push to single pushId', function (done) {
         var rec = 0;
-        var b = new Buffer('{ "message":"ok"}');
-        var data = b.toString('base64');
-
+        var json = '{ "message":"ok"}';
         var messageCallback = function (data) {
             expect(data.message).to.be.equal('ok');
             if (++rec == 2) {
@@ -73,7 +71,7 @@ describe('push test', function () {
             .send({
                 pushId: pushClient.pushId,
                 topic: 'message',
-                data: data
+                json: json
             })
             .set('Accept', 'application/json')
             .end(function (err, res) {
@@ -84,7 +82,7 @@ describe('push test', function () {
             .post(apiUrl + '/api/push')
             .send({
                 pushAll: true,
-                data: data
+                json: json
             })
             .set('Accept', 'application/json')
             .end(function (err, res) {
@@ -105,8 +103,7 @@ describe('push test', function () {
 
     it('Push to multi pushId', function (done) {
         var rec = 0;
-        var b = new Buffer('{ "message":"ok"}');
-        var data = b.toString('base64');
+        var json = '{ "message":"ok"}';
 
         var messageCallback = function (data) {
             expect(data.message).to.be.equal('ok');
@@ -121,8 +118,7 @@ describe('push test', function () {
             .post(apiUrl + '/api/push')
             .send({
                 pushId: JSON.stringify(["abc", pushClient.pushId, pushClient2.pushId]),
-                topic: 'message',
-                data: data
+                json: json
             })
             .set('Accept', 'application/json')
             .end(function (err, res) {
@@ -133,8 +129,7 @@ describe('push test', function () {
             .post(apiUrl + '/api/push')
             .send({
                 pushId: ["abc", pushClient.pushId, pushClient2.pushId],
-                topic: 'message',
-                data: data
+                json: json
             })
             .set('Accept', 'application/json')
             .end(function (err, res) {
@@ -169,9 +164,7 @@ describe('push test', function () {
 
     it('Push to uid', function (done) {
         var rec = 0;
-        var b = new Buffer('{ "message":"ok"}');
-        var data = b.toString('base64');
-
+        var json = '{ "message":"ok"}';
         var messageCallback = function (data) {
             expect(data.message).to.be.equal('ok');
             if (++rec == 6) {
@@ -185,8 +178,7 @@ describe('push test', function () {
             .post(apiUrl + '/api/push')
             .send({
                 uid: JSON.stringify([0, 1, 2, 3]),
-                topic: 'message',
-                data: data
+                json: json
             })
             .set('Accept', 'application/json')
             .end(function (err, res) {
@@ -197,8 +189,7 @@ describe('push test', function () {
             .post(apiUrl + '/api/push')
             .send({
                 uid: [0, 1, 2, 3],
-                topic: 'message',
-                data: data
+                json: json
             })
             .set('Accept', 'application/json')
             .end(function (err, res) {
@@ -208,8 +199,7 @@ describe('push test', function () {
             .post(apiUrl + '/api/push')
             .send({
                 uid: 5,
-                topic: 'message',
-                data: data
+                json: json
             })
             .set('Accept', 'application/json')
             .end(function (err, res) {
@@ -219,8 +209,7 @@ describe('push test', function () {
             .post(apiUrl + '/api/push')
             .send({
                 uid: "5",
-                topic: 'message',
-                data: data
+                json: json
             })
             .set('Accept', 'application/json')
             .end(function (err, res) {
@@ -230,8 +219,7 @@ describe('push test', function () {
             .post(apiUrl + '/api/push')
             .send({
                 uid: 1,
-                topic: 'message',
-                data: data
+                json: json
             })
             .set('Accept', 'application/json')
             .end(function (err, res) {
@@ -241,8 +229,7 @@ describe('push test', function () {
             .post(apiUrl + '/api/push')
             .send({
                 uid: "2",
-                topic: 'message',
-                data: data
+                json: json
             })
             .set('Accept', 'application/json')
             .end(function (err, res) {
@@ -252,8 +239,7 @@ describe('push test', function () {
 
 
     it('push to topic', function (done) {
-        var b = new Buffer('{ "message":"ok"}');
-        var data = b.toString('base64');
+        var json = '{ "message":"ok"}';
 
         var messageCallback = function (data) {
             expect(data.message).to.be.equal('ok');
@@ -267,7 +253,7 @@ describe('push test', function () {
             .send({
                 pushAll: "true",
                 topic: 'message',
-                data: data
+                json: json
             })
             .set('Accept', 'application/json')
             .end(function (err, res) {

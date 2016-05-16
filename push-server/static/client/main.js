@@ -90,6 +90,7 @@ $(function () {
             data: {
                 topic: "chatRoom",
                 pushAll: 'true',
+                timeToLive: 10000,
                 json: JSON.stringify(json)
             }
         });

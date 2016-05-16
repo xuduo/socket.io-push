@@ -48,7 +48,7 @@ function PushClient(url, opt) {
     this.topicToLastPacketId = {};
 
     this.socket.on('push', pushHandler.bind(this));
-    this.socket.on('p', pushHandler.bind(this));
+    this.socket.on('p', version2PushHandler.bind(this));
     if (opt.useNotification) {
         this.topics['noti'] = receiveTTL;
         this.socket.on('noti', notiHandler.bind(this));
@@ -112,6 +112,13 @@ PushClient.prototype.connect = function () {
     this.socket.connect();
 }
 
+var version2PushHandler = function (data, ttl) {
+    if (ttl) {
+        this.updateLastPacketId(ttl[0], {id: ttl[1], unicast: ttl[2], ttl: 1});
+    }
+    console.log("version2PushHandler  ", data, ttl);
+    this.event.emit("push", data);
+}
 
 var pushHandler = function (data) {
     var jsonData;
