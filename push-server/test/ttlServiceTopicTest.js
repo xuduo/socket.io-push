@@ -35,7 +35,7 @@ describe('push test', function () {
                     useNotification: true
                 });
                 pushClient.subscribeTopicAndReceiveTTL("message");
-                pushClient.on('push', function (topic, data) {
+                pushClient.on('push', function (data) {
                     expect(data.message).to.equal(2);
                     var send = false;
                     pushClient.on("disconnect", function () {
@@ -53,7 +53,7 @@ describe('push test', function () {
                                 .set('Accept', 'application/json').end(function () {
                                 expect(res.text).to.be.equal('{"code":"success"}');
                                 pushClient.connect();
-                                pushClient.on('push', function (topic, data) {
+                                pushClient.on('push', function (data) {
                                     expect(data.message).to.equal(3);
                                     pushClient.disconnect();
                                     done();

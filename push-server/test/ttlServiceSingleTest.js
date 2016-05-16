@@ -20,7 +20,7 @@ describe('push test', function () {
 
     it('test ttl to single', function (done) {
         var pushClient = require('../lib/client/push-client.js')('http://localhost:' + config.io_port);
-        pushClient.on('push', function (topic, data) {
+        pushClient.on('push', function (data) {
             logger.debug('receive first push');
             expect(data.message).to.equal(1);
             pushClient.disconnect();
@@ -48,8 +48,7 @@ describe('push test', function () {
                             expect(res.text).to.be.equal('{"code":"success"}');
                             pushClient.connect();
                             var push = [2, 3, 4];
-                            pushClient.on('push', function (topic, data) {
-                                expect(topic).to.equal("message");
+                            pushClient.on('push', function (data) {
                                 logger.debug("receive ", data.message);
                                 expect(data.message).to.equal(push.shift());
                                 if (push.length == 1) {
@@ -67,7 +66,7 @@ describe('push test', function () {
                                 }
                                 if (push.length == 0) {
                                     pushClient.disconnect();
-                                    pushClient.on('push', function (topic, data) {
+                                    pushClient.on('push', function (data) {
                                         expect('do not recieve after reconnect').to.equal(data.message);
                                     });
                                     pushClient.connect();

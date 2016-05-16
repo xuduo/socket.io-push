@@ -180,7 +180,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var topic = data.topic || data.t || '';
 	    this.updateLastPacketId(topic, data);
 	    console.log("pushHandler topic " + topic + " jsonData" + JSON.stringify(jsonData));
-	    this.event.emit("push", topic, jsonData);
+	    this.event.emit("push", jsonData);
 	}
 
 	var notiHandler = function (data) {

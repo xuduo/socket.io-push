@@ -72,10 +72,8 @@ $(function () {
                 prepend: true
             });
         });
-        pushClient.on('push', function (topic, data) {
-            if (topic == 'chatRoom') {
-                addChatMessage(data);
-            }
+        pushClient.on('push', function (data) {
+            addChatMessage(data);
         });
     }
 
@@ -85,7 +83,7 @@ $(function () {
         // Prevent markup from being injected into the message
         message = cleanInput(message);
         // if there is a non-empty message and a socket connection
-        var json = {message: message, nickName: username};
+        var json = {message: message, nickName: username, type: "chat_message"};
         $.ajax({
             type: 'GET',
             url: '/api/push',
@@ -191,7 +189,7 @@ $(function () {
                 var typingTimer = (new Date()).getTime();
                 var timeDiff = typingTimer - lastTypingTime;
                 if (timeDiff >= TYPING_TIMER_LENGTH && typing) {
-                  //  socket.emit('stop typing');
+                    //  socket.emit('stop typing');
                     typing = false;
                 }
             }, TYPING_TIMER_LENGTH);
@@ -228,7 +226,7 @@ $(function () {
         if (event.which === 13) {
             if (username) {
                 sendMessage();
-             //   socket.emit('stop typing');
+                //   socket.emit('stop typing');
                 typing = false;
             } else {
                 setUsername();

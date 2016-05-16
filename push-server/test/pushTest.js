@@ -53,8 +53,7 @@ describe('push test', function () {
         var b = new Buffer('{ "message":"ok"}');
         var data = b.toString('base64');
 
-        var messageCallback = function (topic, data) {
-            expect(topic).to.be.equal('message');
+        var messageCallback = function (data) {
             expect(data.message).to.be.equal('ok');
             if (++rec == 2) {
                 done();
@@ -63,8 +62,7 @@ describe('push test', function () {
 
         pushClient.on('push', messageCallback);
 
-        pushClient2.on('push', function (topic, data) {
-            expect(topic).to.be.equal('');
+        pushClient2.on('push', function (data) {
             expect(data.message).to.be.equal('ok');
             if (++rec == 2) {
                 done();
@@ -110,8 +108,7 @@ describe('push test', function () {
         var b = new Buffer('{ "message":"ok"}');
         var data = b.toString('base64');
 
-        var messageCallback = function (topic, data) {
-            expect(topic).to.be.equal('message');
+        var messageCallback = function (data) {
             expect(data.message).to.be.equal('ok');
             if (++rec == 4) {
                 done();
@@ -175,8 +172,7 @@ describe('push test', function () {
         var b = new Buffer('{ "message":"ok"}');
         var data = b.toString('base64');
 
-        var messageCallback = function (topic, data) {
-            expect(topic).to.be.equal('message');
+        var messageCallback = function (data) {
             expect(data.message).to.be.equal('ok');
             if (++rec == 6) {
                 done();
@@ -259,8 +255,7 @@ describe('push test', function () {
         var b = new Buffer('{ "message":"ok"}');
         var data = b.toString('base64');
 
-        var messageCallback = function (topic, data) {
-            expect(topic).to.be.equal('message');
+        var messageCallback = function (data) {
             expect(data.message).to.be.equal('ok');
             pushClient.disconnect();
             done();

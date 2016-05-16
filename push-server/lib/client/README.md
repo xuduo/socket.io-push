@@ -29,7 +29,7 @@ pushClient.unsubscribeTopic(topic);
 #### push callback
 
 ```javascript
-pushClient.on('push',function(topic,data){
+pushClient.on('push',function(data){
   
 });
 ```

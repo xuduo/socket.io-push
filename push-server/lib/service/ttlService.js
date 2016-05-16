@@ -21,6 +21,7 @@ TTLService.prototype.addPacketAndEmit = function (topic, event, timeToLive, pack
         }
         logger.debug("addPacket %s %s %s", topic, event, timeToLive);
         packet.ttl = 1;
+        packet.topic = topic;
         if (unicast) {
             packet.unicast = 1;
         }

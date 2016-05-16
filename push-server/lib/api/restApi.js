@@ -77,9 +77,6 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
         if (data) {
             pushData.data = data;
         }
-        if (topic) {
-            pushData.topic = topic;
-        }
         if (json) {
             pushData.j = JSON.parse(json);
         }
