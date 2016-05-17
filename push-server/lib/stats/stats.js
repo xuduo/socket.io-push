@@ -6,7 +6,7 @@ var randomstring = require("randomstring");
 function Stats(redis, port) {
     if (!(this instanceof Stats)) return new Stats(redis, port);
     this.redis = redis;
-    this.sessionCount = {ios: 0, android: 0, total: 0};
+    this.sessionCount = {total: 0};
     this.redisIncrBuffer = require('./redisIncrBuffer.js')(redis);
     this.packetDrop = 0;
     this.packetDropThreshold = 0;
@@ -19,19 +19,24 @@ function Stats(redis, port) {
     }
     logger.debug("ip file %s %s", ipPath, ip);
     this.id = ip || randomstring.generate(32);
-    var stats = this;
+    var self = this;
     setInterval(function () {
-        var packetAverage = stats.ms.sum([10 * 1000]);
-        stats.packetAverage1 = packetAverage[0];
-        redis.hset("stats#sessionCount", stats.id, JSON.stringify({
-            timestamp: Date.now(),
-            sessionCount: stats.sessionCount,
-            packetAverage1: stats.packetAverage1,
-            packetDrop: stats.packetDrop,
-            packetDropThreshold: stats.packetDropThreshold
-        }));
+        self.writeStatsToRedis();
     }, 10000);
     redis.del("stats#sessionCount");
+}
+
+Stats.prototype.writeStatsToRedis = function () {
+    var self = this;
+    var packetAverage = this.ms.sum([10 * 1000]);
+    this.packetAverage1 = packetAverage[0];
+    this.redis.hset("stats#sessionCount", self.id, JSON.stringify({
+        timestamp: Date.now(),
+        sessionCount: self.sessionCount,
+        packetAverage1: self.packetAverage1,
+        packetDrop: self.packetDrop,
+        packetDropThreshold: self.packetDropThreshold
+    }));
 }
 
 Stats.prototype.shouldDrop = function () {
@@ -48,24 +53,22 @@ Stats.prototype.addPlatformSession = function (platform, count) {
     if (!count) {
         count = 1;
     }
-    if (platform == 'ios') {
-        this.sessionCount.ios += count;
-    } else if (platform == 'android') {
-        this.sessionCount.android += count;
-    }
+    this.changePlatformCount(platform, count);
 }
 
 Stats.prototype.removePlatformSession = function (platform, count) {
     if (!count) {
         count = 1;
     }
-    if (platform == 'ios') {
-        this.sessionCount.ios -= count;
-    } else if (platform == 'android') {
-        this.sessionCount.android -= count;
-    }
+    this.changePlatformCount(platform, count * -1);
 }
 
+Stats.prototype.changePlatformCount = function (platform, count) {
+    if (!this.sessionCount[platform]) {
+        this.sessionCount[platform] = 0;
+    }
+    this.sessionCount[platform] += count;
+}
 
 Stats.prototype.onPacket = function () {
     var timestamp = Date.now();
@@ -95,7 +98,7 @@ Stats.prototype.addSession = function (socket, count) {
     }
     this.sessionCount.total += count;
 
-    var stats = this;
+    var self = this;
 
     socket.on('stats', function (data) {
         logger.debug("on stats %s", JSON.stringify(data.requestStats));
@@ -104,9 +107,9 @@ Stats.prototype.addSession = function (socket, count) {
         if (data.requestStats && data.requestStats.length) {
             for (var i = 0; i < data.requestStats.length; i++) {
                 var requestStat = data.requestStats[i];
-                stats.incrby("stats#request#" + requestStat.path + "#totalCount", timestamp, requestStat.totalCount);
-                stats.incrby("stats#request#" + requestStat.path + "#successCount", timestamp, requestStat.successCount);
-                stats.incrby("stats#request#" + requestStat.path + "#totalLatency", timestamp, requestStat.totalLatency);
+                self.incrby("stats#request#" + requestStat.path + "#totalCount", timestamp, requestStat.totalCount);
+                self.incrby("stats#request#" + requestStat.path + "#successCount", timestamp, requestStat.successCount);
+                self.incrby("stats#request#" + requestStat.path + "#totalLatency", timestamp, requestStat.totalLatency);
             }
         }
     });

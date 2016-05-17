@@ -17,8 +17,8 @@ function PushServer(config) {
     });
     console.log("start server on port " + config.io_port);
     var Stats = require('./stats/stats.js');
-    var stats = new Stats(cluster, config.io_port);
-    var socketIoRedis = require('./redis/redisAdapter.js')({pubClient: cluster, subClient: cluster}, null, stats);
+    this.stats = new Stats(cluster, config.io_port);
+    var socketIoRedis = require('./redis/redisAdapter.js')({pubClient: cluster, subClient: cluster}, null, this.stats);
     this.io.adapter(socketIoRedis);
     var packetService;
     if (config.redis.event) {
@@ -28,18 +28,18 @@ function PushServer(config) {
     var uidStore = require('./redis/uidStore.js')(cluster);
     var ttlService = require('./service/ttlService.js')(cluster, config.ttl_protocol_version);
     this.notificationService = require('./service/notificationService.js')(config.apns, cluster, ttlService);
-    var proxyServer = require('./server/proxyServer.js')(this.io, stats, packetService, this.notificationService, uidStore, ttlService);
+    var proxyServer = require('./server/proxyServer.js')(this.io, this.stats, packetService, this.notificationService, uidStore, ttlService);
     var apiThreshold = require('./api/apiThreshold.js')(cluster);
-    var adminCommand = require('./server/adminCommand.js')(cluster, stats, packetService, proxyServer, apiThreshold);
+    var adminCommand = require('./server/adminCommand.js')(cluster, this.stats, packetService, proxyServer, apiThreshold);
     var topicOnline;
     if (config.topicOnlineFilter) {
-        topicOnline = require('./stats/topicOnline.js')(cluster, this.io, stats.id, config.topicOnlineFilter);
+        topicOnline = require('./stats/topicOnline.js')(cluster, this.io, this.stats.id, config.topicOnlineFilter);
     }
     if (config.api_port) {
         var providerFactory = require('./service/notificationProviderFactory.js')();
         this.notificationService.providerFactory = providerFactory;
         if (config.apns) {
-            var apnService = require('./service/apnProvider.js')(config.apns, config.apnsSliceServers, cluster, stats);
+            var apnService = require('./service/apnProvider.js')(config.apns, config.apnsSliceServers, cluster, this.stats);
             providerFactory.addProvider(apnService);
         }
         if (config.huawei) {
@@ -50,7 +50,7 @@ function PushServer(config) {
             var xiaomiProvider = require('./service/xiaomiProvider.js')(config.xiaomi);
             providerFactory.addProvider(xiaomiProvider);
         }
-        this.restApi = require('./api/restApi.js')(this.io, topicOnline, stats, this.notificationService, config, ttlService, cluster, apiThreshold, apnService, config.apiAuth, uidStore);
+        this.restApi = require('./api/restApi.js')(this.io, topicOnline, this.stats, this.notificationService, config, ttlService, cluster, apiThreshold, apnService, config.apiAuth, uidStore);
     }
 }
 

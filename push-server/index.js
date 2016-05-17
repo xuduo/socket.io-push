@@ -5,7 +5,6 @@ program
     .usage('[options] <server>')
     .option('-d', 'debug output')
     .option('-f', 'foreground')
-    .option('-v', 'verbose')
     .option('-i', 'info')
     .option('-c, --count <n>', 'process count to start', parseInt)
     .parse(process.argv);
@@ -30,7 +29,6 @@ if (cluster.isMaster) {
         foreground:program.F,
         debug:program.D,
         info:program.I,
-        verbose:program.V,
         count:program.count
     }
     require('./lib/log/index.js')(args);

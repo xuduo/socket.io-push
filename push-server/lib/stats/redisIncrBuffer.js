@@ -16,7 +16,7 @@ RedisIncrBuffer.prototype.incrby = function (key, by) {
 
 RedisIncrBuffer.prototype.checkCommit = function () {
     var timestamp = Date.now();
-    if ((timestamp - this.timestamp) > this.commitThreshold) {
+    if ((timestamp - this.timestamp) >= this.commitThreshold) {
         for (var key in this.map) {
             this.redis.incrby(key, this.map[key]);
             var index = key.indexOf("#totalCount");

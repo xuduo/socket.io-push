@@ -30,9 +30,7 @@ function setArgs(args) {
     var level;
     if (args.debug) {
         level = 'debug';
-    } else if (args.verbose) {
-        level = 'verbose';
-    } else {
+    }  else {
         level = 'info';
     }
 
@@ -78,7 +76,7 @@ var LogProxy = function (logger, tag) {
 
 var meta = {};
 
-['debug', 'verbose', 'info', 'error'].forEach(function (command) {
+['debug', 'info', 'error'].forEach(function (command) {
 
     LogProxy.prototype[command] = function (key, arg, callback) {
         if (this.logger) {

@@ -8,19 +8,13 @@ describe('unsubscribe test', function () {
 
     before(function () {
         var config = require('../config.js');
-        var oldApiPort = config.api_port;
-        config.api_port = 0;
         global.pushService = require('../lib/push-server.js')(config);
-        config.io_port = config.io_port + 1;
-        config.api_port = oldApiPort;
-        global.apiService = require('../lib/push-server.js')(config);
         global.apiUrl = 'http://localhost:' + config.api_port;
         global.pushClient = require('../lib/client/push-client.js')('http://localhost:' + config.io_port);
 
     });
 
     after(function () {
-        global.apiService.close();
         global.pushService.close();
         global.pushClient.disconnect();
     });
