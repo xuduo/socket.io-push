@@ -97,26 +97,34 @@ string[]类型,表示http协议中list类型参数，如 get?uid=123&uid=456 ,�
 
 http://yourip:11001/api/push?pushAll=true&data=aGVsbG8gd29ybGQ&topic=/topic/test
 
+--- 以下参数3选一,指定推送对象
+
 topic -> string, 客户端订阅的topic, (subscribeBroadcast的才能收到)
 
 pushId -> string[], 如 ["abc","def"] 客户端生成的随机ID,单个或者数组
 
 uid -> string[],如 ["123","456"] 通过addPushIdToUid接口绑定的uid
 
---- 以上参数3选一,指定推送对象
+---
 
-json ->  json类型(如要使用其他协议,如protobuf,可以使用base64 encode的string) 透传给客户端的数据,客户端会接收到
+json ->  以下类型三选一,透传给客户端的数据,客户端会在onPush里接收到
 
-         string "test string"
+         string "test string" (如要使用其他协议,如protobuf,可以使用base64 encoded string)
 
          json map  {"uri":1, content:"test string"}
 
-         json array  [1, {"content":"test string"}]
+         json array  [1, {"content":"test string"}] 
+         
+         一般业务建议使用json数组(省流量)
+         
+         第一个int或string来表示推送类型,第二个参数表示该类型的透传数据
 
 
 ### /api/notification 状态栏通知api
 
 http://yourip:11001/api/notification?pushId=true&notification=%7B%20%22android%22%3A%7B%22title%22%3A%22title%22%2C%22message%22%3A%22message%22%7D%2C%22apn%22%3A%7B%22alert%22%3A%22message%22%20%2C%20%22badge%22%3A5%2C%20%22sound%22%3A%22default%22%2C%20%22payload%22%3A1234%7D%7D
+
+--- 以下参数3选一,指定推送对象
 
 pushAll -> string, true表示推送全网,其它或者留空表示单个推送
 
@@ -124,7 +132,7 @@ pushId -> string[], 如 ["abc","def"] 客户端生成的随机ID,单个或者数
 
 uid -> string[],如 ["123","456"] 通过addPushIdToUid接口绑定的uid
 
---- 以上参数3选一,指定推送对象
+---
 
 notification -> 通知消息内容 需要url encode
 
@@ -132,7 +140,7 @@ notification -> 通知消息内容 需要url encode
 {
   "android" : {"title":"title","message":"message" },
   "apn":  {"alert":"message" , "badge":5, "sound":"default" },
-  "payload":{"abc":123}
+  "payload": { "abc": 123}
 }
 ```
 
