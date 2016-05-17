@@ -97,7 +97,7 @@ string[]类型,表示http协议中list类型参数，如 get?uid=123&uid=456 ,�
 
 http://yourip:11001/api/push?pushAll=true&data=aGVsbG8gd29ybGQ&topic=/topic/test
 
-pushAll -> string, true表示推送全网,其它或者留空表示单个推送
+topic -> string, 客户端订阅的topic, (subscribeBroadcast的才能收到)
 
 pushId -> string[], 如 ["abc","def"] 客户端生成的随机ID,单个或者数组
 
@@ -105,11 +105,13 @@ uid -> string[],如 ["123","456"] 通过addPushIdToUid接口绑定的uid
 
 --- 以上参数3选一,指定推送对象
 
-json -> jsonString, 透传数据,客户端会接收到
+json ->  json类型(如要使用其他协议,如protobuf,可以使用base64 encode的string) 透传给客户端的数据,客户端会接收到
 
---- 以上参数2选一
+         string "test string"
 
-topic -> string, 客户端订阅的topic, (subscribeBroadcast的才能收到)
+         json map  {"uri":1, content:"test string"}
+
+         json array  [1, {"content":"test string"}]
 
 
 ### /api/notification 状态栏通知api

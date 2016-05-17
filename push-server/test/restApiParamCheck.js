@@ -36,7 +36,6 @@ describe('api auth', function () {
             .post(apiUrl + '/api/push')
             .send({
                 pushId: '',
-                pushAll: 'true',
                 topic: 'www',
                 data: ''
             })
@@ -52,7 +51,7 @@ describe('api auth', function () {
             .post(apiUrl + '/api/push')
             .send({
                 pushId: '',
-                topic: 'www',
+                topic: '',
                 data: 'wwww'
             })
             .set('Accept', 'application/json')

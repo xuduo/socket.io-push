@@ -56,12 +56,10 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
             res.send({code: "error", message: 'not authorized'});
             return next();
         }
-        var pushAll = req.params.pushAll;
-        var topic = req.params.topic;
 
-        if (!topic && pushAll == 'true') {
+        if (!req.params.topic && !req.params.pushId && !req.params.uid) {
             res.statusCode = 400;
-            res.send({code: "error", message: 'topic is required when pushAll == true'});
+            res.send({code: "error", message: 'topic or pushId or uid is required'});
             return next();
         }
 
@@ -87,18 +85,7 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
 
         var timeToLive = parseInt(req.params.timeToLive);
 
-        if (pushAll == 'true') {
-            apiThreshold.checkPushDrop(topic, function (call) {
-                if (call) {
-                    ttlService.addPacketAndEmit(topic, 'push', timeToLive, pushData, io, false);
-                    res.send({code: "success"});
-                } else {
-                    res.statusCode = 400;
-                    res.send({code: "error", message: "call threshold exceeded"});
-                }
-            });
-            return next();
-        } else if (req.params.pushId) {
+        if (req.params.pushId) {
             parseArrayParam(req.params.pushId).forEach(function (id) {
                 ttlService.addPacketAndEmit(id, 'push', timeToLive, pushData, io, true);
             });
@@ -113,6 +100,17 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
                 });
             });
             res.send({code: "success"});
+            return next();
+        } else if (req.params.topic) {
+            apiThreshold.checkPushDrop(req.params.topic, function (call) {
+                if (call) {
+                    ttlService.addPacketAndEmit(req.params.topic, 'push', timeToLive, pushData, io, false);
+                    res.send({code: "success"});
+                } else {
+                    res.statusCode = 400;
+                    res.send({code: "error", message: "call threshold exceeded"});
+                }
+            });
             return next();
         } else {
             res.statusCode = 400;
