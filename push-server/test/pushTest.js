@@ -124,6 +124,29 @@ describe('push test', function () {
 
     });
 
+    it('Push json array', function (done) {
+        var json = '[0,1,2]';
+        var messageCallback = function (data) {
+            expect(data[1]).to.be.equal(1);
+            done();
+        };
+
+        pushClient.on('push', messageCallback);
+
+        request
+            .post(apiUrl + '/api/push')
+            .send({
+                pushId: pushClient.pushId,
+                topic: 'message',
+                json: json
+            })
+            .set('Accept', 'application/json')
+            .end(function (err, res) {
+                expect(res.text).to.be.equal('{"code":"success"}');
+            });
+
+    });
+
     it('Push to multi pushId', function (done) {
         var rec = 0;
         var json = '{ "message":"ok"}';
