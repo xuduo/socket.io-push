@@ -101,6 +101,29 @@ describe('push test', function () {
             });
     });
 
+    it('Push raw String', function (done) {
+        var json = 'test string';
+        var messageCallback = function (data) {
+            expect(data).to.be.equal(json);
+            done();
+        };
+
+        pushClient.on('push', messageCallback);
+
+        request
+            .post(apiUrl + '/api/push')
+            .send({
+                pushId: pushClient.pushId,
+                topic: 'message',
+                json: json
+            })
+            .set('Accept', 'application/json')
+            .end(function (err, res) {
+                expect(res.text).to.be.equal('{"code":"success"}');
+            });
+
+    });
+
     it('Push to multi pushId', function (done) {
         var rec = 0;
         var json = '{ "message":"ok"}';

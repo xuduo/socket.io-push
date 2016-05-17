@@ -78,7 +78,11 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
             pushData.data = data;
         }
         if (json) {
-            pushData.j = JSON.parse(json);
+            try {
+                pushData.j = JSON.parse(json);
+            } catch (err) {
+                pushData.j = json;
+            }
         }
 
         var timeToLive = parseInt(req.params.timeToLive);
