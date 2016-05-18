@@ -27,11 +27,11 @@ function ApnProvider(apnConfigs, sliceServers, redis, stats) {
                 logger.error("apn errorCallback errorCode %d %s", errorCode, id);
                 stats.addApnError(1, errorCode);
                 redis.hdel("apnTokens#" + apnConfig.bundleId, id);
-                redis.get("apnTokenToPushId#" + id, function (err, oldPushId) {
+                redis.get("tokenToPushId#apn#" + id, function (err, oldPushId) {
                     logger.error("apn errorCallback pushId %s", oldPushId);
                     if (oldPushId) {
-                        redis.del("pushIdToApnData#" + oldPushId);
-                        redis.del("apnTokenToPushId#" + id);
+                        redis.del("pushIdToToken#" + oldPushId);
+                        redis.del("tokenToPushId#apn#" + id);
                     }
                 });
             } else {
@@ -50,7 +50,6 @@ function ApnProvider(apnConfigs, sliceServers, redis, stats) {
     this.bundleIds = Object.keys(this.apnConnections);
     this.defaultBundleId = this.bundleIds[0];
     logger.info("defaultBundleId %s", this.defaultBundleId);
-
 }
 
 ApnProvider.prototype.sendOne = function (notification, apnData, timeToLive) {

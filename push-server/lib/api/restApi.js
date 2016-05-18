@@ -134,6 +134,9 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
             return next();
         }
 
+        if (!notification.android) {
+            notification.android = {};
+        }
         if (notification.payload) {
             notification.android.payload = notification.payload;
             delete notification.payload;

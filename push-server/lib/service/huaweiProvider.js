@@ -18,21 +18,23 @@ function HuaweiProvider(config) {
 }
 
 HuaweiProvider.prototype.sendOne = function (notification, tokenData, timeToLive, callback) {
-    var self = this;
-    this.checkToken(function () {
-        logger.debug("sendOne ", notification, timeToLive);
-        var postData = self.getPostData(1, notification, tokenData, timeToLive);
-        request.post({
-            url: apiUrl,
-            form: postData,
-            timeout: timeout
-        }, function (error, response, body) {
-            logger.info("sendOne result", error, response.statusCode, body);
-            if (!error && response.statusCode == 200 && callback) {
-                callback();
-            }
-        })
-    });
+    if (notification.android.title) {
+        var self = this;
+        this.checkToken(function () {
+            logger.debug("sendOne ", notification, timeToLive);
+            var postData = self.getPostData(1, notification, tokenData, timeToLive);
+            request.post({
+                url: apiUrl,
+                form: postData,
+                timeout: timeout
+            }, function (error, response, body) {
+                logger.info("sendOne result", error, response.statusCode, body);
+                if (!error && response.statusCode == 200 && callback) {
+                    callback();
+                }
+            })
+        });
+    }
 };
 
 HuaweiProvider.prototype.getPostData = function (push_type, notification, tokenData, timeToLive) {
@@ -64,26 +66,28 @@ HuaweiProvider.prototype.addToken = function (data) {
 };
 
 HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback) {
-    var self = this;
-    this.checkToken(function (tokenError) {
-        if (!tokenError) {
-            logger.debug("sendAll ", notification, timeToLive);
-            var postData = self.getPostData(2, notification, 0, timeToLive);
-            request.post({
-                url: apiUrl,
-                form: postData
-            }, function (error, response, body) {
-                logger.info("sendAll result", error, response.statusCode, body);
-                if (!error && callback) {
-                    callback();
-                } else if (callback) {
-                    callback(error);
-                }
-            })
-        } else if (callback) {
-            callback(tokenError);
-        }
-    });
+    if (notification.android.title) {
+        var self = this;
+        this.checkToken(function (tokenError) {
+            if (!tokenError) {
+                logger.debug("sendAll ", notification, timeToLive);
+                var postData = self.getPostData(2, notification, 0, timeToLive);
+                request.post({
+                    url: apiUrl,
+                    form: postData
+                }, function (error, response, body) {
+                    logger.info("sendAll result", error, response.statusCode, body);
+                    if (!error && callback) {
+                        callback();
+                    } else if (callback) {
+                        callback(error);
+                    }
+                })
+            } else if (callback) {
+                callback(tokenError);
+            }
+        });
+    }
 };
 
 HuaweiProvider.prototype.checkToken = function (callback) {

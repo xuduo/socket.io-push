@@ -18,20 +18,22 @@ function XiaomiProvider(config) {
 }
 
 XiaomiProvider.prototype.sendOne = function (notification, tokenData, timeToLive, callback) {
-    request.post({
-        url: sendOneUrl,
-        form: this.getPostData(notification, tokenData, timeToLive),
-        headers: this.headers,
-        timeout: timeout
-    }, function (error, response, body) {
-        logger.info("sendAll result", error, response.statusCode, body);
-        if (!error && response.statusCode == 200 && callback) {
-            var result = JSON.parse(body);
-            if (result.code == 0) {
-                callback();
+    if (notification.android.title) {
+        request.post({
+            url: sendOneUrl,
+            form: this.getPostData(notification, tokenData, timeToLive),
+            headers: this.headers,
+            timeout: timeout
+        }, function (error, response, body) {
+            logger.info("sendAll result", error, response.statusCode, body);
+            if (!error && response.statusCode == 200 && callback) {
+                var result = JSON.parse(body);
+                if (result.code == 0) {
+                    callback();
+                }
             }
-        }
-    })
+        })
+    }
 };
 
 XiaomiProvider.prototype.getPostData = function (notification, tokenData, timeToLive) {
@@ -57,18 +59,20 @@ XiaomiProvider.prototype.addToken = function (data) {
 };
 
 XiaomiProvider.prototype.sendAll = function (notification, timeToLive, callback) {
-    request.post({
-        url: sendAllUrl,
-        form: this.getPostData(notification, 0, timeToLive),
-        headers: this.headers,
-        timeout: timeout
-    }, function (error, response, body) {
-        logger.info("sendAll result", error, response.statusCode, body);
-        if (!error && response.statusCode == 200 && callback) {
-            var result = JSON.parse(body);
-            if (result.code == 0) {
-                callback();
+    if (notification.android.title) {
+        request.post({
+            url: sendAllUrl,
+            form: this.getPostData(notification, 0, timeToLive),
+            headers: this.headers,
+            timeout: timeout
+        }, function (error, response, body) {
+            logger.info("sendAll result", error, response.statusCode, body);
+            if (!error && response.statusCode == 200 && callback) {
+                var result = JSON.parse(body);
+                if (result.code == 0) {
+                    callback();
+                }
             }
-        }
-    })
+        })
+    }
 };

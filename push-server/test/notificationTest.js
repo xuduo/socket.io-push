@@ -29,10 +29,11 @@ describe('push test', function () {
     after(function () {
         global.apiService.close();
         global.pushService.close();
+        global.pushClient.disconnect();
+        global.pushClient2.disconnect();
     });
 
     it('connect', function (done) {
-        var connected = 0;
         pushClient.on('connect', function (data) {
             expect(data.pushId).to.be.equal(pushClient.pushId);
             done();
