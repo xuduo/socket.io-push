@@ -76,7 +76,7 @@ describe('unsubscribe test', function () {
                 totalLatency: 100
             }]
         });
-        setInterval(function () {
+        setTimeout(function () {
             pushService.stats.writeStatsToRedis();
             pushService.stats.find("request#StatsTestCase", function (data) {
                 expect(data.totalCount).to.be.at.least(100);
