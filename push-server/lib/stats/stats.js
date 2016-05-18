@@ -101,7 +101,7 @@ Stats.prototype.addSession = function (socket, count) {
     var self = this;
 
     socket.on('stats', function (data) {
-        logger.debug("on stats %s", JSON.stringify(data.requestStats));
+        logger.debug("on stats %j", data.requestStats);
         var timestamp = Date.now();
         var totalCount = 0;
         if (data.requestStats && data.requestStats.length) {

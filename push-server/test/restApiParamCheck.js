@@ -61,5 +61,18 @@ describe('api auth', function () {
             });
     });
 
+    it('notification target is required', function (done) {
+        request
+            .post(apiUrl + '/api/push')
+            .send({
+                notification: JSON.stringify({apn: {alert: 'wwww'}})
+            })
+            .set('Accept', 'application/json')
+            .end(function (err, res) {
+                expect(JSON.parse(res.text).code).to.be.equal("error");
+                done();
+            });
+    });
+
 
 });

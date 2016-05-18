@@ -249,27 +249,6 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
         return next();
     });
 
-    server.get('/api/testApnAll', function (req, res, next) {
-        var noti = {
-            apn: {
-                payload: {
-                    "idolUid": 100583688,
-                    "idolNick": "賴薇如Doris",
-                    "idolHeaderUrl": "http://tva1.sinaimg.cn/crop.0.0.750.750.1024/6a6b71c2jw8ewp6ruqormj20ku0ku3zx.jpg",
-                    "idolVerified": true,
-                    "msgClientId": "56fbcf98c34f2b5e461c051c",
-                    "msgTime": 1459343256531,
-                    "dataType": "f_ls_start",
-                    "lid": "56fbceb40000d506a1021e23",
-                    "msg": "正在直播"
-                }
-            }
-        };
-        apnService.sendAll(noti);
-        res.send("success");
-        return next();
-    });
-
     server.get('/api/status', function (req, res, next) {
         res.send(redis.status());
         return next();
@@ -347,15 +326,6 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
         });
         res.write(ip);
         res.end();
-        return next();
-    });
-
-    server.get('/api/stats', function (req, res, next) {
-        res.send({
-            sentCounter: sentCounter,
-            receiveCounter: receiveCounter,
-            percent: receiveCounter / sentCounter
-        });
         return next();
     });
 

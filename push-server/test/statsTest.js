@@ -59,6 +59,33 @@ describe('unsubscribe test', function () {
         });
     });
 
+    it('find', function (done) {
+        pushService.stats.getQueryDataKeys(function (data) {
+            expect(data).to.contain("toClientPacket");
+            done();
+        });
+    });
+
+    it('StatsTestCase', function (done) {
+        pushClient.socket.emit('stats', {
+            requestStats: [{
+                path: 'StatsTestCase',
+                timestamp: Date.now(),
+                totalCount: 100,
+                successCount: 50,
+                totalLatency: 100
+            }]
+        });
+        setInterval(function () {
+            pushService.stats.writeStatsToRedis();
+            pushService.stats.find("request#StatsTestCase", function (data) {
+                expect(data.totalCount).to.be.at.least(100);
+                expect(data.avgLatency).to.be.at.least(2);
+                done();
+            });
+        }, 500);
+    });
+
 });
 
 function push() {

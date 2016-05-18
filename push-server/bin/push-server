@@ -15,7 +15,10 @@ if [ -f "pid/pid" ]
 mkdir -p log
 mkdir -p pid
 
-ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}' > ip
+if [ ! -f ip ]; then
+    echo "ip file not found!"
+    ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' | head -1 > ip
+fi
 
 # A POSIX variable
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
