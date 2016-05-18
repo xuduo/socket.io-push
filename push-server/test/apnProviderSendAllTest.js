@@ -4,12 +4,15 @@ var chai = require('chai');
 
 var expect = chai.expect;
 
-describe('unsubscribe test', function () {
+describe('apn test', function () {
 
     before(function () {
         var config = require('../config.js');
-        global.pushService = require('../lib/push-server.js')(config);
         global.apiUrl = 'http://localhost:' + config.api_port;
+        config.apnsSliceServers = [
+            apiUrl, apiUrl, apiUrl
+        ];
+        global.pushService = require('../lib/push-server.js')(config);
         global.pushClient = require('../lib/client/push-client.js')('http://localhost:' + config.io_port);
 
     });
@@ -19,9 +22,10 @@ describe('unsubscribe test', function () {
         global.pushClient.disconnect();
     });
 
-    it('set apn token', function (done) {
+
+    it('test send all', function (done) {
         pushClient.on('connect', function () {
-            pushClient.socket.emit("token", {token: "efeeef", bundleId: "com.xuduo.pushtest", type: "apn"});
+            pushClient.socket.emit("token", {token: "ffffff", bundleId: "com.xuduo.pushtest", type: "apn"});
             var data = {
                 "apn": {alert: "wwww"}
             }
@@ -34,28 +38,18 @@ describe('unsubscribe test', function () {
             request
                 .post(apiUrl + '/api/notification')
                 .send({
-                    pushId: pushClient.pushId,
+                    pushAll: 'true',
                     notification: str
                 })
                 .set('Accept', 'application/json')
                 .end(function (err, res) {
                     expect(res.text).to.be.equal('{"code":"success"}');
-                    request
-                        .post(apiUrl + '/api/notification')
-                        .send({
-                            pushAll: 'true',
-                            notification: str
-                        })
-                        .set('Accept', 'application/json')
-                        .end(function (err, res) {
-                            expect(res.text).to.be.equal('{"code":"success"}');
-                            setTimeout(function () {
-                                pushService.notificationService.getTokenDataByPushId(pushClient.pushId, function (token) {
-                                    expect(token).to.be.undefined;
-                                    done();
-                                });
-                            }, 2000);
+                    setTimeout(function () {
+                        pushService.notificationService.getTokenDataByPushId(pushClient.pushId, function (token) {
+                            expect(token).to.be.undefined;
+                            done();
                         });
+                    }, 5000);
                 });
         });
 

@@ -146,7 +146,7 @@ ApnProvider.prototype.sendAll = function (notification, timeToLive) {
                     .set('Accept', 'application/json')
                     .end(function (err, res) {
                         if (err || res.text != '{"code":"success"}') {
-                            logger.error("slicing error %s %s %s", pattern, apiUrl, res && res.text);
+                            logger.error("slicing error %s %s %s %s", pattern, apiUrl, err, res && res.text);
                         }
                     });
             });
