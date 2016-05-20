@@ -22,7 +22,7 @@ describe('unsubscribe test', function () {
             pushService.stats.writeStatsToRedis();
             pushService.stats.getSessionCount(function (data) {
                 console.log(data);
-                expect(data.sessionCount).to.be.equal(1);
+                expect(data.total).to.be.equal(1);
                 expect(data.processCount[0].count.total).to.be.equal(1);
                 expect(data.processCount[0].id).to.be.equal(pushService.stats.id);
                 done();

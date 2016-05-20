@@ -156,20 +156,24 @@ Stats.prototype.onNotificationReply = function (timestamp) {
 
 Stats.prototype.getSessionCount = function (callback) {
     this.redis.hgetall('stats#sessionCount', function (err, results) {
-        var totalCount = 0;
-        var androidCount = 0;
-        var iosCount = 0;
+        var onlineKeys = ["total", "ios", "android", "pc", "browser"];
         var currentTimestamp = Date.now();
         var processCount = [];
         var packetAverage1 = 0;
         var packetDrop = 0;
         var packetDropThreshold = 0;
+        var result = {};
         for (var id in results) {
             var data = JSON.parse(results[id]);
             if ((currentTimestamp - data.timestamp) < 60 * 1000) {
-                totalCount += data.sessionCount.total;
-                iosCount += data.sessionCount.ios;
-                androidCount += data.sessionCount.android;
+                onlineKeys.forEach(function (key) {
+                    if (data.sessionCount[key]) {
+                        if (!result[key]) {
+                            result[key] = 0;
+                        }
+                        result[key] += data.sessionCount[key];
+                    }
+                });
                 packetAverage1 += data.packetAverage1 || 0;
                 packetDrop += data.packetDrop || 0;
                 packetDropThreshold += data.packetDropThreshold || 0;
@@ -182,19 +186,15 @@ Stats.prototype.getSessionCount = function (callback) {
                 });
             }
         }
+        result.packetAverage1 = packetAverage1;
+        result.packetDrop = packetDrop;
+        result.processCount = processCount.sort(function (a, b) {
+            if (a.id < b.id) return -1;
+            if (a.id > b.id) return 1;
+            return 0;
+        });
 
-        callback({
-            sessionCount: totalCount,
-            android: androidCount,
-            ios: iosCount,
-            packetAverage1: packetAverage1,
-            packetDrop: packetDrop,
-            processCount: processCount.sort(function (a, b) {
-                if (a.id < b.id) return -1;
-                if (a.id > b.id) return 1;
-                return 0;
-            })
-        })
+        callback(result);
     });
 };
 

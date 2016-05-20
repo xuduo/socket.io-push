@@ -74,7 +74,7 @@ TTLService.prototype.getPackets = function (topic, lastId, socket, unicast) {
                     list.forEach(function (packet) {
                         var jsonPacket = JSON.parse(packet);
                         if (jsonPacket.timestampValid > now) {
-                            self.emitPacket(socket, packet.event, jsonPacket)
+                            self.emitPacket(socket, jsonPacket.event, jsonPacket)
                         }
                     });
                 }
