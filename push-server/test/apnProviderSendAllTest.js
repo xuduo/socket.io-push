@@ -49,7 +49,7 @@ describe('apn test', function () {
                             expect(token).to.be.undefined;
                             done();
                         });
-                    }, 5000);
+                    }, 7000);
                 });
         });
 

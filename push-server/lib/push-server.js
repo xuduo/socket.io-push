@@ -35,21 +35,21 @@ function PushServer(config) {
     if (config.topicOnlineFilter) {
         topicOnline = require('./stats/topicOnline.js')(cluster, this.io, this.stats.id, config.topicOnlineFilter);
     }
+    var providerFactory = require('./service/notificationProviderFactory.js')();
+    this.notificationService.providerFactory = providerFactory;
+    if (config.apns != undefined) {
+        var apnService = require('./service/apnProvider.js')(config.apns, config.apnsSliceServers, cluster, this.stats);
+        providerFactory.addProvider(apnService);
+    }
+    if (config.huawei) {
+        var huaweiProvider = require('./service/huaweiProvider.js')(config.huawei);
+        providerFactory.addProvider(huaweiProvider);
+    }
+    if (config.xiaomi) {
+        var xiaomiProvider = require('./service/xiaomiProvider.js')(config.xiaomi);
+        providerFactory.addProvider(xiaomiProvider);
+    }
     if (config.api_port) {
-        var providerFactory = require('./service/notificationProviderFactory.js')();
-        this.notificationService.providerFactory = providerFactory;
-        if (config.apns) {
-            var apnService = require('./service/apnProvider.js')(config.apns, config.apnsSliceServers, cluster, this.stats);
-            providerFactory.addProvider(apnService);
-        }
-        if (config.huawei) {
-            var huaweiProvider = require('./service/huaweiProvider.js')(config.huawei);
-            providerFactory.addProvider(huaweiProvider);
-        }
-        if (config.xiaomi) {
-            var xiaomiProvider = require('./service/xiaomiProvider.js')(config.xiaomi);
-            providerFactory.addProvider(xiaomiProvider);
-        }
         this.restApi = require('./api/restApi.js')(this.io, topicOnline, this.stats, this.notificationService, config, ttlService, cluster, apiThreshold, apnService, config.apiAuth, uidStore);
     }
 }

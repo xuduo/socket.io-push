@@ -64,10 +64,12 @@ Stats.prototype.removePlatformSession = function (platform, count) {
 }
 
 Stats.prototype.changePlatformCount = function (platform, count) {
-    if (!this.sessionCount[platform]) {
-        this.sessionCount[platform] = 0;
+    if (platform) {
+        if (!this.sessionCount[platform]) {
+            this.sessionCount[platform] = 0;
+        }
+        this.sessionCount[platform] += count;
     }
-    this.sessionCount[platform] += count;
 }
 
 Stats.prototype.onPacket = function () {

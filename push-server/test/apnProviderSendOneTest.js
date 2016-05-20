@@ -45,7 +45,7 @@ describe('apn test', function () {
                             expect(token).to.be.undefined;
                             done();
                         });
-                    }, 2000);
+                    }, 5000);
                 });
         });
 

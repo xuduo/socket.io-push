@@ -53,7 +53,7 @@ function ApnProvider(apnConfigs, sliceServers, redis, stats) {
 }
 
 ApnProvider.prototype.sendOne = function (notification, apnData, timeToLive) {
-    if (!notification.apn) {
+    if (!notification.apn || !this.apnConnections) {
         logger.debug("no apn info skip");
         return;
     }

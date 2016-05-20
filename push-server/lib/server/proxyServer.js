@@ -8,8 +8,6 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
 
     io.on('connection', function (socket) {
 
-        socket.version = 0;
-
         socket.on('disconnect', function () {
             stats.removeSession();
             stats.removePlatformSession(socket.platform);
@@ -38,9 +36,6 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                 }
                 stats.addPlatformSession(socket.platform);
                 var topics = data.topics;
-                if (data.version) {
-                    socket.version = data.version;
-                }
                 if (topics && topics.length > 0) {
                     topics.forEach(function (topic) {
                         socket.join(topic);
