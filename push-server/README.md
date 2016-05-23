@@ -161,10 +161,16 @@ sound(ios) - (apn对应的sound字段) 可选
 payload - 发送给应用非显示用的透传信息, 需要是一个json map
 
 
-### /api/addPushIdToUid 绑定UID和pushId
+### /api/uid/add 绑定UID和pushId
 
-http://yourip:11001/api/addPushIdToUid?pushId=abc&uid=123
+http://yourip:11001/api/uid/add?pushId=abc&uid=123
 
 pushId -> string,客户端生成的随机ID
 
 uid -> string,服务器需要绑定的UID
+
+### /api/uid/remove 解除pushId的绑定
+
+http://yourip:11001/api/uid/remove?pushId=abc
+
+pushId -> string,客户端生成的随机ID

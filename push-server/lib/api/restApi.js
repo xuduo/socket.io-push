@@ -200,7 +200,16 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
     var handleAddPushIdToUid = function (req, res, next) {
         var uid = req.params.uid;
         var pushId = req.params.pushId;
-        uidStore.addUid(pushId, uid, 3600 * 1000)
+        uidStore.addUid(pushId, uid, 3600 * 1000);
+        res.send({code: "success"});
+        return next();
+    };
+
+    var removeRemoveUid = function (req, res, next) {
+        var pushId = req.params.pushId;
+        if (pushId) {
+            uidStore.removePushId(pushId);
+        }
         res.send({code: "success"});
         return next();
     };
@@ -227,8 +236,10 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
     server.post('/api/push', handlePush);
     server.get('/api/notification', handleNotification);
     server.post('/api/notification', handleNotification);
-    server.get('/api/addPushIdToUid', handleAddPushIdToUid);
-    server.post('/api/addPushIdToUid', handleAddPushIdToUid);
+    server.get('/api/uid/add', handleAddPushIdToUid);
+    server.post('/api/uid/add', handleAddPushIdToUid);
+    server.get('/api/uid/remove', removeRemoveUid);
+    server.post('/api/uid/remove', removeRemoveUid);
     server.get('api/state/getQueryDataKeys', handleQueryDataKeys)
 
     server.get('/api/topicOnline', function (req, res, next) {

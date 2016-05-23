@@ -186,7 +186,7 @@ describe('push test', function () {
     it('bind uid', function (done) {
 
         request
-            .post(apiUrl + '/api/addPushIdToUid')
+            .post(apiUrl + '/api/uid/add')
             .send({
                 pushId: pushClient.pushId,
                 uid: 1
@@ -195,7 +195,7 @@ describe('push test', function () {
             .end(function (err, res) {
                 expect(res.text).to.be.equal('{"code":"success"}');
                 request
-                    .post(apiUrl + '/api/addPushIdToUid')
+                    .post(apiUrl + '/api/uid/add')
                     .send({
                         pushId: pushClient2.pushId,
                         uid: 2

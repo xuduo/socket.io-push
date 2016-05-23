@@ -45,7 +45,7 @@ describe('push test', function () {
     it('bind uid', function (done) {
 
         request
-            .post(apiUrl + '/api/addPushIdToUid')
+            .post(apiUrl + '/api/uid/add')
             .send({
                 pushId: pushClient.pushId,
                 uid: 1

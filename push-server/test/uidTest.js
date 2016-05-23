@@ -40,7 +40,7 @@ describe('push test', function () {
     it('bind uid', function (done) {
 
         request
-            .post(apiUrl + '/api/addPushIdToUid')
+            .post(apiUrl + '/api/uid/add')
             .send({
                 pushId: pushClient.pushId,
                 uid: 1
@@ -62,12 +62,21 @@ describe('push test', function () {
 
         pushClient.unbindUid();
         pushClient.disconnect();
-        pushClient.connect();
-        pushClient.on('connect', function (data) {
-            expect(data.uid).to.be.undefined;
-            pushClient.connect();
-            done();
-        });
+        request
+            .post(apiUrl + '/api/uid/remove')
+            .send({
+                pushId: pushClient.pushId
+            })
+            .set('Accept', 'application/json')
+            .end(function () {
+                pushClient.connect();
+                pushClient.on('connect', function (data) {
+                    expect(data.uid).to.be.undefined;
+                    pushClient.connect();
+                    done();
+                });
+            });
+
 
     });
 
