@@ -3,14 +3,14 @@ module.exports = NotificationService;
 var logger = require('../log/index.js')('NotificationService');
 var util = require('../util/util.js');
 var apn = require('apn');
-var tokenTTL = 3600 * 24 * 7;
 var randomstring = require("randomstring");
 
-function NotificationService(providerFactory, redis, ttlService) {
-    if (!(this instanceof NotificationService)) return new NotificationService(providerFactory, redis, ttlService);
+function NotificationService(providerFactory, redis, ttlService, tokenTTL) {
+    if (!(this instanceof NotificationService)) return new NotificationService(providerFactory, redis, ttlService, tokenTTL);
     this.redis = redis;
     this.ttlService = ttlService;
     this.providerFactory = providerFactory;
+    this.tokenTTL = tokenTTL;
 }
 
 NotificationService.prototype.setThirdPartyToken = function (data) {
@@ -32,8 +32,8 @@ NotificationService.prototype.setThirdPartyToken = function (data) {
             self.redis.set(tokenToPushIdKey, pushId);
             var pushIdToTokenKey = "pushIdToToken#" + pushId;
             self.redis.set(pushIdToTokenKey, tokenData);
-            self.redis.expire(pushIdToTokenKey, tokenTTL);
-            self.redis.expire(tokenToPushIdKey, tokenTTL);
+            self.redis.pexpire(pushIdToTokenKey, self.tokenTTL);
+            self.redis.pexpire(tokenToPushIdKey, self.tokenTTL);
         });
     }
 };

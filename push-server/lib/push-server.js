@@ -27,7 +27,8 @@ function PushServer(config) {
 
     var uidStore = require('./redis/uidStore.js')(cluster);
     var ttlService = require('./service/ttlService.js')(cluster, config.ttl_protocol_version);
-    this.notificationService = require('./service/notificationService.js')(config.apns, cluster, ttlService);
+    var tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
+    this.notificationService = require('./service/notificationService.js')(config.apns, cluster, ttlService, tokenTTL);
     var proxyServer = require('./server/proxyServer.js')(this.io, this.stats, packetService, this.notificationService, uidStore, ttlService);
     var apiThreshold = require('./api/apiThreshold.js')(cluster);
     var adminCommand = require('./server/adminCommand.js')(cluster, this.stats, packetService, proxyServer, apiThreshold);
@@ -38,7 +39,7 @@ function PushServer(config) {
     var providerFactory = require('./service/notificationProviderFactory.js')();
     this.notificationService.providerFactory = providerFactory;
     if (config.apns != undefined) {
-        var apnService = require('./service/apnProvider.js')(config.apns, config.apnsSliceServers, cluster, this.stats);
+        var apnService = require('./service/apnProvider.js')(config.apns, config.apnsSliceServers, cluster, this.stats, tokenTTL);
         providerFactory.addProvider(apnService);
     }
     if (config.huawei) {

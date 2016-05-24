@@ -4,15 +4,15 @@ var logger = require('../log/index.js')('ApnProvider');
 
 var util = require('../util/util.js');
 var apn = require('apn');
-var apnTokenTTL = 3600 * 24 * 7;
 var request = require('superagent');
 
-function ApnProvider(apnConfigs, sliceServers, redis, stats) {
-    if (!(this instanceof ApnProvider)) return new ApnProvider(apnConfigs, sliceServers, redis, stats);
+function ApnProvider(apnConfigs, sliceServers, redis, stats, tokenTTL) {
+    if (!(this instanceof ApnProvider)) return new ApnProvider(apnConfigs, sliceServers, redis, stats, tokenTTL);
     this.redis = redis;
     this.type = "apn";
     this.apnConnections = {};
     this.stats = stats;
+    this.tokenTTL = tokenTTL;
     this.sliceServers = sliceServers;
     var self = this;
     var fs = require('fs');
@@ -95,7 +95,7 @@ ApnProvider.prototype.sendToApn = function (tokenToTime, bundleId, note) {
             for (var i = 0; i + 1 < tokenToTime.length; i = i + 2) {
                 var token = tokenToTime[i];
                 var time = tokenToTime[i + 1];
-                if (timestamp - time > apnTokenTTL * 1000) {
+                if (timestamp - time > this.tokenTTL) {
                     logger.info("delete outdated apnToken %s", token);
                     this.redis.hdel("apnTokens#" + bundleId, token);
                 } else {
@@ -105,7 +105,7 @@ ApnProvider.prototype.sendToApn = function (tokenToTime, bundleId, note) {
         } else {
             for (var token in tokenToTime) {
                 var time = tokenToTime[token];
-                if (timestamp - time > apnTokenTTL * 1000) {
+                if (timestamp - time > this.tokenTTL) {
                     logger.info("delete outdated apnToken %s", token);
                     this.redis.hdel("apnTokens#" + bundleId, token);
                 } else {

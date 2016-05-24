@@ -3,6 +3,8 @@ var config = {};
 config.pingTimeout = 25000;
 config.pingInterval = 25000;
 
+config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei token timeToLive in milli seconds
+
 config.apns = [
     {
         production: false,
@@ -60,7 +62,7 @@ config.redis = {
     ]
 };
 
-config.io_port = 10001;
+config.io_port = 10001; //socket.io port
 config.api_port = 11001;
 
 config.ttl_protocol_version = 2;
