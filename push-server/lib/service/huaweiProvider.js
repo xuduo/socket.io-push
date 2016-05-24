@@ -28,7 +28,7 @@ HuaweiProvider.prototype.sendOne = function (notification, tokenData, timeToLive
                 form: postData,
                 timeout: timeout
             }, function (error, response, body) {
-                logger.info("sendOne result", error, response.statusCode, body);
+                logger.debug("sendOne result", error, body);
                 if (!error && response.statusCode == 200 && callback) {
                     callback();
                 }
