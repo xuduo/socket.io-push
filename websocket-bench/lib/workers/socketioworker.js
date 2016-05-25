@@ -1,6 +1,5 @@
 /*global module, require*/
-var io = require('socket.io-client'),
-    util = require('util'),
+var util = require('util'),
     BaseWorker = require('./baseworker.js'),
     logger = require('../logger.js');
 
@@ -15,7 +14,7 @@ util.inherits(SocketIOWorker, BaseWorker);
 
 SocketIOWorker.prototype.createClient = function (callback) {
     var self = this;
-    var client = io.connect(this.server, {'force new connection': true, transports: ['websocket']});
+    var client = require('socket.io-push/lib/client/push-client.js')(this.server);
 
     client.on('connect', function () {
         callback(false, client);

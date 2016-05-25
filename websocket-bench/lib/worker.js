@@ -3,7 +3,6 @@
 var logger = require('./logger'),
   server = process.argv[2],
   generatorFile = process.argv[3],
-  workerType = process.argv[4],
   verbose = process.argv[6] === 'true';
 
 if (!generatorFile || generatorFile === 'undefined') {
@@ -11,27 +10,7 @@ if (!generatorFile || generatorFile === 'undefined') {
 }
 
 var generator = require(generatorFile);
-var BenchmarkWorker = null;
-
-switch (workerType) {
-  case 'socket.io':
-    BenchmarkWorker = require('./workers/socketioworker.js');
-    break;
-  case 'engine.io':
-	Worker = require('./workers/engineioworker.js');
-	break;
-  case 'faye':
-    BenchmarkWorker = require('./workers/fayeworker.js');
-    break;
-  case 'primus':
-    BenchmarkWorker = require('./workers/primusworker.js');
-    break;
-  case 'wamp':
-    BenchmarkWorker = require('./workers/wampworker.js');
-    break;
-  default:
-    logger.error('error workerType ' + workerType);
-}
+var BenchmarkWorker = require('./workers/socketioworker.js');
 
 var worker = new BenchmarkWorker(server, generator, verbose);
 

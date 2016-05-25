@@ -1,6 +1,6 @@
 {
   "name": "socket.io-push",
-  "version": "0.0.146",
+  "version": "0.0.148",
   "description": "socket.io-push server by xuduo",
   "main": "index.js",
   "bin": {
@@ -27,14 +27,14 @@
     "superagent": "^1.8.0",
     "uid2": "0.0.3",
     "winston-levelonly": "^1.0.3",
-    "request": "2.67.0"
+    "request": "2.67.0",
+    "socket.io-client": "1.4.5"
   },
   "devDependencies": {
     "expect.js": "0.3.1",
     "chai-spies": "^0.7.1",
     "mocha": "*",
-    "chai": "^3.5.0",
-    "socket.io-client": "1.4.5"
+    "chai": "^3.5.0"
   },
   "scripts": {
     "test": "mocha"

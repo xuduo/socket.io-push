@@ -87,17 +87,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    this.event = new EventEmitter();
 	    this.socket.on('connect', function () {
-	        console.log('PushClient socket.io connect');
 	        self.sendPushIdAndTopic();
 	    }.bind(this));
 
 	    this.socket.on('disconnect', function () {
-	        console.log('PushClient disconnected');
 	        self.event.emit('disconnect');
 	    }.bind(this));
 
 	    this.socket.on('pushId', function (data) {
-	        console.log('PushClient pushId connected ' + data.id);
 	        self.event.emit('connect', {pushId: data.id, uid: data.uid});
 	    });
 
@@ -131,7 +128,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	// private
 	PushClient.prototype.sendPushIdAndTopic = function () {
 	    var topics = Object.keys(this.topics);
-	    console.log("lastUni %j", this.topicToLastPacketId);
 	    this.socket.emit('pushId', {
 	        id: this.pushId,
 	        version: 1,
@@ -146,7 +142,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var id = data.id || data.i;
 	    var ttl = data.ttl || data.t;
 	    var unicast = data.unicast || data.u;
-	    console.log("updateLastPacketId %j", data, topic, id, ttl, unicast);
 	    if (id && ttl) {
 	        if (unicast) {
 	            this.setItem("lastUnicastId", id);
@@ -172,7 +167,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (ttl) {
 	        this.updateLastPacketId(ttl[0], {id: ttl[1], unicast: ttl[2], ttl: 1});
 	    }
-	    console.log("version2PushHandler  ", data, ttl);
 	    this.event.emit("push", data);
 	}
 
@@ -186,12 +180,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    var topic = data.topic || data.t || '';
 	    this.updateLastPacketId(topic, data);
-	    console.log("pushHandler topic " + topic + " jsonData" + JSON.stringify(jsonData));
 	    this.event.emit("push", jsonData);
 	}
 
 	var notiHandler = function (data) {
-	    console.log("notiHandler data: " + JSON.stringify(data));
 	    data.title = data.android.title;
 	    data.message = data.android.message;
 	    data.payload = data.android.payload;

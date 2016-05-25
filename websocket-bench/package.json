@@ -24,7 +24,9 @@
     "socket.io": "~1.3.5",
     "primus": "~1.5.2",
     "autobahn": "~0.9.5",
-    "socket.io-push": "*"
+    "socket.io-push": "*",
+    "randomstring": "*",
+    "superagent": "*"
   },
   "devDependencies": {
     "chai": "~1.6.0",
