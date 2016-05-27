@@ -161,13 +161,19 @@ sound(ios) - (apn对应的sound字段) 可选
 payload - 发送给应用非显示用的透传信息, 需要是一个json map
 
 
-### /api/uid/add 绑定UID和pushId
+### /api/uid/bind 绑定UID和pushId
 
-http://yourip:11001/api/uid/add?pushId=abc&uid=123
+http://yourip:11001/api/uid/bind?pushId=abc&uid=123&platform=ios
 
-pushId -> string,客户端生成的随机ID
+pushId -> string(必选),客户端生成的随机ID
 
-uid -> string,服务器需要绑定的UID
+uid -> string(必选),服务器需要绑定的UID
+
+platform -> string(可选), 默认 = "default", pushId所属平台
+
+platformUnique -> string(可选), 默认 = "false". "true"表示删除此平台其它对应关系, "false"表示不删除
+
+timeToLive -> int毫秒(可选), 默认 = 0, 不过期. > 0 时,表示多久客户端没连接到push-sever后, 对应关系过期
 
 ### /api/uid/remove 解除pushId的绑定
 

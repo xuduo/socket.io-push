@@ -198,9 +198,7 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
     };
 
     var handleAddPushIdToUid = function (req, res, next) {
-        var uid = req.params.uid;
-        var pushId = req.params.pushId;
-        uidStore.addUid(pushId, uid, 3600 * 1000);
+        uidStore.bindUid(req.params.pushId, req.params.uid, 3600 * 1000, req.params.platform, req.params.platformUnique);
         res.send({code: "success"});
         return next();
     };

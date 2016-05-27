@@ -217,7 +217,6 @@ function adapter(uri, opts, stats) {
      */
 
     Redis.prototype.delAll = function (id, fn) {
-        logger.debug('removing %s from all rooms', id);
         var self = this;
         var rooms = this.sids[id];
 

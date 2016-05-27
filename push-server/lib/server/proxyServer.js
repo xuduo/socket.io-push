@@ -57,7 +57,6 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                             packetService.publishConnect(socket);
                         }
                         socket.emit('pushId', reply);
-                        logger.debug('join room socket.id %s ,pushId %s', socket.id, socket.pushId);
                         var lastPacketIds = data.lastPacketIds;
                         if (lastPacketIds) {
                             for (var topic in lastPacketIds) {

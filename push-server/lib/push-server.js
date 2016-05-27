@@ -25,11 +25,11 @@ function PushServer(config) {
         packetService = require('./service/packetService.js')(cluster, cluster);
     }
 
-    var uidStore = require('./redis/uidStore.js')(cluster);
+    this.uidStore = require('./redis/uidStore.js')(cluster);
     var ttlService = require('./service/ttlService.js')(cluster, config.ttl_protocol_version);
     var tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
     this.notificationService = require('./service/notificationService.js')(config.apns, cluster, ttlService, tokenTTL);
-    var proxyServer = require('./server/proxyServer.js')(this.io, this.stats, packetService, this.notificationService, uidStore, ttlService);
+    var proxyServer = require('./server/proxyServer.js')(this.io, this.stats, packetService, this.notificationService, this.uidStore, ttlService);
     var apiThreshold = require('./api/apiThreshold.js')(cluster);
     var adminCommand = require('./server/adminCommand.js')(cluster, this.stats, packetService, proxyServer, apiThreshold);
     var topicOnline;
@@ -51,7 +51,7 @@ function PushServer(config) {
         providerFactory.addProvider(xiaomiProvider);
     }
     if (config.api_port) {
-        this.restApi = require('./api/restApi.js')(this.io, topicOnline, this.stats, this.notificationService, config, ttlService, cluster, apiThreshold, apnService, config.apiAuth, uidStore);
+        this.restApi = require('./api/restApi.js')(this.io, topicOnline, this.stats, this.notificationService, config, ttlService, cluster, apiThreshold, apnService, config.apiAuth, this.uidStore);
     }
 }
 

@@ -52,7 +52,28 @@ describe('push test', function () {
                 pushClient.connect();
                 pushClient.on('connect', function (data) {
                     expect(data.uid).to.equal("1");
-                    done();
+                    request
+                        .post(apiUrl + '/api/uid/add')
+                        .send({
+                            pushId: pushClient.pushId,
+                            uid: 2
+                        })
+                        .set('Accept', 'application/json')
+                        .end(function (err, res) {
+                            expect(res.text).to.be.equal('{"code":"success"}');
+                            pushClient.disconnect();
+                            pushClient.connect();
+                            pushClient.on('connect', function (data) {
+                                expect(data.uid).to.equal("2");
+                                apiService.uidStore.getPushIdByUid("1", function (pushIds) {
+                                    expect(pushIds).to.not.contain(pushClient.pushId);
+                                    apiService.uidStore.getPushIdByUid("2", function (pushIds) {
+                                        expect(pushIds).to.contain(pushClient.pushId);
+                                        done();
+                                    });
+                                });
+                            });
+                        });
                 });
             });
 
