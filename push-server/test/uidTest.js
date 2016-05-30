@@ -40,7 +40,7 @@ describe('push test', function () {
     it('bind uid', function (done) {
 
         request
-            .post(apiUrl + '/api/uid/add')
+            .post(apiUrl + '/api/uid/bind')
             .send({
                 pushId: pushClient.pushId,
                 uid: 1
@@ -53,7 +53,7 @@ describe('push test', function () {
                 pushClient.on('connect', function (data) {
                     expect(data.uid).to.equal("1");
                     request
-                        .post(apiUrl + '/api/uid/add')
+                        .post(apiUrl + '/api/uid/bind')
                         .send({
                             pushId: pushClient.pushId,
                             uid: 2

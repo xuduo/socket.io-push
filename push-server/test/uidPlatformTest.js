@@ -19,27 +19,37 @@ describe('push test', function () {
     });
 
     it('bind uid', function (done) {
-        apiService.uidStore.bindUid("a", "100", 1000000, "ios", "true");
+        apiService.uidStore.bindUid("a", "100", 1000000, "ios", 1);
         console.log(1);
-        setTimeout(function(){
-            apiService.uidStore.bindUid("b", "100", 1000000, "ios", "true");
+        setTimeout(function () {
+            apiService.uidStore.bindUid("b", "100", 1000000, "ios", 1);
             console.log(2);
             setTimeout(function () {
                 apiService.uidStore.getPushIdByUid("100", function (pushIds) {
                     console.log(3);
                     expect(pushIds).to.be.deep.equal(["b"]);
-                    apiService.uidStore.bindUid("c", "100", 1000000, "ios", false);
+                    apiService.uidStore.bindUid("c", "100", 1000000, "ios", 2);
                     setTimeout(function () {
                         apiService.uidStore.getPushIdByUid("100", function (pushIds) {
                             expect(pushIds).to.be.deep.equal(["b", "c"]);
-                            done();
+                            apiService.uidStore.bindUid("d", "100", 1000000, "ios", 2);
+                            setTimeout(function () {
+                                apiService.uidStore.getPushIdByUid("100", function (pushIds) {
+                                    expect(pushIds).to.be.deep.equal(["c", "d"]);
+                                    apiService.uidStore.bindUid("e", "100", 1000000, "ios", 4);
+                                    setTimeout(function () {
+                                        apiService.uidStore.getPushIdByUid("100", function (pushIds) {
+                                            expect(pushIds).to.be.deep.equal(["c", "d", "e"]);
+                                            done();
+                                        });
+                                    }, 100);
+                                });
+                            }, 100);
                         });
                     }, 100);
                 }, 100);
-            },100);
-        },100);
-
-
+            }, 100);
+        }, 100);
 
 
     });

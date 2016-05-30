@@ -198,7 +198,7 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
     };
 
     var handleAddPushIdToUid = function (req, res, next) {
-        uidStore.bindUid(req.params.pushId, req.params.uid, 3600 * 1000, req.params.platform, req.params.platformUnique);
+        uidStore.bindUid(req.params.pushId, req.params.uid, parseInt(req.params.timeToLive), req.params.platform, parseInt(req.params.platformCount));
         res.send({code: "success"});
         return next();
     };
@@ -206,7 +206,7 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
     var removeRemoveUid = function (req, res, next) {
         var pushId = req.params.pushId;
         if (pushId) {
-            uidStore.removePushId(pushId);
+            uidStore.removePushId(pushId, true);
         }
         res.send({code: "success"});
         return next();
@@ -234,8 +234,8 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
     server.post('/api/push', handlePush);
     server.get('/api/notification', handleNotification);
     server.post('/api/notification', handleNotification);
-    server.get('/api/uid/add', handleAddPushIdToUid);
-    server.post('/api/uid/add', handleAddPushIdToUid);
+    server.get('/api/uid/bind', handleAddPushIdToUid);
+    server.post('/api/uid/bind', handleAddPushIdToUid);
     server.get('/api/uid/remove', removeRemoveUid);
     server.post('/api/uid/remove', removeRemoveUid);
     server.get('api/state/getQueryDataKeys', handleQueryDataKeys)

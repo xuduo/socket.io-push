@@ -111,7 +111,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
 
         socket.on('unbindUid', function () {
             if (socket.pushId) {
-                uidStore.removePushId(socket.pushId);
+                uidStore.removePushId(socket.pushId, true);
             }
         });
 

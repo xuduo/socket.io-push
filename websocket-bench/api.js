@@ -23,7 +23,6 @@ if (!program.bytes) {
     program.bytes = 100;
 }
 
-
 if (!program.concurency) {
     program.concurency = 10;
 }

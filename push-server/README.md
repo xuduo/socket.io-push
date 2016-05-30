@@ -169,11 +169,11 @@ pushId -> string(必选),客户端生成的随机ID
 
 uid -> string(必选),服务器需要绑定的UID
 
+timeToLive -> int毫秒(可选), 默认 = 0, 不过期. > 0 时,表示多久客户端没连接到push-sever后, 对应关系过期
+
 platform -> string(可选), 默认 = "default", pushId所属平台
 
-platformUnique -> string(可选), 默认 = "false". "true"表示删除此平台其它对应关系, "false"表示不删除
-
-timeToLive -> int毫秒(可选), 默认 = 0, 不过期. > 0 时,表示多久客户端没连接到push-sever后, 对应关系过期
+platformLimit -> int(可选), 默认 = 0, 表示不限制. 不为0时, 表示保留多少该平台的pushId绑定关系, 优先删除最旧的绑定关系
 
 ### /api/uid/remove 解除pushId的绑定
 
