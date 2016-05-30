@@ -94,18 +94,18 @@ var reporter = new DefaultReporter(outputStream);
 var bench = new Benchmark(server, reporter, options);
 
 // On ctrl+c
-process.on('SIGINT', function () {
-  logger.info("\nGracefully stoping worker from SIGINT (Ctrl+C)");
-
-  setTimeout(function () {
-
-    if (bench.monitor.isRunning()) {
-      bench.terminate();
-    }
-
-  }, 2000);
-
-});
+//process.on('SIGINT', function () {
+//  logger.info("\nGracefully stoping worker from SIGINT (Ctrl+C)");
+//
+//  setTimeout(function () {
+//
+//    if (bench.monitor.isRunning()) {
+//      bench.terminate();
+//    }
+//
+//  }, 2000);
+//
+//});
 
 bench.launch(program.amount, program.concurency, program.worker, program.message, program.keepAlive);
 
