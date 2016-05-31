@@ -33,14 +33,14 @@ var request = require('superagent');
 
 var randomstring = require("randomstring");
 
-var json = randomstring.generate(100);
+var json = randomstring.generate(program.bytes);
 
 function callApi() {
     request
         .post(server + '/api/push')
         .send({
-            topic: 'bench-test',
-            json: "wwwwwwwwwwwwwwwww"
+            topic: '/test',
+            json: json
         })
         .set('Accept', 'application/json')
         .end(function (err, res) {

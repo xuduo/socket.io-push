@@ -44,8 +44,8 @@ $(function () {
 
     // Sets the client's username
     function setUsername() {
-        username = cleanInput($usernameInput.val().trim());
-        var host = cleanInput($hostInput.val().trim());
+        username = cleanInput($usernameInput.val());
+        var host = cleanInput($hostInput.val());
         console.log("set username ", username, host);
         if (!username) {
             return;
@@ -61,7 +61,7 @@ $(function () {
     }
 
     function initClient(host) {
-        var pushClient = new PushClient(host);
+        var pushClient = new PushClient(host, {transports: ['polling' , 'websocket']});
         pushClient.subscribeTopic("chatRoom");
         pushClient.on('connect', function (data) {
             console.log("pushClient.on.connect ", data.uid);
@@ -218,13 +218,14 @@ $(function () {
 
     // Keyboard events
 
-    $window.keydown(function (event) {
+    var onKeyDown = function (event) {
         // Auto-focus the current input when a key is typed
         if (!(event.ctrlKey || event.metaKey || event.altKey)) {
             $currentInput.focus();
         }
         // When the client hits ENTER on their keyboard
-        if (event.which === 13) {
+        var keyCode = event.which || event.keyCode;
+        if (keyCode === 13) {
             if (username) {
                 sendMessage();
                 //   socket.emit('stop typing');
@@ -233,7 +234,20 @@ $(function () {
                 setUsername();
             }
         }
-    });
+    };
+
+    try {
+        if (window.addEventListener) {
+            window.addEventListener("keydown", onKeyDown, true);
+        } else if (document.attachEvent) { // IE
+            document.attachEvent("onkeydown", onKeyDown);
+        } else {
+            document.addEventListener("keydown", onKeyDown, true);
+        }
+    } catch (e) {
+        alert(e);
+    }
+
 
     $inputMessage.on('input', function () {
         updateTyping();
