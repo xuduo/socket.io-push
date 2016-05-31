@@ -8,7 +8,7 @@
 
 ```javascript
 var pushClient = PushClient('https://spush.yy.com', {
-            transports: ['websocket', 'polling'], //使用的tranport
+            transports: ['polling', 'websocket'], //使用的tranport
             useNotification: true //是否接收notification
         });
 ```
