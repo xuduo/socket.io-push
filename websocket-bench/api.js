@@ -54,10 +54,4 @@ var interval = setInterval(function () {
 }, 1000);
 
 
-// On ctrl+c
-process.on('SIGINT', function () {
-    logger.info("\nGracefully stoping worker from SIGINT (Ctrl+C)");
-    clearInterval(interval);
-});
-
 

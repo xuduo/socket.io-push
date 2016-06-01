@@ -22,7 +22,10 @@ module.exports = {
    */
   onConnect : function (client, done) {
     // Your logic
-    client.subscribeTopic('bench-test', function() {});
+
+    //client.on('push', function() {
+    //  console.log('wwww');
+    //});
     done();
   },
 

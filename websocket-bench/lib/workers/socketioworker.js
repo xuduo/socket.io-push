@@ -16,6 +16,8 @@ SocketIOWorker.prototype.createClient = function (callback) {
     var self = this;
     var client = require('socket.io-push/lib/client/push-client.js')(this.server);
 
+    client.subscribeTopic('bench-test');
+
     client.on('connect', function () {
         callback(false, client);
     });
