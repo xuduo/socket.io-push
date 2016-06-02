@@ -5,7 +5,6 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 
 [![NPM](https://nodei.co/npm/socket.io-push.png?compact=true)](https://npmjs.org/package/socket.io-push)
 
-
 ###特点
 * 透明集成了小米,华为push
 * 单机广播速度可以达到[10w条/秒](bench-mark.md)
@@ -31,3 +30,19 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * `pushId` 某个设备的唯一标识, app安装后生成的随机字符串, 用于服务器单播
 * `uid` 业务服务器用于标识某个用户的id,字符串类型.可以通过push-server的接口进行绑定,通过客户端SDK解除绑定
 * `timeToLive` 过期时间
+
+###Q&A
+* 相比第三方推送有什么优劣?
+
+优势:
+
+1. 第三方推送接口需要跨机房访问,与其它app共享服务通道,自己无法控制服务质量
+2. 可以很方便的部署一套测试环境
+3. 调试问题很容易, api有没有调用到,某个设备有没有连上来,都可以在debug级日志看到
+4. 支持apns多bundleId,开发,发布,马甲版,都可以自动匹配推送
+
+劣势
+
+1. 需要自己运维部署服务器
+2. 如果需要扩容, 需要自己来评估, 第三方推送通常是给钱就可以了
+
