@@ -1,21 +1,30 @@
 Push-Server
 =======================
-架构图(两机房部署)
+部署图(两机房部署)
 ![image](2idc_socket.io-push.png)
 测试服务器 http://spush.yy.com/
 
 ##install & run
 
-* 安装/启动redis
-redis-server &
+* 安装nodejs环境
 
-* 安装/更新
+https://nodejs.org/en/download/package-manager/
+
+* 安装/启动redis
+```
+redis-server &
+```
+
+* 安装/更新socket.io-push
+```
 sudo npm install -g socket.io-push
+```
 
 * 新建工作目录
-
+```
 mkdir push-server    
 cd push-server
+```
 
 * 新建config.js
 
