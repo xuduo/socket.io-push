@@ -1,6 +1,7 @@
 Push-Server
 =======================
-对外服务
+架构图(两机房部署)
+![image](2idc_socket.io-push.png)
 
 ##install & run
 
