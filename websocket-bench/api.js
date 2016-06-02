@@ -39,11 +39,12 @@ function callApi() {
     request
         .post(server + '/api/push')
         .send({
-            topic: '/test',
+            topic: 'bench-test',
             json: json
         })
         .set('Accept', 'application/json')
         .end(function (err, res) {
+            console.log(res);
         });
 }
 

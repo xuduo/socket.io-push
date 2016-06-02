@@ -6,10 +6,10 @@ function UidStore(redis, subClient) {
     this.redis = redis;
 }
 
-UidStore.prototype.bindUid = function (pushId, uid, timeToLive, platform, platformCount) {
+UidStore.prototype.bindUid = function (pushId, uid, timeToLive, platform, platformLimit) {
     timeToLive = timeToLive || 3600 * 1000 * 24 * 14;
-    platformCount = platformCount || 0;
-    logger.debug("bindUid pushId %s %s", uid, pushId, platformCount);
+    platformLimit = platformLimit || 0;
+    logger.debug("bindUid pushId %s %s", uid, pushId, platformLimit);
     var self = this;
     self.removePushId(pushId, false, function () {
         self.redis.hgetall("uidToPushId#" + uid, function (err, reply) {
@@ -22,17 +22,17 @@ UidStore.prototype.bindUid = function (pushId, uid, timeToLive, platform, platfo
                         var val = reply[key].toString().split(",");
                         if (current > val[1] + val[2]) {
                             toDelete.push(key);
-                        } else if (val[0] == platform && platformCount > 0) {
+                        } else if (val[0] == platform && platformLimit > 0) {
                             oldPlatformPushIds.push([key, val[1]]);
                         }
                     }
                 }
             }
-            if (oldPlatformPushIds.length > 0 && oldPlatformPushIds.length > platformCount - 1) {
+            if (oldPlatformPushIds.length > 0 && oldPlatformPushIds.length > platformLimit - 1) {
                 oldPlatformPushIds.sort(function (a, b) {
                     return b[1] - a[1];
                 });
-                for (var i = platformCount - 1; i < oldPlatformPushIds.length; i++)
+                for (var i = platformLimit - 1; i < oldPlatformPushIds.length; i++)
                     toDelete.push(oldPlatformPushIds[i][0]);
             }
             if (toDelete.length > 0) {
