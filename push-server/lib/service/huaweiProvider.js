@@ -11,16 +11,29 @@ var timeout = 5000;
 function HuaweiProvider(config) {
     if (!(this instanceof HuaweiProvider)) return new HuaweiProvider(config);
     this.access_token = "";
-    this.client_id = config.client_id;
-    this.client_secret = config.client_secret;
-    this.access_token_expire = 0;
+    this.authInfo = {};
+    var self = this;
+    this.default_package_name = undefined;
+    config.forEach(function (val) {
+        self.authInfo[val.package_name] = val;
+        val.access_token_expire = 0;
+        if (!self.default_package_name) {
+            self.default_package_name = val.package_name;
+            logger.info('huawei default package name ', self.default_package_name);
+        }
+    });
     this.type = "huawei";
 }
 
 HuaweiProvider.prototype.sendOne = function (notification, tokenData, timeToLive, callback) {
     if (notification.android.title) {
         var self = this;
-        this.checkToken(function () {
+        tokenData.package_name = tokenData.package_name || this.default_package_name;
+        if (!this.authInfo[tokenData.package_name]) {
+            logger.debug('huawei package name not supported', self.default_package_name);
+            return;
+        }
+        this.checkToken(tokenData.package_name, function () {
             logger.debug("sendOne ", notification, timeToLive);
             var postData = self.getPostData(1, notification, tokenData, timeToLive);
             request.post({
@@ -39,7 +52,7 @@ HuaweiProvider.prototype.sendOne = function (notification, tokenData, timeToLive
 
 HuaweiProvider.prototype.getPostData = function (push_type, notification, tokenData, timeToLive) {
     var postData = {
-        access_token: this.access_token,
+        access_token: this.authInfo[tokenData.package_name].access_token,
         nsp_svc: "openpush.openapi.notification_send",
         nsp_fmt: "JSON",
         nsp_ts: Date.now(),
@@ -68,49 +81,52 @@ HuaweiProvider.prototype.addToken = function (data) {
 HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback) {
     if (notification.android.title) {
         var self = this;
-        this.checkToken(function (tokenError) {
-            if (!tokenError) {
-                logger.debug("sendAll ", notification, timeToLive);
-                var postData = self.getPostData(2, notification, 0, timeToLive);
-                request.post({
-                    url: apiUrl,
-                    form: postData
-                }, function (error, response, body) {
-                    logger.info("sendAll result", error, response.statusCode, body);
-                    if (!error && callback) {
-                        callback();
-                    } else if (callback) {
-                        callback(error);
-                    }
-                })
-            } else if (callback) {
-                callback(tokenError);
-            }
-        });
+        for (var package_name in this.authInfo) {
+            this.checkToken(package_name, function (tokenError) {
+                if (!tokenError) {
+                    logger.debug("sendAll ", notification, timeToLive);
+                    var postData = self.getPostData(2, notification, {package_name: package_name}, timeToLive);
+                    request.post({
+                        url: apiUrl,
+                        form: postData
+                    }, function (error, response, body) {
+                        logger.info("sendAll result", error, response.statusCode, body);
+                        if (!error && callback) {
+                            callback();
+                        } else if (callback) {
+                            callback(error);
+                        }
+                    })
+                } else if (callback) {
+                    callback(tokenError);
+                }
+            });
+        }
     }
 };
 
-HuaweiProvider.prototype.checkToken = function (callback) {
+HuaweiProvider.prototype.checkToken = function (package_name, callback) {
     var self = this;
-    if (this.access_token && Date.now() < this.access_token_expire) {
+    var authInfo = self.authInfo[package_name];
+    if (authInfo.access_token && Date.now() < authInfo.access_token_expire) {
         logger.debug("token valid");
         callback();
         return;
     } else {
-        logger.info("request token");
+        logger.info("request token ", package_name, self.authInfo[package_name]);
         request.post({
             url: tokenUrl,
             form: {
                 grant_type: "client_credentials",
-                client_id: self.client_id,
-                client_secret: self.client_secret
+                client_id: authInfo.client_id,
+                client_secret: authInfo.client_secret
             },
             timeout: timeout
         }, function (error, response, body) {
             if (!error) {
                 var data = JSON.parse(body);
-                self.access_token = data.access_token;
-                self.access_token_expire = Date.now() + data.expires_in * 1000 - 60 * 1000;
+                authInfo.access_token = data.access_token;
+                authInfo.access_token_expire = Date.now() + data.expires_in * 1000 - 60 * 1000;
                 logger.info("get access token success", data);
                 callback();
             } else {

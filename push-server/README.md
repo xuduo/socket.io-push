@@ -44,13 +44,14 @@ config.apns = [
     }
 ];
 
-//华为推送配置,可选
-config.huawei = {
+//华为推送配置,可选, 由于华为不支持多包名,需要像apn一样配置一个数组
+config.huawei = [{
+    package_name: "com.yy.misaka.demo",
     client_id: 10513719,
     client_secret: "9l7fwfxt0m37qt61a1rh3w0lg9hjza1l"
-}
+}]
 
-//小米推送配置,可选
+//小米推送配置,可选, 小米内建支持多包名, 一个配置就可以
 config.xiaomi = {
     app_secret: "ynJJ6b+MkCLyw1cdrg/72w=="
 }

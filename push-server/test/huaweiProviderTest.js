@@ -1,7 +1,8 @@
-var config = {
+var config = [{
+    package_name: "com.yy.misaka.demo",
     client_id: 10513719,
     client_secret: "9l7fwfxt0m37qt61a1rh3w0lg9hjza1l"
-}
+}]
 
 describe('huawei test', function () {
 
