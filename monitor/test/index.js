@@ -38,11 +38,11 @@ describe('test ', function () {
                 });
 
                 socket.socket.on('connect_timeout', function (data) {
-                    console.log("connect_timeout_error ", data.description);
+                    console.log("connect_timeout_error ", ip, data.description);
                 });
 
                 socket.socket.on('connect_error', function (data) {
-                    console.log("connect_error ", data.description);
+                    console.log("connect_error ", ip, data.description);
                 });
 
                 socket.on('push', function (data) {
@@ -52,7 +52,6 @@ describe('test ', function () {
                 });
 
                 socket.on('connect', function (data) {
-                    console.log("connected ", ip);
                     expect(data.pushId).to.be.equal(socket.pushId);
                     request
                         .post(testip + '/api/push')
