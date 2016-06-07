@@ -13,7 +13,6 @@ var ips = [];
 config.ipFileName.forEach(function (ipFile) {
 
     var input = fs.readFileSync(ipFile).toString();
-    console.log(input);
     input.split('\n').forEach(function (ip) {
         if (ip) {
             ips.push(ip);
