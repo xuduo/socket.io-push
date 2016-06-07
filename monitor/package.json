@@ -22,7 +22,7 @@
     "superagent": "^1.8.0",
     "mocha": "2.3.4",
     "socket.io-client": "1.4.5",
-    "socket.io-push": "0.0.112"
+    "socket.io-push": "*"
   },
   "scripts": {
     "test": "find ./test -name '*.js' | xargs -n1 mocha"

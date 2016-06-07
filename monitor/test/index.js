@@ -13,7 +13,7 @@ var ips = [];
 config.ipFileName.forEach(function (ipFile) {
 
     var input = fs.readFileSync(ipFile).toString();
-
+    console.log(input);
     input.split('\n').forEach(function (ip) {
         if (ip) {
             ips.push(ip);
@@ -31,19 +31,28 @@ describe('test ', function () {
             var testip = config.ips[k];
 
             it(JSON.stringify({socketIP: ip, type: 'connect', apiIP: testip}), function (done) {
-                var socket = require('socket.io-push/lib/push-client.js')('http://' + ip, {
+                var socket = require('socket.io-push/lib/client/push-client.js')('http://' + ip, {
                     transports: ['websocket'], extraHeaders: {
                         Host: config.ioHost
-                    }, useNotification: true
+                    }, useNotification: true, reconnection: false, connect_timeout: 2000
                 });
 
-                socket.on('push', function (topic, data) {
+                socket.socket.on('connect_timeout', function (data) {
+                    console.log("connect_timeout_error ", data.description);
+                });
+
+                socket.socket.on('connect_error', function (data) {
+                    console.log("connect_error ", data.description);
+                });
+
+                socket.on('push', function (data) {
                     expect(data.message).to.equal('ok');
                     socket.disconnect();
                     done();
                 });
 
                 socket.on('connect', function (data) {
+                    console.log("connected ", ip);
                     expect(data.pushId).to.be.equal(socket.pushId);
                     request
                         .post(testip + '/api/push')
@@ -54,6 +63,9 @@ describe('test ', function () {
                         .set('Accept', 'application/json')
                         .set('Host', config.apiHost)
                         .end(function (err, res) {
+                            if (err) {
+                                console.log('call_api_error ', err);
+                            }
                             expect(err).to.be.null;
                             expect(res.text).to.be.equal('{"code":"success"}');
                         });

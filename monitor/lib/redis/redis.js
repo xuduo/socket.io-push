@@ -5,7 +5,7 @@ redisClient.on("error", function (error) {
     console.log(error);
 });
 
-var mSecPerHour = 60 * 60 * 1000
+var mSecPerHour = 60 * 60 * 1000;
 
 function hourStrip(timestamp) {
     return Math.ceil(timestamp / mSecPerHour) * mSecPerHour;
@@ -18,7 +18,7 @@ exports.handleResult = function (result) {
     connectCount = 0;
     pushCount = 0;
     notificationCount = 0;
-    pushTotal =0;
+    pushTotal = 0;
     notificationTotal = 0;
 
     var onces = [];
@@ -40,15 +40,6 @@ exports.handleResult = function (result) {
     redisClient.incrby("stats#monitor:ConnectPush#successCount#" + hourStrip(timestamp), connectCount);
     redisClient.incrby("stats#monitor:ConnectPush#totalCount#" + hourStrip(timestamp), connectTotal);
 
-    //if (connectCount > 0) {
-    //    redisClient.hset("queryDataKeys", 'socketPush', Date.now())
-    //    redisClient.incrby("stats#socketPush#totalCount#" + hourStrip(timestamp), pushTotal);
-    //    redisClient.incrby("stats#socketPush#successCount#" + hourStrip(timestamp), pushCount);
-    //
-    //    redisClient.hset("queryDataKeys", 'socketNotification', Date.now())
-    //    redisClient.incrby("stats#socketNotification#totalCount#" + hourStrip(timestamp), notificationTotal);
-    //    redisClient.incrby("stats#socketNotification#successCount#" + hourStrip(timestamp), notificationCount);
-    //}
 }
 
 function countData(onces, timestamp) {

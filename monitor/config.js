@@ -11,5 +11,5 @@ config.ioHost = 'localhost';
 config.apiHost = 'localhost';
 config.ips= ['127.0.0.1:11001'];
 
-config.cmdStr = 'mocha -t 4000 --reporter reporter.js';
+config.cmdStr = 'mocha -t 10000 --reporter reporter.js test/index.js >> mocha.log ';
 module.exports = config;
