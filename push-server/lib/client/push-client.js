@@ -1,5 +1,4 @@
 module.exports = exports = PushClient;
-var randomstring = require("randomstring");
 var EventEmitter = require('events').EventEmitter;
 var clientId = 0;
 var receiveTTL = 2;
@@ -7,7 +6,7 @@ var doNotReceiveTTL = 1;
 
 //ie 8
 if (!Object.keys) {
-    Object.keys = function(obj) {
+    Object.keys = function (obj) {
         var keys = [];
 
         for (var i in obj) {
@@ -21,15 +20,16 @@ if (!Object.keys) {
 }
 
 if (!Function.prototype.bind) {
-    Function.prototype.bind = function(oThis) {
+    Function.prototype.bind = function (oThis) {
         if (typeof this !== 'function') {
             throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
         }
 
-        var aArgs   = Array.prototype.slice.call(arguments, 1),
+        var aArgs = Array.prototype.slice.call(arguments, 1),
             fToBind = this,
-            fNOP    = function() {},
-            fBound  = function() {
+            fNOP = function () {
+            },
+            fBound = function () {
                 return fToBind.apply(this instanceof fNOP && oThis
                         ? this
                         : oThis,
@@ -48,6 +48,7 @@ function PushClient(url, opt) {
     if (!opt) {
         opt = {};
     }
+
     opt.forceNew = true;
     if (!opt.transports) {
         opt.transports = ['websocket'];
@@ -57,12 +58,13 @@ function PushClient(url, opt) {
     this.topics = {};
     this.socket = require('socket.io-client')(url, opt);
     this.initStorage();
+
     if (opt.pushId) {
         this.pushId = opt.pushId;
     } else {
         this.pushId = this.getItem("pushId");
         if (!this.pushId) {
-            this.pushId = randomstring.generate(24);
+            this.pushId = makeid();
         }
     }
     this.setItem("pushId", this.pushId);
@@ -194,4 +196,14 @@ PushClient.prototype.subscribeTopicAndReceiveTTL = function (topic) {
 PushClient.prototype.unsubscribeTopic = function (topic) {
     delete this.topics[topic];
     this.socket.emit("unsubscribeTopic", {topic: topic});
+}
+
+function makeid() {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for (var i = 0; i < 16; i++)
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
 }
