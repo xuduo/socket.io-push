@@ -25,12 +25,14 @@ XiaomiProvider.prototype.sendOne = function (notification, tokenData, timeToLive
             headers: this.headers,
             timeout: timeout
         }, function (error, response, body) {
-            logger.info("sendAll result", error, response.statusCode, body);
+            logger.debug("sendOne result", error, response && response.statusCode, body);
             if (!error && response.statusCode == 200 && callback) {
                 var result = JSON.parse(body);
                 if (result.code == 0) {
                     callback();
                 }
+            } else {
+                logger.error("sendOne error", error, response && response.statusCode, body);
             }
         })
     }
@@ -66,13 +68,15 @@ XiaomiProvider.prototype.sendAll = function (notification, timeToLive, callback)
             headers: this.headers,
             timeout: timeout
         }, function (error, response, body) {
-            logger.info("sendAll result", error, response.statusCode, body);
+            logger.info("sendAll result", error,response && response.statusCode, body);
             if (!error && response.statusCode == 200 && callback) {
                 var result = JSON.parse(body);
                 if (result.code == 0) {
                     callback();
                 }
+            } else {
+                logger.error("sendAll error", error, response && response.statusCode, body);
             }
-        })
+        });
     }
 };
