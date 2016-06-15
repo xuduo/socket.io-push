@@ -25,7 +25,7 @@ function ApnProvider(apnConfigs, sliceServers, redis, stats, tokenTTL) {
             if (device && device.token) {
                 var id = device.token.toString('hex');
                 logger.error("apn errorCallback errorCode %d %s", errorCode, id);
-                stats.addApnError(1, errorCode);
+                stats.addPushError(1, errorCode, self.type);
                 redis.hdel("apnTokens#" + apnConfig.bundleId, id);
                 redis.get("tokenToPushId#apn#" + id, function (err, oldPushId) {
                     logger.error("apn errorCallback pushId %s", oldPushId);
@@ -42,7 +42,7 @@ function ApnProvider(apnConfigs, sliceServers, redis, stats, tokenTTL) {
         connection.index = index;
         self.apnConnections[apnConfig.bundleId] = connection;
         connection.on("transmitted", function () {
-            stats.addApnSuccess(1);
+            stats.addPushSuccess(1, self.type);
         });
         logger.info("apnConnections init for %s maxConnections %s", apnConfig.bundleId, apnConfig.maxConnections);
     });
@@ -60,10 +60,10 @@ ApnProvider.prototype.sendOne = function (notification, apnData, timeToLive) {
     var bundleId = apnData.bundleId;
     var apnConnection = this.apnConnections[bundleId];
     if (apnConnection) {
-        this.stats.addApnTotal(1);
+        this.stats.addPushTotal(1, this.type);
         var note = toApnNotification(notification, timeToLive);
         apnConnection.pushNotification(note, apnData.token);
-        logger.info("send to notification to ios %s %s", apnData.bundleId, apnData.token);
+        logger.debug("send to notification to ios %s %s", apnData.bundleId, apnData.token);
     }
 };
 
@@ -116,7 +116,7 @@ ApnProvider.prototype.sendToApn = function (tokenToTime, bundleId, note) {
         if (tokens.length > 0) {
             logger.info("send apn %s", tokens);
             apnConnection.pushNotification(note, tokens);
-            this.stats.addApnTotal(tokens.length);
+            this.stats.addPushTotal(tokens.length, this.type);
         }
     }
 }
@@ -179,10 +179,11 @@ function toApnNotification(notification, timeToLive) {
 
     var secondsToLive;
     if (timeToLive > 0) {
-        secondsToLive = timeToLive / 1000;
+        secondsToLive = Math.floor(timeToLive / 1000);
     } else {
         secondsToLive = 600;
     }
+    logger.debug("note.expiry ", secondsToLive);
     note.expiry = Math.floor(Date.now() / 1000) + secondsToLive;
     if (notification.android.payload) {
         note.payload = notification.android.payload;

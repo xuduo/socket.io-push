@@ -2,7 +2,6 @@ module.exports = PushServer;
 
 function PushServer(config) {
     if (!(this instanceof PushServer)) return new PushServer(config);
-    console.log("config " + JSON.stringify(config));
     var instance = config.instance || 1;
     console.log("starting instance #" + instance);
     config.io_port = config.io_port + instance - 1;
@@ -16,8 +15,7 @@ function PushServer(config) {
         transports: ['websocket', 'polling']
     });
     console.log("start server on port " + config.io_port);
-    var Stats = require('./stats/stats.js');
-    this.stats = new Stats(cluster, config.io_port);
+    this.stats = require('./stats/stats.js')(cluster, config.io_port, config.statsCommitThreshold);
     var socketIoRedis = require('./redis/redisAdapter.js')({pubClient: cluster, subClient: cluster}, null, this.stats);
     this.io.adapter(socketIoRedis);
     var packetService;
@@ -39,19 +37,19 @@ function PushServer(config) {
     var providerFactory = require('./service/notificationProviderFactory.js')();
     this.notificationService.providerFactory = providerFactory;
     if (config.apns != undefined) {
-        var apnService = require('./service/apnProvider.js')(config.apns, config.apnsSliceServers, cluster, this.stats, tokenTTL);
-        providerFactory.addProvider(apnService);
+        this.apnService = require('./service/apnProvider.js')(config.apns, config.apnsSliceServers, cluster, this.stats, tokenTTL);
+        providerFactory.addProvider(this.apnService);
     }
     if (config.huawei) {
-        var huaweiProvider = require('./service/huaweiProvider.js')(config.huawei);
-        providerFactory.addProvider(huaweiProvider);
+        this.huaweiProvider = require('./service/huaweiProvider.js')(config.huawei, this.stats);
+        providerFactory.addProvider(this.huaweiProvider);
     }
     if (config.xiaomi) {
-        var xiaomiProvider = require('./service/xiaomiProvider.js')(config.xiaomi);
-        providerFactory.addProvider(xiaomiProvider);
+        this.xiaomiProvider = require('./service/xiaomiProvider.js')(config.xiaomi, this.stats);
+        providerFactory.addProvider(this.xiaomiProvider);
     }
     if (config.api_port) {
-        this.restApi = require('./api/restApi.js')(this.io, topicOnline, this.stats, this.notificationService, config, ttlService, cluster, apiThreshold, apnService, config.apiAuth, this.uidStore);
+        this.restApi = require('./api/restApi.js')(this.io, topicOnline, this.stats, this.notificationService, config, ttlService, cluster, apiThreshold, this.apnService, config.apiAuth, this.uidStore);
     }
 }
 

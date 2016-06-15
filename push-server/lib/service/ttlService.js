@@ -86,6 +86,9 @@ TTLService.prototype.getPackets = function (topic, lastId, socket, unicast) {
 TTLService.prototype.emitPacket = function (socket, event, packet) {
     delete packet.event;
     delete packet.timestampValid;
+    if (packet.timestamp) {
+        packet.timestamp = Date.now();
+    }
     logger.debug("emitPacket %s %j", event, packet);
     if (this.protocolVersion > 1 && event == "push") {
         if (packet.ttl) {

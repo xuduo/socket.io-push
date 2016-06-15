@@ -20,7 +20,7 @@ if (program.args.length < 1) {
 var server = program.args[0];
 
 if (!program.bytes) {
-    program.bytes = 100;
+    program.bytes = 1000;
 }
 
 if (!program.concurency) {
@@ -39,7 +39,7 @@ function callApi() {
     request
         .post(server + '/api/push')
         .send({
-            topic: 'bench-test',
+            topic: '/test',
             json: json
         })
         .set('Accept', 'application/json')

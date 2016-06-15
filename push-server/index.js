@@ -18,18 +18,19 @@ if (!program.count) {
 var cluster = require('cluster');
 
 if (cluster.isMaster) {
-    for (var i = 0; i<program.count; i++){
+    console.log("config " + JSON.stringify(config, null, 4));
+    for (var i = 0; i < program.count; i++) {
         cluster.fork();
     }
 } else {
     config.instance = cluster.worker.id;
     var args = {
         workId: cluster.worker.id,
-        dir:'log',
-        foreground:program.F,
-        debug:program.D,
-        info:program.I,
-        count:program.count
+        dir: 'log',
+        foreground: program.F,
+        debug: program.D,
+        info: program.I,
+        count: program.count
     }
     require('./lib/log/index.js')(args);
     require('./lib/push-server.js')(config);

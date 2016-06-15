@@ -4,8 +4,19 @@ var config = {
 
 describe('xiaomi test', function () {
 
+    before(function () {
+        var config = require('../config.js');
+        global.pushService = require('../lib/push-server.js')(config);
+        global.xiaomiProvider = pushService.xiaomiProvider;
+        global.apiUrl = 'http://localhost:' + config.api_port;
+    });
+
+    after(function () {
+        global.pushService.close();
+    });
+
+
     it('sendAll', function (done) {
-        var xiaomiProvider = require('../lib/service/xiaomiProvider.js')(config);
         var notificationAll = {
             android: {title: "sendAll", message: "sendAll Msg", payload: {test: "wwwwqqq"}}
         };
@@ -16,7 +27,6 @@ describe('xiaomi test', function () {
     });
 
     it('sendOne', function (done) {
-        var xiaomiProvider = require('../lib/service/xiaomiProvider.js')(config);
         var notificationOne = {
             android: {title: "sendOne", message: "sendOne Msg", payload: {test: "wwwwqqq"}}
         };

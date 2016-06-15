@@ -3,11 +3,11 @@ module.exports = Stats;
 var logger = require('../log/index.js')('Stats');
 var randomstring = require("randomstring");
 
-function Stats(redis, port) {
-    if (!(this instanceof Stats)) return new Stats(redis, port);
+function Stats(redis, port, commitThreshHold) {
+    if (!(this instanceof Stats)) return new Stats(redis, port, commitThreshHold);
     this.redis = redis;
     this.sessionCount = {total: 0};
-    this.redisIncrBuffer = require('./redisIncrBuffer.js')(redis);
+    this.redisIncrBuffer = require('./redisIncrBuffer.js')(redis, commitThreshHold);
     this.packetDrop = 0;
     this.packetDropThreshold = 0;
     this.ms = new (require('./moving-sum.js'))();
@@ -79,19 +79,19 @@ Stats.prototype.onPacket = function () {
     this.incr("stats#toClientPacket#totalCount", timestamp);
 }
 
-Stats.prototype.addApnTotal = function (count) {
+Stats.prototype.addPushTotal = function (count, type) {
     var timestamp = Date.now();
-    this.incrby("stats#apnPush#successCount", timestamp, count);
+    this.incrby("stats#" + type + "Push#totalCount", timestamp, count);
 }
 
-Stats.prototype.addApnSuccess = function (count) {
+Stats.prototype.addPushSuccess = function (count, type) {
     var timestamp = Date.now();
-    this.incrby("stats#apnPush#totalCount", timestamp, count);
+    this.incrby("stats#" + type + "Push#successCount", timestamp, count);
 }
 
-Stats.prototype.addApnError = function (count, errorCode) {
+Stats.prototype.addPushError = function (count, errorCode, type) {
     var timestamp = Date.now();
-    this.incrby("stats#apnPushError" + errorCode + "#totalCount", timestamp, count);
+    this.incrby("stats#" + type + "PushError" + errorCode + "#totalCount", timestamp, count);
 }
 
 Stats.prototype.addSession = function (socket, count) {

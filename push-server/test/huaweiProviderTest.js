@@ -6,8 +6,18 @@ var config = [{
 
 describe('huawei test', function () {
 
+    before(function () {
+        var config = require('../config.js');
+        global.pushService = require('../lib/push-server.js')(config);
+        global.huaweiProvider = pushService.huaweiProvider;
+        global.apiUrl = 'http://localhost:' + config.api_port;
+    });
+
+    after(function () {
+        global.pushService.close();
+    });
+
     it('huawei', function (done) {
-        var huaweiProvider = require('../lib/service/huaweiProvider.js')(config);
         var notificationAll = {
             android: {title: "sendAll", message: "sendAll Msg", payload: {test: "wwwwqqq"}}
         };

@@ -26,7 +26,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
             }
             stats.onPacket();
             oldPacket.call(socket, packet, preEncoded);
-        }
+        };
 
         socket.on('pushId', function (data) {
             if (data.id && data.id.length >= 10) {
@@ -64,8 +64,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                             }
                         }
                         ttlService.onPushId(socket, data.lastUnicastId);
-                    })
-
+                    });
                 });
             }
         });

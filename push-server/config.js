@@ -5,6 +5,8 @@ config.pingInterval = 25000; // 心跳间隔
 
 config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei timeToLive
 
+config.statsCommitThreshold = 0;//ms,统计缓存commit间隔, 生产环境建议10秒以上
+
 //apns推送配置,可选
 config.apns = [
     {

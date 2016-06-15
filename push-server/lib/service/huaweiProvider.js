@@ -8,8 +8,9 @@ var tokenUrl = "https://login.vmall.com/oauth2/token";
 var apiUrl = "https://api.vmall.com/rest.php";
 var timeout = 5000;
 
-function HuaweiProvider(config) {
-    if (!(this instanceof HuaweiProvider)) return new HuaweiProvider(config);
+function HuaweiProvider(config, stats) {
+    if (!(this instanceof HuaweiProvider)) return new HuaweiProvider(config, stats);
+    this.stats = stats;
     this.access_token = "";
     this.authInfo = {};
     var self = this;
@@ -27,25 +28,31 @@ function HuaweiProvider(config) {
 
 HuaweiProvider.prototype.sendOne = function (notification, tokenData, timeToLive, callback) {
     if (notification.android.title) {
-        var self = this;
         tokenData.package_name = tokenData.package_name || this.default_package_name;
         if (!this.authInfo[tokenData.package_name]) {
-            logger.debug('huawei package name not supported', self.default_package_name);
+            logger.debug('huawei package name not supported', this.default_package_name);
             return;
         }
-        this.checkToken(tokenData.package_name, function () {
-            logger.debug("sendOne ", notification, timeToLive);
-            var postData = self.getPostData(1, notification, tokenData, timeToLive);
-            request.post({
-                url: apiUrl,
-                form: postData,
-                timeout: timeout
-            }, function (error, response, body) {
-                logger.debug("sendOne result", error, body);
-                if (!error && response.statusCode == 200 && callback) {
-                    callback();
-                }
-            })
+        var self = this;
+        self.stats.addPushTotal(1, self.type);
+        this.checkToken(tokenData.package_name, function (tokenError) {
+            if (!tokenError) {
+                logger.debug("sendOne ", notification, timeToLive);
+                var postData = self.getPostData(1, notification, tokenData, timeToLive);
+                request.post({
+                    url: apiUrl,
+                    form: postData,
+                    timeout: timeout
+                }, function (error, response, body) {
+                    logger.debug("sendOne result", error, body);
+                    if (!error && response && response.statusCode == 200) {
+                        self.stats.addPushSuccess(1, self.type);
+                    }
+                    if (callback) {
+                        callback(error);
+                    }
+                });
+            }
         });
     }
 };
@@ -61,7 +68,7 @@ HuaweiProvider.prototype.getPostData = function (push_type, notification, tokenD
             notification_title: notification.android.title,
             notification_content: notification.android.message,
             extras: [notification.id, notification.android],
-            doings: 2
+            doings: 1
         })
     };
     if (tokenData && tokenData.token) {
@@ -81,6 +88,7 @@ HuaweiProvider.prototype.addToken = function (data) {
 HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback) {
     if (notification.android.title) {
         var self = this;
+        self.stats.addPushTotal(1, self.type + "All");
         for (var package_name in this.authInfo) {
             this.checkToken(package_name, function (tokenError) {
                 if (!tokenError) {
@@ -90,15 +98,14 @@ HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback)
                         url: apiUrl,
                         form: postData
                     }, function (error, response, body) {
-                        logger.info("sendAll result", error, response.statusCode, body);
-                        if (!error && callback) {
-                            callback();
-                        } else if (callback) {
+                        logger.info("sendAll result", error, response && response.statusCode, body);
+                        if (!error && response && response.statusCode == 200) {
+                            self.stats.addPushSuccess(1, self.type + "All");
+                        }
+                        if (callback) {
                             callback(error);
                         }
-                    })
-                } else if (callback) {
-                    callback(tokenError);
+                    });
                 }
             });
         }
@@ -109,7 +116,6 @@ HuaweiProvider.prototype.checkToken = function (package_name, callback) {
     var self = this;
     var authInfo = self.authInfo[package_name];
     if (authInfo.access_token && Date.now() < authInfo.access_token_expire) {
-        logger.debug("token valid");
         callback();
         return;
     } else {
