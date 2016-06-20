@@ -30,7 +30,7 @@ HuaweiProvider.prototype.sendOne = function (notification, tokenData, timeToLive
     if (notification.android.title) {
         tokenData.package_name = tokenData.package_name || this.default_package_name;
         if (!this.authInfo[tokenData.package_name]) {
-            logger.debug('huawei package name not supported', this.default_package_name);
+            logger.debug('huawei package name not supported ', tokenData);
             return;
         }
         var self = this;

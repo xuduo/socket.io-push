@@ -158,7 +158,7 @@ server
     }
     
     location /api {
-        proxy_pass ws_api;
+        proxy_pass http://ws_api;
     }
 }
 ```
@@ -195,6 +195,9 @@ json ->  以下类型三选一,透传给客户端的数据,客户端会在onPush
          
          第一个int或string来表示推送类型,第二个参数表示该类型的透传数据
 
+---
+
+timeToLive -> int, 毫秒, 表示当时用户不在线, 消息服务器保存多久
 
 ### /api/notification 状态栏通知api
 
@@ -207,6 +210,10 @@ pushAll -> string, true表示推送全网,其它或者留空表示单个推送
 pushId -> string[], 如 ["abc","def"] 客户端生成的随机ID,单个或者数组
 
 uid -> string[],如 ["123","456"] 通过addPushIdToUid接口绑定的uid
+
+---
+
+timeToLive -> int, 毫秒, 表示当时用户不在线, 消息服务器保存多久 , 小米, 苹果, 华为, push-sever均支持
 
 ---
 

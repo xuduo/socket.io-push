@@ -254,6 +254,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.socket.emit("unsubscribeTopic", {topic: topic});
 	}
 
+	PushClient.prototype.http = function (options, cb) {
+
+	    var requestCtx = [
+
+	        (options.method && options.method.toLowerCase()) || 'get',
+
+	        options.url, options.headers || {},
+
+	        options.params || options.data || {}
+
+	    ];
+	    this.socket.emit("http", requestCtx, function (responseCtx) {
+	        cb({statusCode: responseCtx[0], headers: responseCtx[1], body: responseCtx[2]});
+	    });
+	}
+
 	function makeid() {
 	    var text = "";
 	    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

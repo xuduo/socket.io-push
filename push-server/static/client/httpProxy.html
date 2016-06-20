@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Socket.IO Chat Example</title>
+    <link rel="stylesheet" href="/client/style.css">
+</head>
+<body>
+<textarea rows="10" cols="50" id="urlInput" type="text" maxlength="100">https://maps.googleapis.com/maps/api/timezone/json?location=38.908133,-77.047119&timestamp=145800000</textarea>
+<br/>
+<button onclick="javascript:request()">request</button>
+<br/>
+<div id="body"></div>
+<script src="/js/jquery-1.8.0.min.js"></script>
+<script src="/js/push-client-1.0.js"></script>
+<script>
+    var pushClient;
+    $.ajax({
+        type: 'GET',
+        url: '/api/config',
+        success: function (data) {
+            pushClient = PushClient(window.location.protocol + "//" + window.location.hostname + ":" + data.io_port);
+        }
+    });
+
+    function request() {
+        var url = $("#urlInput").val();
+        console.log("requesting ", url);
+        pushClient.http({url: url}, function (data) {
+            console.log("result ", data);
+            $("#body").html(JSON.stringify(data.body));
+//            jQuery("#body").load(data.body);
+        });
+    }
+
+</script>
+</body>
+</html>

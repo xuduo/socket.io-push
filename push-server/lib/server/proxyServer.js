@@ -2,8 +2,8 @@ module.exports = ProxyServer;
 var logger = require('../log/index.js')('ProxyServer');
 var http = require('http');
 
-function ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService) {
-    if (!(this instanceof ProxyServer)) return new ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService);
+function ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService) {
+    if (!(this instanceof ProxyServer)) return new ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService);
     this.io = io;
 
     io.on('connection', function (socket) {
@@ -79,6 +79,12 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
             logger.debug("on unsubscribeTopic %j", data);
             var topic = data.topic;
             socket.leave(topic);
+        });
+
+        socket.on('http', function (data, callback) {
+            httpProxyService.request(data, function (result) {
+                callback(result);
+            });
         });
 
         var token = function (data) {

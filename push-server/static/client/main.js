@@ -1,3 +1,5 @@
+var pushClient;
+
 $(function () {
     var FADE_TIME = 150; // ms
     var TYPING_TIMER_LENGTH = 400; // ms
@@ -61,7 +63,7 @@ $(function () {
     }
 
     function initClient(host) {
-        var pushClient = new PushClient(host, {transports: ['polling' , 'websocket']});
+        pushClient = new PushClient(host, {transports: ['polling' , 'websocket']});
         pushClient.subscribeTopic("chatRoom");
         pushClient.on('connect', function (data) {
             console.log("pushClient.on.connect ", data.uid);
@@ -220,9 +222,9 @@ $(function () {
 
     var onKeyDown = function (event) {
         // Auto-focus the current input when a key is typed
-        if (!(event.ctrlKey || event.metaKey || event.altKey)) {
-            $currentInput.focus();
-        }
+        //if (!(event.ctrlKey || event.metaKey || event.altKey)) {
+        //    $currentInput.focus();
+        //}
         // When the client hits ENTER on their keyboard
         var keyCode = event.which || event.keyCode;
         if (keyCode === 13) {

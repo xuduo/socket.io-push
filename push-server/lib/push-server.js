@@ -27,7 +27,8 @@ function PushServer(config) {
     var ttlService = require('./service/ttlService.js')(cluster, config.ttl_protocol_version);
     var tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
     this.notificationService = require('./service/notificationService.js')(config.apns, cluster, ttlService, tokenTTL);
-    var proxyServer = require('./server/proxyServer.js')(this.io, this.stats, packetService, this.notificationService, this.uidStore, ttlService);
+    this.httpProxyService = require('./service/httpProxyService')(config.http_remove_headers);
+    var proxyServer = require('./server/proxyServer.js')(this.io, this.stats, packetService, this.notificationService, this.uidStore, ttlService, this.httpProxyService);
     var apiThreshold = require('./api/apiThreshold.js')(cluster);
     var adminCommand = require('./server/adminCommand.js')(cluster, this.stats, packetService, proxyServer, apiThreshold);
     var topicOnline;
