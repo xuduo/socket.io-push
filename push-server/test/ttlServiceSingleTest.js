@@ -100,8 +100,6 @@ describe('push test', function () {
                 });
         });
 
-
     });
-
 
 });

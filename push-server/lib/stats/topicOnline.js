@@ -1,7 +1,5 @@
 module.exports = topicOnline;
 
-var logger = require('../log/index.js')('topicOnline');
-
 function filterTopic(topic, filterArray) {
     if (!filterArray || !topic) {
         return false;
@@ -29,7 +27,6 @@ function topicOnline(redis, io, id, filterTopics) {
             for (var key in result) {
                 if (result[key].length > 0 && filterTopic(key, self.filters)) {
                     var json = {length: result[key].length, time: Date.now()};
-                    logger.debug("writing topicOnline %s %j", key, json);
                     self.redis.hset("stats#topicOnline#" + key, self.id, JSON.stringify(json));
                 }
             }
@@ -53,7 +50,7 @@ topicOnline.prototype.getTopicOnline = function (topic, callback) {
     this.redis.hgetall("stats#topicOnline#" + topic, function (err, result) {
         if (result) {
             var delKey = [];
-            for (key in result) {
+            for (var key in result) {
                 var data = JSON.parse(result[key]);
                 if ((data.time + self.timeValidWithIn) < Date.now()) {
                     delKey.push(key);
@@ -66,7 +63,6 @@ topicOnline.prototype.getTopicOnline = function (topic, callback) {
                 self.redis.hdel("stats#topicOnline#" + topic, delKey);
             }
         }
-        logger.debug("result count: " + count);
         callback(count);
     });
 }

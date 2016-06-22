@@ -271,7 +271,7 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
 
     server.get('/api/redis/get', function (req, res, next) {
         redis.get(req.params.key, function (err, result) {
-            res.send({key: req.params.key, result: result});
+            res.send({key: req.params.key, value: (result && result.toString())});
         });
         return next();
     });

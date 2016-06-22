@@ -41,7 +41,6 @@ TTLService.prototype.addPacketAndEmit = function (topic, event, timeToLive, pack
         });
     }
     this.emitPacket(io.to(topic), event, packet);
-
 };
 
 TTLService.prototype.getPackets = function (topic, lastId, socket, unicast) {
