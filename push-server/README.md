@@ -211,7 +211,7 @@ pushId -> string[], 如 ["abc","def"] 客户端生成的随机ID,单个或者数
 
 uid -> string[],如 ["123","456"] 通过addPushIdToUid接口绑定的uid
 
-tag -> string[] ,如 ["tag1","tag2"] 或 string, 如 "tag1", 通过客户端或者服务器接口设置的tag
+tag -> string, 如 "tag1", 通过客户端或者服务器接口设置的tag
 
 ---
 
