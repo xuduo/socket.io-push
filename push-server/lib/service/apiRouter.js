@@ -15,7 +15,7 @@ function ApiRouter(uidStore, notificationService, ttlService, tagService, maxPus
     this.maxPushIds = maxPushIds || 1000;
 }
 
-ApiRouter.prototype.notification = function (notification, pushAll, pushIds, uids, tag, timeToLive) {
+ApiRouter.prototype.notification = function (notification, pushAll, pushIds, uids, tags, timeToLive) {
     var self = this;
 
     if (pushAll) {
@@ -28,9 +28,11 @@ ApiRouter.prototype.notification = function (notification, pushAll, pushIds, uid
                 self.sendNotificationByPushIds(notification, pushIds, timeToLive);
             });
         });
-    } else if (tag) {
-        this.tagService.getPushIdsByTag(tag, function (pushIds) {
-            self.sendNotificationByPushIds(notification, pushIds, timeToLive);
+    } else if (tags) {
+        tags.forEach(function (tag) {
+            self.tagService.getPushIdsByTag(tag, function (pushIds) {
+                self.sendNotificationByPushIds(notification, pushIds, timeToLive);
+            })
         });
     }
 };

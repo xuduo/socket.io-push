@@ -143,6 +143,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
 
         var pushIds = parseArrayParam(req.params.pushId);
         var uids = parseArrayParam(req.params.uid);
+        var tags = parseArrayParam(req.params.tag);
 
         if (req.params.pushAll == 'true') {
             logger.info('notification pushAll ', req.params);
@@ -153,7 +154,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
             res.send({code: "error", message: "pushId / uid / tag is required"});
             return next();
         }
-        apiRouter.notification(notification, req.params.pushAll == 'true', pushIds, uids, req.params.tag, parseInt(req.params.timeToLive));
+        apiRouter.notification(notification, req.params.pushAll == 'true', pushIds, uids, tags, parseInt(req.params.timeToLive));
         res.send({code: "success"});
         return next();
     };
