@@ -203,13 +203,15 @@ timeToLive -> int, 毫秒, 表示当时用户不在线, 消息服务器保存多
 
 http://yourip:11001/api/notification?pushId=true&notification=%7B%20%22android%22%3A%7B%22title%22%3A%22title%22%2C%22message%22%3A%22message%22%7D%2C%22apn%22%3A%7B%22alert%22%3A%22message%22%20%2C%20%22badge%22%3A5%2C%20%22sound%22%3A%22default%22%2C%20%22payload%22%3A1234%7D%7D
 
---- 以下参数3选一,指定推送对象
+--- 以下参数4选一,指定推送对象
 
 pushAll -> string, true表示推送全网,其它或者留空表示单个推送
 
 pushId -> string[], 如 ["abc","def"] 客户端生成的随机ID,单个或者数组
 
 uid -> string[],如 ["123","456"] 通过addPushIdToUid接口绑定的uid
+
+tag -> string[] ,如 ["tag1","tag2"] 或 string, 如 "tag1", 通过客户端或者服务器接口设置的tag
 
 ---
 
