@@ -1,4 +1,4 @@
-module.exports = topicOnline;
+module.exports = TopicOnline;
 
 function filterTopic(topic, filterArray) {
     if (!filterArray || !topic) {
@@ -12,39 +12,36 @@ function filterTopic(topic, filterArray) {
     return false;
 }
 
-function topicOnline(redis, io, id, filterTopics) {
-    if (!(this instanceof topicOnline)) return new topicOnline(redis, io, id, filterTopics);
+function TopicOnline(redis, io, id, filterTopics) {
+    if (!(this instanceof TopicOnline)) return new TopicOnline(redis, io, id, filterTopics);
     this.redis = redis;
     this.io = io;
     this.id = id;
     this.filters = filterTopics;
     this.interval = 10000;
     this.timeValidWithIn = 20000;
+    this.expire = 3600 * 24;
     var self = this;
     setInterval(function () {
         if (self.io.nsps) {
             var result = self.io.nsps['/'].adapter.rooms;
-            for (var key in result) {
-                if (result[key].length > 0 && filterTopic(key, self.filters)) {
-                    var json = {length: result[key].length, time: Date.now()};
-                    self.redis.hset("stats#topicOnline#" + key, self.id, JSON.stringify(json));
-                }
-            }
+            self.writeTopicOnline(result);
         }
     }, this.interval);
 }
 
-topicOnline.prototype.writeTopicOnline = function (data) {
-    var self = this;
+TopicOnline.prototype.writeTopicOnline = function (data) {
     for (var key in data) {
-        if (data[key].length > 0 && filterTopic(key, self.filters)) {
+        if (data[key].length > 0 && filterTopic(key, this.filters)) {
             var json = {length: data[key].length, time: Date.now()};
-            self.redis.hset("stats#topicOnline#" + key, self.id, JSON.stringify(json));
+            var redisKey = "stats#topicOnline#" + key;
+            this.redis.hset(redisKey, this.id, JSON.stringify(json));
+            this.redis.expire(redisKey, this.expire);
         }
     }
 }
 
-topicOnline.prototype.getTopicOnline = function (topic, callback) {
+TopicOnline.prototype.getTopicOnline = function (topic, callback) {
     var count = 0;
     var self = this;
     this.redis.hgetall("stats#topicOnline#" + topic, function (err, result) {

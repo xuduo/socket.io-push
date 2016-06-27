@@ -15,6 +15,7 @@ describe('http test', function () {
 
     after(function () {
         global.pushService.close();
+        global.pushClient.disconnect();
     });
 
     it('get', function (done) {

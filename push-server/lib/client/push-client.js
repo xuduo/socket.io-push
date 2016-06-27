@@ -79,7 +79,7 @@ function PushClient(url, opt) {
     }.bind(this));
 
     this.socket.on('pushId', function (data) {
-        self.event.emit('connect', {pushId: data.id, uid: data.uid});
+        self.event.emit('connect', {pushId: data.id, uid: data.uid, tags: data.tags});
     });
 
     this.topicToLastPacketId = {};
@@ -181,6 +181,14 @@ PushClient.prototype.on = function (event, callback) {
     if (callback) {
         this.event.on(event, callback);
     }
+};
+
+PushClient.prototype.addTag = function (tag) {
+    this.socket.emit('addTag', {tag: tag});
+};
+
+PushClient.prototype.removeTag = function (tag) {
+    this.socket.emit('removeTag', {tag: tag});
 };
 
 PushClient.prototype.subscribeTopic = function (topic) {

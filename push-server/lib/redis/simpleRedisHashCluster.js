@@ -126,12 +126,12 @@ commands.list.forEach(function (command) {
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         if (key == "event#client") {
             var client = util.getByHash(this.event, key);
-            handleCommand(command, arguments, client);
+            handleCommandBuffer(command, arguments, client);
         } else {
             var args = arguments;
             this.pubs.forEach(function (pub) {
                 var client = util.getByHash(pub, key);
-                handleCommand(command, args, client);
+                handleCommandBuffer(command, args, client);
             });
         }
     }
@@ -142,7 +142,7 @@ commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         var client = util.getByHash(this.sub, key);
-        handleCommand(command, arguments, client);
+        handleCommandBuffer(command, arguments, client);
     }
 
 });
@@ -160,7 +160,15 @@ function handleCommand(command, callArguments, client) {
         logger.error("handleCommand error no client %j", callArguments);
         return;
     }
+    return client.call.apply(client, [command].concat(toArray(callArguments)));
+}
 
+
+function handleCommandBuffer(command, callArguments, client) {
+    if (!client) {
+        logger.error("handleCommand error no client %j", callArguments);
+        return;
+    }
     return client.callBuffer.apply(client, [command].concat(toArray(callArguments)));
 }
 

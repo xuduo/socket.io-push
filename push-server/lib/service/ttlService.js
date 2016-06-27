@@ -3,9 +3,10 @@ module.exports = TTLService;
 var logger = require('../log/index.js')('TTLService');
 var randomstring = require("randomstring");
 
-function TTLService(redis, protocolVersion) {
-    if (!(this instanceof TTLService)) return new TTLService(redis, protocolVersion);
+function TTLService(io, redis, protocolVersion) {
+    if (!(this instanceof TTLService)) return new TTLService(io, redis, protocolVersion);
     this.redis = redis;
+    this.io = io;
     this.protocolVersion = protocolVersion || 1;
 }
 
@@ -15,7 +16,7 @@ TTLService.prototype.onPushId = function (socket, lastPacketId) {
 
 var maxTllPacketPerTopic = -50;
 
-TTLService.prototype.addPacketAndEmit = function (topic, event, timeToLive, packet, io, unicast) {
+TTLService.prototype.addPacketAndEmit = function (topic, event, timeToLive, packet, unicast) {
     if (timeToLive > 0) {
         if (!packet.id) {
             packet.id = randomstring.generate(12);
@@ -40,7 +41,7 @@ TTLService.prototype.addPacketAndEmit = function (topic, event, timeToLive, pack
             }
         });
     }
-    this.emitPacket(io.to(topic), event, packet);
+    this.emitPacket(this.io.to(topic), event, packet);
 };
 
 TTLService.prototype.getPackets = function (topic, lastId, socket, unicast) {

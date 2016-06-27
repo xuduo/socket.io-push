@@ -19,7 +19,7 @@ UidStore.prototype.bindUid = function (pushId, uid, timeToLive, platform, platfo
                 var current = Date.now();
                 for (var key in reply) {
                     if (key != pushId) {
-                        var val = reply[key].toString().split(",");
+                        var val = reply[key].split(",");
                         if (current > val[1] + val[2]) {
                             toDelete.push(key);
                         } else if (val[0] == platform && platformLimit > 0) {
@@ -82,7 +82,7 @@ UidStore.prototype.getPushIdByUid = function (uid, callback) {
         if (reply) {
             var pushIds = [];
             reply.forEach(function (val) {
-                pushIds.push(val.toString());
+                pushIds.push(val);
             });
             callback(pushIds);
         }

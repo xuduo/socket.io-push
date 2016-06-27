@@ -2,13 +2,14 @@ module.exports = RestApi;
 var restify = require('restify');
 var logger = require('../log/index.js')('RestApi');
 
-function RestApi(io, topicOnline, stats, notificationService, config, ttlService, redis, apiThreshold, apnService, apiAuth, uidStore) {
+function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore) {
 
-    if (!(this instanceof RestApi)) return new RestApi(io, topicOnline, stats, notificationService, config, ttlService, redis, apiThreshold, apnService, apiAuth, uidStore);
+    if (!(this instanceof RestApi)) return new RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore);
 
     var self = this;
 
     this.apiAuth = apiAuth;
+    this.apiRouter = apiRouter;
 
     var server = restify.createServer();
 
@@ -83,40 +84,28 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
             }
         }
 
-        var timeToLive = parseInt(req.params.timeToLive);
+        var pushIds = parseArrayParam(req.params.pushId);
+        var uids = parseArrayParam(req.params.uid);
 
-        if (req.params.pushId) {
-            parseArrayParam(req.params.pushId).forEach(function (id) {
-                ttlService.addPacketAndEmit(id, 'push', timeToLive, pushData, io, true);
-            });
-            res.send({code: "success"});
-            return next();
-        } else if (req.params.uid) {
-            parseArrayParam(req.params.uid).forEach(function (id) {
-                uidStore.getPushIdByUid(id, function (pushIds) {
-                    pushIds.forEach(function (result) {
-                        ttlService.addPacketAndEmit(result, 'push', timeToLive, pushData, io, true);
-                    });
-                });
-            });
-            res.send({code: "success"});
-            return next();
-        } else if (req.params.topic) {
-            apiThreshold.checkPushDrop(req.params.topic, function (call) {
-                if (call) {
-                    ttlService.addPacketAndEmit(req.params.topic, 'push', timeToLive, pushData, io, false);
-                    res.send({code: "success"});
-                } else {
-                    res.statusCode = 400;
-                    res.send({code: "error", message: "call threshold exceeded"});
-                }
-            });
-            return next();
-        } else {
+        if (!req.params.pushId && !req.params.uid && !req.params.topic) {
             res.statusCode = 400;
             res.send({code: "error", message: "pushId or uid is required"});
             return next();
         }
+
+        if (req.params.topic) {
+            apiThreshold.checkPushDrop(req.params.topic, function (call) {
+                if (!call) {
+                    res.statusCode = 400;
+                    res.send({code: "error", message: "call threshold exceeded"});
+                    return next();
+                }
+            });
+        }
+
+        apiRouter.push(pushData, req.params.topic, pushIds, uids, parseInt(req.params.timeToLive));
+        res.send({code: "success"});
+        return next();
     };
 
     var handleNotification = function (req, res, next) {
@@ -150,36 +139,23 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
             delete notification.apn.payload;
         }
 
-        var pushId = req.params.pushId;
-        var pushAll = req.params.pushAll;
-        var uid = req.params.uid;
-        var timeToLive = parseInt(req.params.timeToLive);
-
         logger.debug("notification ", req.params);
 
-        if (pushAll === 'true') {
+        var pushIds = parseArrayParam(req.params.pushId);
+        var uids = parseArrayParam(req.params.uid);
+
+        if (req.params.pushAll == 'true') {
             logger.info('notification pushAll ', req.params);
-            notificationService.sendAll(notification, timeToLive, io);
-            res.send({code: "success"});
-            return next();
-        } else if (pushId) {
-            var pushIds = parseArrayParam(pushId);
-            notificationService.sendByPushIds(pushIds, timeToLive, notification, io);
-            res.send({code: "success"});
-            return next();
-        } else if (uid) {
-            var uids = parseArrayParam(uid);
-            uids.forEach(function (uid) {
-                uidStore.getPushIdByUid(uid, function (pushIds) {
-                    notificationService.sendByPushIds(pushIds, timeToLive, notification, io);
-                });
-            });
-            res.send({code: "success"});
-        } else {
+        }
+
+        if (!req.params.tag && !req.params.pushId && req.params.pushAll != 'true') {
             res.statusCode = 400;
-            res.send({code: "error", message: "pushId or uid is required"});
+            res.send({code: "error", message: "pushId / uid / tag is required"});
             return next();
         }
+        apiRouter.notification(notification, req.params.pushAll == 'true', pushIds, uids, req.params.tag, parseInt(req.params.timeToLive));
+        res.send({code: "success"});
+        return next();
     };
 
     var handleStatsBase = function (req, res, next) {
@@ -271,7 +247,7 @@ function RestApi(io, topicOnline, stats, notificationService, config, ttlService
 
     server.get('/api/redis/get', function (req, res, next) {
         redis.get(req.params.key, function (err, result) {
-            res.send({key: req.params.key, value: (result && result.toString())});
+            res.send({key: req.params.key, value: result});
         });
         return next();
     });

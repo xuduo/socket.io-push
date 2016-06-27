@@ -2,8 +2,8 @@ module.exports = ProxyServer;
 var logger = require('../log/index.js')('ProxyServer');
 var http = require('http');
 
-function ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService) {
-    if (!(this instanceof ProxyServer)) return new ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService);
+function ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService) {
+    if (!(this instanceof ProxyServer)) return new ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService);
     this.io = io;
 
     io.on('connection', function (socket) {
@@ -46,26 +46,43 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                         logger.error("join pushId room fail %s", err);
                         return;
                     }
-                    uidStore.getUidByPushId(data.id, function (uid) {
-                        var reply = {id: data.id};
-                        if (uid) {
-                            reply.uid = uid.toString();
-                            socket.uid = uid;
-                        }
-                        socket.pushId = data.id;
-                        if (packetService) {
-                            packetService.publishConnect(socket);
-                        }
-                        socket.emit('pushId', reply);
-                        var lastPacketIds = data.lastPacketIds;
-                        if (lastPacketIds) {
-                            for (var topic in lastPacketIds) {
-                                ttlService.getPackets(topic, lastPacketIds[topic], socket);
+                    tagService.getTagsByPushId(data.id, function (tags) {
+                        uidStore.getUidByPushId(data.id, function (uid) {
+                            var reply = {id: data.id};
+                            if (tags) {
+                                reply.tags = tags;
                             }
-                        }
-                        ttlService.onPushId(socket, data.lastUnicastId);
+                            if (uid) {
+                                reply.uid = uid;
+                                socket.uid = uid;
+                            }
+                            socket.pushId = data.id;
+                            if (packetService) {
+                                packetService.publishConnect(socket);
+                            }
+                            socket.emit('pushId', reply);
+                            var lastPacketIds = data.lastPacketIds;
+                            if (lastPacketIds) {
+                                for (var topic in lastPacketIds) {
+                                    ttlService.getPackets(topic, lastPacketIds[topic], socket);
+                                }
+                            }
+                            ttlService.onPushId(socket, data.lastUnicastId);
+                        });
                     });
                 });
+            }
+        });
+
+        socket.on('addTag', function (data) {
+            if (socket.pushId && data.tag) {
+                tagService.addTag(socket.pushId, data.tag);
+            }
+        });
+
+        socket.on('removeTag', function (data) {
+            if (socket.pushId && data.tag) {
+                tagService.removeTag(socket.pushId, data.tag);
             }
         });
 

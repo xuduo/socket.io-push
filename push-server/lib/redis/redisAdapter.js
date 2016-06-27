@@ -70,7 +70,7 @@ function adapter(uri, opts, stats) {
         this.subClient = sub;
 
         var self = this;
-        sub.subscribe(prefix + '#' + nsp.name + '#', function (err) {
+        sub.subscribe(prefix, function (err) {
             if (err) self.emit('error', err);
         });
         sub.on('message', this.onmessage.bind(this));
@@ -102,7 +102,7 @@ function adapter(uri, opts, stats) {
         var packet;
 
         if (uid == args.shift()) {
-            return ;
+            return;
         }
 
         packet = args[0];
@@ -132,15 +132,14 @@ function adapter(uri, opts, stats) {
     Redis.prototype.broadcast = function (packet, opts, remote) {
         Adapter.prototype.broadcast.call(this, packet, opts);
         if (!remote) {
-            var chn = prefix + '#' + packet.nsp + '#';
             var msg = msgpack.encode([uid, packet, opts]);
             if (opts.rooms) {
                 opts.rooms.forEach(function (room) {
-                    var chnRoom = chn + room + '#';
+                    var chnRoom = prefix + "#" + room;
                     pub.publish(chnRoom, msg);
                 });
             } else {
-                pub.publish(chn, msg);
+                pub.publish(prefix, msg);
             }
         }
     };
@@ -158,7 +157,7 @@ function adapter(uri, opts, stats) {
         var self = this;
         var needRedisSub = this.rooms.hasOwnProperty(room) && this.rooms[room]
         Adapter.prototype.add.call(this, id, room);
-        var channel = prefix + '#' + this.nsp.name + '#' + room + '#';
+        var channel = prefix + '#' + room;
         if (id == room) {
             return;
         }
@@ -192,9 +191,13 @@ function adapter(uri, opts, stats) {
         var hasRoom = this.rooms.hasOwnProperty(room);
         Adapter.prototype.del.call(this, id, room);
 
+        if (id == room) {
+            return;
+        }
+
         if (hasRoom && !this.rooms[room]) {
 
-            var channel = prefix + '#' + this.nsp.name + '#' + room + '#';
+            var channel = prefix + '#' + room;
             sub.unsubscribe(channel, function (err) {
                 if (err) {
                     self.emit('error', err);

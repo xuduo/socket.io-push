@@ -202,10 +202,9 @@ Stats.prototype.getQueryDataKeys = function (callback) {
     this.redis.hkeys("queryDataKeys", function (err, replies) {
         var strs = [];
         replies.forEach(function (buffer) {
-            strs.push(buffer.toString());
+            strs.push(buffer);
         });
         callback(strs.sort(sortString));
-
     });
 }
 
