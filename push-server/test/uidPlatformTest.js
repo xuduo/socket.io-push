@@ -51,6 +51,28 @@ describe('push test', function () {
             }, 100);
         }, 100);
 
+    });
+
+
+    it('unbind uid', function (done) {
+        apiService.uidStore.removeUid("1000");
+        apiService.uidStore.bindUid("a", "1000", 0, "ios", 0);
+        apiService.uidStore.bindUid("b", "1000", 0, "ios", 0);
+        setTimeout(function () {
+            apiService.uidStore.getPushIdByUid("1000", function (pushIds) {
+                expect(pushIds).to.be.deep.equal(["a", "b"]);
+                apiService.uidStore.removeUid("1000");
+                setTimeout(function () {
+                    apiService.uidStore.getPushIdByUid("1000", function (pushIds) {
+                        expect(pushIds).to.be.empty;
+                        apiService.uidStore.getUidByPushId("a", function (uid) {
+                            expect(uid).to.be.null;
+                            done();
+                        });
+                    });
+                }, 100);
+            });
+        }, 100);
 
     });
 

@@ -2,6 +2,11 @@ module.exports = HttpProxyService;
 
 var request = require('request');
 var logger = require('../log/index.js')('HttpProxyService');
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+var https = require('https');
+var httpsAgent = new https.Agent({keepAlive: true});
+var http = require('http');
+var httpAgent = new http.Agent({keepAlive: true});
 
 function HttpProxyService(removeHeaders) {
     if (!(this instanceof HttpProxyService)) return new HttpProxyService(removeHeaders);
@@ -14,6 +19,12 @@ HttpProxyService.prototype.request = function (opts, callback) {
         url: opts[1],
         headers: opts[2]
     };
+
+    if (opts[1].startsWith("https")) {
+        requestOpts.agent = httpsAgent;
+    } else {
+        requestOpts.agent = httpAgent;
+    }
 
     if (requestOpts.method == "get") {
         requestOpts.qs = opts[3];

@@ -264,4 +264,8 @@ platformLimit -> int(可选), 默认 = 0, 表示不限制. 不为0时, 表示保
 
 http://yourip:11001/api/uid/remove?pushId=abc
 
-pushId -> string,客户端生成的随机ID
+--- 以下参数2选一,指定推送对象
+
+pushId -> string, 解绑该pushId对应的uid
+
+uid -> string, 解绑该uid的所有设备

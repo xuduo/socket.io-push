@@ -70,6 +70,19 @@ UidStore.prototype.removePushId = function (pushId, removePushIdToUid, callback)
     });
 };
 
+UidStore.prototype.removeUid = function (uid) {
+    logger.debug("removePushId pushId  %s", uid);
+    var self = this;
+    this.getPushIdByUid(uid, function (pushIds) {
+        if (pushIds) {
+            pushIds.forEach(function (pushId) {
+                self.redis.del("pushIdToUid#" + pushId);
+            });
+        }
+        self.redis.del("uidToPushId#" + uid);
+    });
+};
+
 UidStore.prototype.getUidByPushId = function (pushId, callback) {
     this.redis.get("pushIdToUid#" + pushId, function (err, uid) {
         logger.debug("getUidByPushId %s %s", pushId, uid);
