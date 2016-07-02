@@ -87,7 +87,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         var pushIds = parseArrayParam(req.params.pushId);
         var uids = parseArrayParam(req.params.uid);
 
-        if (!req.params.pushId && !req.params.uid && !req.params.topic) {
+        if (!pushIds && !uids && !req.params.topic) {
             res.statusCode = 400;
             res.send({code: "error", message: "pushId or uid is required"});
             return next();
@@ -180,11 +180,17 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     };
 
     var removeRemoveUid = function (req, res, next) {
-        if (req.params.pushId) {
-            uidStore.removePushId(req.params.pushId, true);
+        var pushIds = parseArrayParam(req.params.pushId);
+        var uids = parseArrayParam(req.params.uid);
+        if (pushIds) {
+            pushIds.forEach(function (pushId) {
+                uidStore.removePushId(pushId, true);
+            });
             res.send({code: "success"});
-        } else if (req.params.uid) {
-            uidStore.removeUid(req.params.uid);
+        } else if (uids) {
+            uids.forEach(function (uid) {
+                uidStore.removeUid(uid);
+            });
             res.send({code: "success"});
         } else {
             res.statusCode = 400;

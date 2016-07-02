@@ -179,8 +179,11 @@ topic -> string, 客户端订阅的topic, (subscribeBroadcast的才能收到)
 
 pushId -> string[], 如 ["abc","def"] 客户端生成的随机ID,单个或者数组
 
+        或 string, 如 "abc"
+
 uid -> string[],如 ["123","456"] 通过addPushIdToUid接口绑定的uid
 
+        或 string, 如 "123"
 ---
 
 json ->  以下类型三选一,透传给客户端的数据,客户端会在onPush里接收到
@@ -209,7 +212,11 @@ pushAll -> string, true表示推送全网,其它或者留空表示单个推送
 
 pushId -> string[], 如 ["abc","def"] 客户端生成的随机ID,单个或者数组
 
+          或 string, 如 "abc"
+
 uid -> string[],如 ["123","456"] 通过addPushIdToUid接口绑定的uid
+
+        或 string, 如 "123"
 
 tag -> string, 如 "tag1", 通过客户端或者服务器接口设置的tag
 
@@ -266,6 +273,10 @@ http://yourip:11001/api/uid/remove?pushId=abc
 
 --- 以下参数2选一,指定推送对象
 
-pushId -> string, 解绑该pushId对应的uid
+pushId -> string[], 如 ["abc","def"] 解绑该pushId对应的uid
 
-uid -> string, 解绑该uid的所有设备
+          或 string, 如 "abc"
+
+uid -> string[],如 ["123","456"] 解绑该uid的所有设备
+
+        或 string, 如 "123"
