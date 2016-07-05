@@ -59,7 +59,8 @@ NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, not
             } else if (self.ttlService) {
                 logger.debug("send notification in socket.io connection %s", pushId);
                 if (notification.android.title) {
-                    self.ttlService.addPacketAndEmit(pushId, 'noti', timeToLive, notification, true);
+                    self.ttlService.addTTL(pushId, 'noti', timeToLive, notification, true);
+                    self.ttlService.emitPacket(pushId, 'noti', notification);
                 }
             }
         });
@@ -69,7 +70,8 @@ NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, not
 NotificationService.prototype.sendAll = function (notification, timeToLive) {
     addIdAndTimestamp(notification);
     if (this.ttlService && notification.android.title) {
-        this.ttlService.addPacketAndEmit("noti", 'noti', timeToLive, notification, false);
+        this.ttlService.addTTL("noti", 'noti', timeToLive, notification, false);
+        this.ttlService.emitPacket("noti", 'noti', notification);
     }
     this.providerFactory.sendAll(notification, timeToLive);
 };

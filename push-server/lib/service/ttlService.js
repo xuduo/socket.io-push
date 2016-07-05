@@ -16,7 +16,7 @@ TTLService.prototype.onPushId = function (socket, lastPacketId) {
 
 var maxTllPacketPerTopic = -50;
 
-TTLService.prototype.addPacketAndEmit = function (topic, event, timeToLive, packet, unicast) {
+TTLService.prototype.addTTL = function (topic, event, timeToLive, packet, unicast) {
     if (timeToLive > 0) {
         if (!packet.id) {
             packet.id = randomstring.generate(12);
@@ -41,7 +41,6 @@ TTLService.prototype.addPacketAndEmit = function (topic, event, timeToLive, pack
             }
         });
     }
-    this.emitPacket(this.io.to(topic), event, packet);
 };
 
 TTLService.prototype.getPackets = function (topic, lastId, socket, unicast) {
@@ -61,7 +60,7 @@ TTLService.prototype.getPackets = function (topic, lastId, socket, unicast) {
                         logger.debug("lastFound %s %s", topic, lastId);
                     } else if (lastFound == true && jsonPacket.timestampValid > now) {
                         logger.debug("call emitPacket %s %s", jsonPacket.id, lastId);
-                        self.emitPacket(socket, jsonPacket.event, jsonPacket);
+                        self.emitToSocket(socket, jsonPacket.event, jsonPacket);
                     }
                 });
 
@@ -74,7 +73,7 @@ TTLService.prototype.getPackets = function (topic, lastId, socket, unicast) {
                     list.forEach(function (packet) {
                         var jsonPacket = JSON.parse(packet);
                         if (jsonPacket.timestampValid > now) {
-                            self.emitPacket(socket, jsonPacket.event, jsonPacket)
+                            self.emitToSocket(socket, jsonPacket.event, jsonPacket)
                         }
                     });
                 }
@@ -83,7 +82,11 @@ TTLService.prototype.getPackets = function (topic, lastId, socket, unicast) {
     }
 };
 
-TTLService.prototype.emitPacket = function (socket, event, packet) {
+TTLService.prototype.emitPacket = function (topic, event, packet) {
+    this.emitToSocket(this.io.to(topic), event, packet);
+}
+
+TTLService.prototype.emitToSocket = function (socket, event, packet) {
     delete packet.event;
     delete packet.timestampValid;
     if (packet.timestamp) {

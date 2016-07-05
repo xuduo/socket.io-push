@@ -4,6 +4,7 @@ var logger = require('../log/index.js')('ApiRouter');
 
 var util = require('../util/util.js');
 var request = require('request');
+const pushEvent = 'push';
 
 function ApiRouter(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls) {
     if (!(this instanceof ApiRouter)) return new ApiRouter(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls);
@@ -39,18 +40,21 @@ ApiRouter.prototype.push = function (pushData, topic, pushIds, uids, timeToLive)
     var self = this;
     if (pushIds) {
         pushIds.forEach(function (id) {
-            self.ttlService.addPacketAndEmit(id, 'push', timeToLive, pushData, true);
+            self.ttlService.addTTL(id, pushEvent, timeToLive, pushData, true);
+            self.ttlService.emitPacket(id, pushEvent, pushData);
         });
     } else if (uids) {
         uids.forEach(function (id) {
             self.uidStore.getPushIdByUid(id, function (pushIds) {
-                pushIds.forEach(function (result) {
-                    self.ttlService.addPacketAndEmit(result, 'push', timeToLive, pushData, true);
+                pushIds.forEach(function (id) {
+                    self.ttlService.addTTL(id, pushEvent, timeToLive, pushData, true);
+                    self.ttlService.emitPacket(id, pushEvent, pushData);
                 });
             });
         });
     } else if (topic) {
-        self.ttlService.addPacketAndEmit(topic, 'push', timeToLive, pushData, false);
+        self.ttlService.addTTL(topic, pushEvent, timeToLive, pushData, false);
+        self.ttlService.emitPacket(topic, pushEvent, pushData);
     }
 };
 

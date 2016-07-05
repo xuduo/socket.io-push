@@ -43,7 +43,7 @@ XiaomiProvider.prototype.getPostData = function (notification, tokenData, timeTo
     var postData = {
         title: notification.android.title,
         description: notification.android.message,
-        notify_id: notification.id,
+        notify_id: util.hash(notification.id),
         "extra.notify_foreground": this.notify_foreground,
         payload: JSON.stringify({android: notification.android, id: notification.id})
     };
