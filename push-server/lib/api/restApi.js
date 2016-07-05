@@ -115,13 +115,22 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
             res.send({code: "error", message: 'not authorized'});
             return next();
         }
-
-        var notification = JSON.parse(req.params.notification);
-        if (!notification) {
+        if (!req.params.notification) {
             res.statusCode = 400;
             res.send({code: "error", message: 'notification is required'});
             return next();
         }
+
+        var notification;
+        try {
+            notification = JSON.parse(req.params.notification);
+        } catch (err) {
+            logger.error("notification parse json error ", req.params.notification, err);
+            res.statusCode = 400;
+            res.send({code: "error", message: 'notification format error ' + err + " " + req.params.notification});
+            return next();
+        }
+
 
         if (!notification.android) {
             notification.android = {};

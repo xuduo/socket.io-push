@@ -82,4 +82,11 @@ config.ttl_protocol_version = 2; //默认1, 推荐使用2,省流量
 
 config.http_remove_headers = true;
 
+config.routerMaxPushIds = 1000;
+
+config.routerApiUrls = [
+    "http://127.0.0.1:11001",
+    "http://127.0.0.1:11001"
+];
+
 module.exports = config;
