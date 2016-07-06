@@ -47,17 +47,11 @@ XiaomiProvider.prototype.getPostData = function (notification, tokenDataList, ti
         "extra.notify_foreground": this.notify_foreground,
         payload: JSON.stringify({android: notification.android, id: notification.id})
     };
-
-    var registids = '';
-    for(token in tokenDataList){
-        if(tokenDataList[token].token){
-            registids += tokenDataList[token].token + ',';
-        }
+    if (tokenDataList) {
+        postData.registration_id = tokenDataList.map(function (tokenData) {
+            return tokenData.token;
+        }).join();
     }
-    if(registids){
-        postData.registration_id = registids.slice(0,-1);
-    }
-
     if (timeToLive > 0) {
         postData.time_to_live = timeToLive;
     } else {

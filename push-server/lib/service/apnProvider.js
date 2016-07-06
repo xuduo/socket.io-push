@@ -59,14 +59,14 @@ ApnProvider.prototype.sendMany = function (notification, apnDataList, timeToLive
     }
     
     var mapApnToken = {};
-    for(apnData in apnDataList){
-        bundleId = apnDataList[apnData].bundleId;
+    for(var apnData of apnDataList){
+        bundleId = apnData.bundleId;
         apnList = mapApnToken[bundleId] || [];
-        apnList.push(apnDataList[apnData].token);
+        apnList.push(apnData.token);
         mapApnToken[bundleId] = apnList;
     }
 
-    for(bundle in mapApnToken){
+    for(var bundle in mapApnToken){
         var apnConnection = this.apnConnections[bundle];
         if(apnConnection){
             this.stats.addPushTotal(1, this.type);

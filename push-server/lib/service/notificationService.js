@@ -60,24 +60,18 @@ NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, not
             if(token){  //小米&华为&苹果之外的终端没有对应的token
                 tokenList = mapTypeToToken[token.type] || [];
                 tokenList.push(token);
-                mapTypeToToken[token.type] = mapTypeToToken[token.type] ? mapTypeToToken[token.type] : tokenList;
-                callback(null);
+                mapTypeToToken[token.type] = tokenList;
             } else {
                 logger.debug("send notification in socket.io, connection %s", pushId);
-                callback(null);     //在ttlService调用真实的推送之前调用callback
                 if(notification.android.title){
                     self.ttlService.addTTL(pushId, 'noti', timeToLive, notification, true);
                     self.ttlService.emitPacket(pushId, 'noti', notification);
-
                 }
             }
-
+            callback();
         });
     }, function(err){
-        for(type in mapTypeToToken){
-            logger.debug("send notifications by third party, type: %j", type);
-            self.providerFactory.sendMany(type, mapTypeToToken[type], notification, timeToLive);
-        }
+        self.providerFactory.sendMany(notification, mapTypeToToken, timeToLive);
     });
 
 };

@@ -33,18 +33,18 @@ HuaweiProvider.prototype.sendMany = function (notification, tokenDataList, timeT
         self.stats.addPushTotal(tokenDataList.length, self.type);
 
         var mapTokenData = {};
-        for (token in tokenDataList) {
-            var package_name = tokenDataList[token].package_name || this.default_package_name;
+        for (const tokenData of tokenDataList) {
+            var package_name = tokenData.package_name || this.default_package_name;
             if (!this.authInfo[package_name]) {
                 logger.error('huawei package name not supported: ', package_name);
                 continue;
             }
             tokenList = mapTokenData[package_name] || [];
-            tokenList.push(tokenDataList[token]);
+            tokenList.push(tokenData);
             mapTokenData[package_name] = tokenList;
         }
 
-        for (packet_name in mapTokenData) {
+        for (var packet_name in mapTokenData) {
             this.checkToken(package_name, function (tokenError) {
                 if (!tokenError) {
                     logger.debug("sendMany ", notification, timeToLive);
@@ -84,24 +84,18 @@ HuaweiProvider.prototype.getPostData = function (push_type, notification, packag
             doings: 1
         })
     };
-    // if (tokenData && tokenData.token) {
-    //     postData.tokens = tokenData.token;
-    // }
-    var tokens = '';
-    for (token in tokenDataList) {
-        if (tokenDataList[token].token) {
-            tokens += tokenDataList[token].token + ',';
-        }
+    if(tokenDataList) {
+        postData.tokens = tokenDataList.map(function(tokenData){
+            return tokenData.token;
+        }).join();
     }
-    if (tokens)
-        postData.tokens = tokens.slice(0, -1);
 
     if (timeToLive > 0) {
         postData.expire_time = formatHuaweiDate(new Date(Date.now() + timeToLive));
         logger.debug("postData.expire_time ", postData.expire_time);
     }
     return postData;
-}
+};
 
 HuaweiProvider.prototype.addToken = function (data) {
 
@@ -117,7 +111,7 @@ HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback)
             this.checkToken(package_name, function (tokenError) {
                 if (!tokenError) {
                     logger.debug("sendAll ", notification, timeToLive);
-                    var postData = self.getPostData(2, notification, package_name, {package_name: package_name}, timeToLive);
+                    var postData = self.getPostData(2, notification, package_name, 0, timeToLive);
                     request.post({
                         url: apiUrl,
                         form: postData

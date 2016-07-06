@@ -42,6 +42,18 @@ describe('huawei test', function () {
             android: {title: "sendOne", message: "sendOne Msg", payload: {test: "wwwwqqq"}}
         };
         var doneCount = 0;
+        huaweiProvider.sendMany(notificationOne, [{token: "0988774580439242232000001425000001"},{token: "03574580439242232000001425000001"}], 60 * 60 * 1000, function (error) {
+            expect(error).to.not.be.ok;
+            if(++doneCount == 1)
+                done();
+        });
+    });
+
+    it('huawei send many2', function(done){
+        var notificationOne = {
+            android: {title: "sendOne", message: "sendOne Msg", payload: {test: "wwwwqqq"}}
+        };
+        var doneCount = 0;
         huaweiProvider.sendMany(notificationOne, [{token: "0988774580439242232000001425000001", package_name:"com.yy.misaka.demo2"},{token: "03574580439242232000001425000001"}], 60 * 60 * 1000, function (error) {
             expect(error).to.not.be.ok;
             if(++doneCount == 2)
