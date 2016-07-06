@@ -4,6 +4,7 @@ var logger = require('../log/index.js')('NotificationService');
 var util = require('../util/util.js');
 var apn = require('apn');
 var randomstring = require("randomstring");
+var async = require('async');
 
 function NotificationService(providerFactory, redis, ttlService, tokenTTL) {
     if (!(this instanceof NotificationService)) return new NotificationService(providerFactory, redis, ttlService, tokenTTL);
@@ -40,7 +41,6 @@ NotificationService.prototype.setThirdPartyToken = function (data) {
 
 NotificationService.prototype.getTokenDataByPushId = function (pushId, callback) {
     this.redis.get("pushIdToToken#" + pushId, function (err, reply) {
-        logger.debug("pushIdToToken %s %j", pushId, reply);
         var token;
         if (reply) {
             token = JSON.parse(reply);
@@ -52,19 +52,28 @@ NotificationService.prototype.getTokenDataByPushId = function (pushId, callback)
 NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, notification) {
     var self = this;
     addIdAndTimestamp(notification);
-    pushIds.forEach(function (pushId) {
-        self.getTokenDataByPushId(pushId, function (token) {
-            if (token) {
-                self.providerFactory.sendOne(notification, token, timeToLive);
-            } else if (self.ttlService) {
-                logger.debug("send notification in socket.io connection %s", pushId);
-                if (notification.android.title) {
+
+    mapTypeToToken = {};
+    async.each(pushIds, function(pushId, callback){  //集合元素并发执行,如果全部未出错,则最后callback中err为undefined; 否则如果中途出错,直接调用callback,其他未执行完的任务继续(只执行一次callback..)
+        self.getTokenDataByPushId(pushId, function(token){
+            logger.debug('pushId: %s to token: %j', pushId, token);
+            if(token){  //小米&华为&苹果之外的终端没有对应的token
+                tokenList = mapTypeToToken[token.type] || [];
+                tokenList.push(token);
+                mapTypeToToken[token.type] = tokenList;
+            } else {
+                logger.debug("send notification in socket.io, connection %s", pushId);
+                if(notification.android.title){
                     self.ttlService.addTTL(pushId, 'noti', timeToLive, notification, true);
                     self.ttlService.emitPacket(pushId, 'noti', notification);
                 }
             }
+            callback();
         });
+    }, function(err){
+        self.providerFactory.sendMany(notification, mapTypeToToken, timeToLive);
     });
+
 };
 
 NotificationService.prototype.sendAll = function (notification, timeToLive) {

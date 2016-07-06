@@ -30,19 +30,24 @@ config.huawei = [{
     package_name: "com.yy.misaka.demo",
     client_id: 10513719,
     client_secret: "9l7fwfxt0m37qt61a1rh3w0lg9hjza1l"
-}]
+},{
+    package_name: "com.yy.misaka.demo2",
+    client_id: 10578747,
+    client_secret: "43b37a2893af873910eb38b3417d8855"
+}
+];
 
 //小米推送配置,可选, 小米内建支持多包名, 一个配置就可以
 config.xiaomi = {
     app_secret: "ynJJ6b+MkCLyw1cdrg/72w=="
-}
+};
 
 //api调用鉴权,可选
 config.apiAuth = function (path, req, logger) {
     var ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
     logger.info("%s caller ip %s", path, ip);
     return true;
-}
+};
 
 /**
  * 数组表示hash切片,可以配置多个redis实例,分担流量/cpu负载

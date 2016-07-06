@@ -11,12 +11,19 @@ describe('apn test', function () {
         global.apiUrl = 'http://localhost:' + config.api_port;
         global.pushService = require('../lib/push-server.js')(config);
         global.pushClient = require('../lib/client/push-client.js')('http://localhost:' + config.io_port);
+        global.pushClient2 = require('../lib/client/push-client.js')('http://localhost:' + config.io_port);
+
+        global.pushClient2.on('connect', function(){
+            pushClient2.socket.emit("token", {token: 'ffff', bundleId: "com.xuduo.pushtest", type: 'apn'}); //这里emit可能比下面的request还晚,所以可能出问题
+            pushClient2.on('notification', function(){});
+        })
 
     });
 
     after(function () {
         global.pushService.close();
         global.pushClient.disconnect();
+        global.pushClient2.disconnect();
     });
 
     it('test send one', function (done) {
@@ -34,7 +41,8 @@ describe('apn test', function () {
             request
                 .post(apiUrl + '/api/notification')
                 .send({
-                    pushId: pushClient.pushId,
+                    pushId: [pushClient.pushId,pushClient2.pushId],
+                    //pushId: pushClient2.pushId,
                     notification: str
                 })
                 .set('Accept', 'application/json')
