@@ -26,40 +26,53 @@ function HuaweiProvider(config, stats) {
     this.type = "huawei";
 }
 
-HuaweiProvider.prototype.sendOne = function (notification, tokenData, timeToLive, callback) {
+HuaweiProvider.prototype.sendMany = function (notification, tokenDataList, timeToLive, callback) {
     if (notification.android.title) {
-        tokenData.package_name = tokenData.package_name || this.default_package_name;
-        if (!this.authInfo[tokenData.package_name]) {
-            logger.debug('huawei package name not supported ', tokenData);
-            return;
-        }
+
         var self = this;
-        self.stats.addPushTotal(1, self.type);
-        this.checkToken(tokenData.package_name, function (tokenError) {
-            if (!tokenError) {
-                logger.debug("sendOne ", notification, timeToLive);
-                var postData = self.getPostData(1, notification, tokenData, timeToLive);
-                request.post({
-                    url: apiUrl,
-                    form: postData,
-                    timeout: timeout
-                }, function (error, response, body) {
-                    logger.debug("sendOne result", error, body);
-                    if (!error && response && response.statusCode == 200) {
-                        self.stats.addPushSuccess(1, self.type);
-                    }
-                    if (callback) {
-                        callback(error);
-                    }
-                });
+        self.stats.addPushTotal(tokenDataList.length, self.type);
+
+        var mapTokenData = {};
+        for (token in tokenDataList) {
+            var package_name = tokenDataList[token].package_name || this.default_package_name;
+            if (!this.authInfo[package_name]) {
+                logger.error('huawei package name not supported: ', package_name);
+                continue;
             }
-        });
+            tokenList = mapTokenData[package_name] || [];
+            tokenList.push(tokenDataList[token]);
+            mapTokenData[package_name] = tokenList;
+        }
+
+        for (packet_name in mapTokenData) {
+            this.checkToken(package_name, function (tokenError) {
+                if (!tokenError) {
+                    logger.debug("sendMany ", notification, timeToLive);
+                    var postData = self.getPostData(1, notification, package_name, mapTokenData[package_name], timeToLive);
+                    request.post({
+                        url: apiUrl,
+                        form: postData,
+                        timeout: timeout
+                    }, function (error, response, body) {
+                        logger.debug("sendOne result", error, body);
+                        if (!error && response && response.statusCode == 200) {
+                            self.stats.addPushSuccess(mapTokenData[package_name].length, self.type);
+                        }else {
+                            error = error || 'unknown error';
+                        }
+                        if (callback) {
+                            callback(error);
+                        }
+                    });
+                }
+            });
+        }
     }
 };
 
-HuaweiProvider.prototype.getPostData = function (push_type, notification, tokenData, timeToLive) {
+HuaweiProvider.prototype.getPostData = function (push_type, notification, package_name, tokenDataList, timeToLive) {
     var postData = {
-        access_token: this.authInfo[tokenData.package_name].access_token,
+        access_token: this.authInfo[package_name].access_token,
         nsp_svc: "openpush.openapi.notification_send",
         nsp_fmt: "JSON",
         nsp_ts: Date.now(),
@@ -71,9 +84,18 @@ HuaweiProvider.prototype.getPostData = function (push_type, notification, tokenD
             doings: 1
         })
     };
-    if (tokenData && tokenData.token) {
-        postData.tokens = tokenData.token;
+    // if (tokenData && tokenData.token) {
+    //     postData.tokens = tokenData.token;
+    // }
+    var tokens = '';
+    for (token in tokenDataList) {
+        if (tokenDataList[token].token) {
+            tokens += tokenDataList[token].token + ',';
+        }
     }
+    if (tokens)
+        postData.tokens = tokens.slice(0, -1);
+
     if (timeToLive > 0) {
         postData.expire_time = formatHuaweiDate(new Date(Date.now() + timeToLive));
         logger.debug("postData.expire_time ", postData.expire_time);
@@ -88,12 +110,14 @@ HuaweiProvider.prototype.addToken = function (data) {
 HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback) {
     if (notification.android.title) {
         var self = this;
-        self.stats.addPushTotal(1, self.type + "All");
+
+        var httpResponseCount = 0;
         for (var package_name in this.authInfo) {
+            self.stats.addPushTotal(1, self.type + "All");
             this.checkToken(package_name, function (tokenError) {
                 if (!tokenError) {
                     logger.debug("sendAll ", notification, timeToLive);
-                    var postData = self.getPostData(2, notification, {package_name: package_name}, timeToLive);
+                    var postData = self.getPostData(2, notification, package_name, {package_name: package_name}, timeToLive);
                     request.post({
                         url: apiUrl,
                         form: postData
@@ -101,6 +125,8 @@ HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback)
                         logger.info("sendAll result", error, response && response.statusCode, body);
                         if (!error && response && response.statusCode == 200) {
                             self.stats.addPushSuccess(1, self.type + "All");
+                        } else {
+                            error = error || "unknown error"
                         }
                         if (callback) {
                             callback(error);
@@ -109,6 +135,8 @@ HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback)
                 }
             });
         }
+
+
     }
 };
 

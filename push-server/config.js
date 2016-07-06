@@ -30,7 +30,12 @@ config.huawei = [{
     package_name: "com.yy.misaka.demo",
     client_id: 10513719,
     client_secret: "9l7fwfxt0m37qt61a1rh3w0lg9hjza1l"
-}]
+},{
+    package_name: "com.yy.misaka.demo2",
+    client_id: 10578747,
+    client_secret: "43b37a2893af873910eb38b3417d8855"
+}
+]
 
 //小米推送配置,可选, 小米内建支持多包名, 一个配置就可以
 config.xiaomi = {

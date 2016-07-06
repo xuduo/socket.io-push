@@ -19,13 +19,13 @@ NotificationProviderFactory.prototype.addToken = function (data) {
     }
 };
 
-NotificationProviderFactory.prototype.sendOne = function (notification, data, timeToLive) {
-    var provider = this.providers[data.type || "apn"];
-    logger.debug("sendOne %j", data);
-    if (provider) {
-        provider.sendOne(notification, data, timeToLive);
+NotificationProviderFactory.prototype.sendMany = function(type, tokenList, notification, timeToLive){
+    var provider = this.providers[type || "apn"];
+    logger.debug("sendMany %s", type);
+    if(provider){
+        provider.sendMany(notification, tokenList, timeToLive);
     }
-};
+}
 
 NotificationProviderFactory.prototype.sendAll = function (notification, timeToLive) {
     for (var key in this.providers) {
