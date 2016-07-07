@@ -5,6 +5,7 @@ var logger = require('../log/index.js')('ApiRouter');
 var util = require('../util/util.js');
 var request = require('request');
 const pushEvent = 'push';
+var serverIndex = 0;
 
 function ApiRouter(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls) {
     if (!(this instanceof ApiRouter)) return new ApiRouter(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls);
@@ -30,8 +31,15 @@ ApiRouter.prototype.notification = function (notification, pushAll, pushIds, uid
             });
         });
     } else if (tag) {
-        this.tagService.getPushIdsByTag(tag, function (pushIds) {
-            self.sendNotificationByPushIds(notification, pushIds, timeToLive);
+        var batch = [];
+        this.tagService.scanPushIdByTag(tag, this.maxPushIds, function (pushId) {
+            batch.push(pushId);
+            if (batch.length == self.maxPushIds) {
+                self.callRemoteNotification(notification, batch, timeToLive);
+                batch = [];
+            }
+        }, function () {
+            self.callRemoteNotification(notification, batch, timeToLive);
         });
     }
 };
@@ -62,14 +70,12 @@ ApiRouter.prototype.sendNotificationByPushIds = function (notification, pushIds,
     if (pushIds.length > this.maxPushIds && this.remoteUrls) {
         logger.info("sendNotification to remote api ", this.maxPushIds, pushIds.length);
         var batch = [];
-        var serverIndex = 0;
         var self = this;
         pushIds.forEach(function (pushId, index) {
             batch.push(pushId);
             if (batch.length == self.maxPushIds || index == pushIds.length - 1) {
-                var apiUrl = self.remoteUrls[serverIndex++ % self.remoteUrls.length];
-                self.callRemoteNotification(apiUrl, notification, batch, timeToLive);
-                batch.length = 0;
+                self.callRemoteNotification(notification, batch, timeToLive);
+                batch = [];
             }
         });
     } else {
@@ -77,7 +83,16 @@ ApiRouter.prototype.sendNotificationByPushIds = function (notification, pushIds,
     }
 };
 
-ApiRouter.prototype.callRemoteNotification = function (apiUrl, notification, pushIds, timeToLive) {
+ApiRouter.prototype.callRemoteNotification = function (notification, pushIds, timeToLive) {
+    if (!pushIds) {
+        return;
+    }
+    serverIndex++;
+    if (serverIndex == this.remoteUrls.length) {
+        serverIndex = 0;
+    }
+    var apiUrl = this.remoteUrls[serverIndex % this.remoteUrls.length];
+
     request({
             url: apiUrl + "/api/notification",
             method: "post",
@@ -87,7 +102,7 @@ ApiRouter.prototype.callRemoteNotification = function (apiUrl, notification, pus
                 timeToLive: timeToLive
             }
         }, function (error, response, body) {
-            logger.debug("call remote api batch", body);
+            logger.info("call remote api batch ", pushIds.length, apiUrl, body);
         }
     );
 };

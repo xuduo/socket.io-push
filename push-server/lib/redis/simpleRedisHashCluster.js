@@ -155,6 +155,13 @@ commands.list.forEach(function (command) {
     }
 });
 
+
+SimpleRedisHashCluster.prototype["hscanStream"] = function (key, opts) {
+    var client = util.getByHash(this.read, key);
+    return client.hscanStream(key, opts || {});
+}
+
+
 function handleCommand(command, callArguments, client) {
     if (!client) {
         logger.error("handleCommand error no client %j", callArguments);

@@ -1,4 +1,5 @@
 module.exports = TagService;
+var logger = require('../log/index.js')('TagService');
 
 function TagService(redis) {
     if (!(this instanceof TagService)) return new TagService(redis);
@@ -34,5 +35,20 @@ TagService.prototype.getTagsByPushId = function (pushId, callback) {
         if (tags) {
             callback(tags);
         }
+    });
+};
+
+TagService.prototype.scanPushIdByTag = function (tag, count, callback, endCallback) {
+    var stream = this.redis.hscanStream("tagPushId#" + tag, {count: count});
+
+    stream.on('data', function (resultKeys) {
+        for (var i = 0; i < resultKeys.length; i++) {
+            if (i % 2 == 0) {
+                callback(resultKeys[i]);
+            }
+        }
+    });
+    stream.on('end', function () {
+        endCallback();
     });
 };
