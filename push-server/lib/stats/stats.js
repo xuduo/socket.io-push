@@ -1,7 +1,7 @@
 module.exports = Stats;
 
-var logger = require('../log/index.js')('Stats');
-var randomstring = require("randomstring");
+const logger = require('../log/index.js')('Stats');
+const randomstring = require("randomstring");
 
 function Stats(redis, port, commitThreshHold) {
     if (!(this instanceof Stats)) return new Stats(redis, port, commitThreshHold);
@@ -11,15 +11,15 @@ function Stats(redis, port, commitThreshHold) {
     this.packetDrop = 0;
     this.packetDropThreshold = 0;
     this.ms = new (require('./moving-sum.js'))();
-    var ipPath = process.cwd() + "/ip";
-    var fs = require('fs');
-    var ip;
+    const ipPath = process.cwd() + "/ip";
+    const fs = require('fs');
+    let ip;
     if (fs.existsSync(ipPath)) {
         ip = fs.readFileSync(ipPath, "utf8").trim() + ":" + port;
     }
     logger.debug("ip file %s %s", ipPath, ip);
     this.id = ip || randomstring.generate(32);
-    var self = this;
+    const self = this;
     setInterval(function () {
         self.writeStatsToRedis();
     }, 10000);
@@ -27,8 +27,8 @@ function Stats(redis, port, commitThreshHold) {
 }
 
 Stats.prototype.writeStatsToRedis = function () {
-    var self = this;
-    var packetAverage = this.ms.sum([10 * 1000]);
+    const self = this;
+    const packetAverage = this.ms.sum([10 * 1000]);
     this.packetAverage1 = packetAverage[0];
     this.redis.hset("stats#sessionCount", self.id, JSON.stringify({
         timestamp: Date.now(),
@@ -73,24 +73,24 @@ Stats.prototype.changePlatformCount = function (platform, count) {
 }
 
 Stats.prototype.onPacket = function () {
-    var timestamp = Date.now();
+    const timestamp = Date.now();
     this.packetAverage1++;
     this.ms.push(timestamp);
     this.incr("stats#toClientPacket#totalCount", timestamp);
 }
 
 Stats.prototype.addPushTotal = function (count, type) {
-    var timestamp = Date.now();
+    const timestamp = Date.now();
     this.incrby("stats#" + type + "Push#totalCount", timestamp, count);
 }
 
 Stats.prototype.addPushSuccess = function (count, type) {
-    var timestamp = Date.now();
+    const timestamp = Date.now();
     this.incrby("stats#" + type + "Push#successCount", timestamp, count);
 }
 
 Stats.prototype.addPushError = function (count, errorCode, type) {
-    var timestamp = Date.now();
+    const timestamp = Date.now();
     this.incrby("stats#" + type + "PushError" + errorCode + "#totalCount", timestamp, count);
 }
 
@@ -100,15 +100,15 @@ Stats.prototype.addSession = function (socket, count) {
     }
     this.sessionCount.total += count;
 
-    var self = this;
+    const self = this;
 
     socket.on('stats', function (data) {
         logger.debug("on stats %j", data.requestStats);
-        var timestamp = Date.now();
-        var totalCount = 0;
+        const timestamp = Date.now();
+        const totalCount = 0;
         if (data.requestStats && data.requestStats.length) {
-            for (var i = 0; i < data.requestStats.length; i++) {
-                var requestStat = data.requestStats[i];
+            for (let i = 0; i < data.requestStats.length; i++) {
+                const requestStat = data.requestStats[i];
                 self.incrby("stats#request#" + requestStat.path + "#totalCount", timestamp, requestStat.totalCount);
                 self.incrby("stats#request#" + requestStat.path + "#successCount", timestamp, requestStat.successCount);
                 self.incrby("stats#request#" + requestStat.path + "#totalLatency", timestamp, requestStat.totalLatency);
@@ -124,28 +124,28 @@ Stats.prototype.removeSession = function (count) {
     this.sessionCount.total -= count;
 };
 
-var mSecPerHour = 60 * 60 * 1000;
+const mSecPerHour = 60 * 60 * 1000;
 
 function hourStrip(timestamp) {
     return Math.floor(timestamp / mSecPerHour) * mSecPerHour;
 }
 
 Stats.prototype.incr = function (key, timestamp) {
-    var hourKey = hourStrip(timestamp);
+    const hourKey = hourStrip(timestamp);
     key = key + "#" + hourKey;
     this.redisIncrBuffer.incrby(key, 1);
 };
 
 Stats.prototype.incrby = function (key, timestamp, by) {
     if (by > 0) {
-        var hourKey = hourStrip(timestamp);
+        const hourKey = hourStrip(timestamp);
         key = key + "#" + hourKey;
         this.redisIncrBuffer.incrby(key, by);
     }
 };
 
 Stats.prototype.onNotificationReply = function (timestamp) {
-    var latency = Date.now() - timestamp;
+    const latency = Date.now() - timestamp;
     logger.debug('onNotificationReply %s', latency);
     if (latency < 10000) {
         this.incr("stats#notification#totalCount", timestamp);
@@ -156,15 +156,15 @@ Stats.prototype.onNotificationReply = function (timestamp) {
 
 Stats.prototype.getSessionCount = function (callback) {
     this.redis.hgetall('stats#sessionCount', function (err, results) {
-        var onlineKeys = ["total", "ios", "android", "pc", "browser"];
-        var currentTimestamp = Date.now();
-        var processCount = [];
-        var packetAverage1 = 0;
-        var packetDrop = 0;
-        var packetDropThreshold = 0;
-        var result = {};
-        for (var id in results) {
-            var data = JSON.parse(results[id]);
+        const onlineKeys = ["total", "ios", "android", "pc", "browser"];
+        const currentTimestamp = Date.now();
+        const processCount = [];
+        let packetAverage1 = 0;
+        let packetDrop = 0;
+        let packetDropThreshold = 0;
+        const result = {};
+        for (const id in results) {
+            const data = JSON.parse(results[id]);
             if ((currentTimestamp - data.timestamp) < 60 * 1000) {
                 onlineKeys.forEach(function (key) {
                     if (data.sessionCount[key]) {
@@ -200,7 +200,7 @@ Stats.prototype.getSessionCount = function (callback) {
 
 Stats.prototype.getQueryDataKeys = function (callback) {
     this.redis.hkeys("queryDataKeys", function (err, replies) {
-        var strs = [];
+        const strs = [];
         replies.forEach(function (buffer) {
             strs.push(buffer);
         });
@@ -208,7 +208,7 @@ Stats.prototype.getQueryDataKeys = function (callback) {
     });
 }
 
-var sortString = function (a, b) {
+const sortString = function (a, b) {
     a = a.toLowerCase();
     b = b.toLowerCase();
     if (a < b) return 1;
@@ -217,14 +217,14 @@ var sortString = function (a, b) {
 }
 
 Stats.prototype.find = function (key, callback) {
-    var totalHour = 7 * 24;
-    var timestamp = hourStrip(Date.now() - (totalHour - 1) * mSecPerHour);
-    var keys = [];
-    var totalCount = 0;
-    var totalLatency = 0;
-    var totalSuccess = 0;
-    var timestamps = [];
-    for (var i = 0; i < totalHour; i++) {
+    const totalHour = 7 * 24;
+    let timestamp = hourStrip(Date.now() - (totalHour - 1) * mSecPerHour);
+    const keys = [];
+    let totalCount = 0;
+    let totalLatency = 0;
+    let totalSuccess = 0;
+    const timestamps = [];
+    for (let i = 0; i < totalHour; i++) {
         timestamps.push(timestamp);
         keys.push("stats#" + key + "#totalCount#" + timestamp);
         keys.push("stats#" + key + "#successCount#" + timestamp);
@@ -233,33 +233,33 @@ Stats.prototype.find = function (key, callback) {
         timestamp += mSecPerHour;
     }
 
-    var results = [];
-    var redis = this.redis;
+    const results = [];
+    const redis = this.redis;
 
-    var recursive = function (err, replies) {
+    const recursive = function (err, replies) {
         if (replies != -1) {
             results.push(replies);
         }
         if (keys.length > 0) {
             redis.get(keys.shift(), recursive);
         } else {
-            var totalChart = [];
-            var latencyChart = [];
-            var successRateChart = [];
-            var countPerSecondChart = [];
+            const totalChart = [];
+            const latencyChart = [];
+            const successRateChart = [];
+            const countPerSecondChart = [];
 
-            var totalDay = 0;
-            var successDay = 0;
-            var latencyDay = 0;
-            var successRateChartDay = [];
-            var latencyChartDay = [];
+            let totalDay = 0;
+            let successDay = 0;
+            let latencyDay = 0;
+            const successRateChartDay = [];
+            const latencyChartDay = [];
 
-            for (var i = 0; i < results.length / 4; i++) {
+            for (let i = 0; i < results.length / 4; i++) {
 
-                var total = parseInt(results[i * 4 + 0]) || 0;
-                var success = parseInt(results[i * 4 + 1]) || 0;
-                var latency = parseInt(results[i * 4 + 2]) || 0;
-                var error = parseInt(results[i * 4 + 3]) || 0;
+                const total = parseInt(results[i * 4 + 0]) || 0;
+                let success = parseInt(results[i * 4 + 1]) || 0;
+                const latency = parseInt(results[i * 4 + 2]) || 0;
+                const error = parseInt(results[i * 4 + 3]) || 0;
                 if (success == 0) {
                     success = total - error;
                 }
@@ -283,11 +283,11 @@ Stats.prototype.find = function (key, callback) {
                 }
 
             }
-            var avgLatency = Math.round(totalLatency / totalSuccess) || 0;
-            var successRate = totalSuccess / totalCount;
-            var countPerSecond = totalCount / totalHour / mSecPerHour * 1000;
+            const avgLatency = Math.round(totalLatency / totalSuccess) || 0;
+            const successRate = totalSuccess / totalCount;
+            const countPerSecond = totalCount / totalHour / mSecPerHour * 1000;
 
-            var chartData = {
+            const chartData = {
                 timestamps: timestamps,
                 total: totalChart,
                 latency: latencyChart,

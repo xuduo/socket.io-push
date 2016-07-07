@@ -10,14 +10,14 @@ MovingSum.prototype.push = function (timestamp) {
 }
 
 MovingSum.prototype.sum = function (timespans) {
-    var starts = [];
-    var current = Date.now();
+    const starts = [];
+    const current = Date.now();
     timespans.forEach(function (span) {
         starts.push(current - span);
     });
-    var sum = [];
-    var spliceIndex = 0;
-    var totalLength = this.stamps.length;
+    const sum = [];
+    let spliceIndex = 0;
+    const totalLength = this.stamps.length;
     this.stamps.forEach(function (stamp, stampIndex) {
         starts.forEach(function (start, sumIndex) {
             if (stamp >= start && !sum[sumIndex]) {

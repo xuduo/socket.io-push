@@ -1,12 +1,12 @@
 module.exports = AdminCommand;
-var logger = require('../log/index.js')('AdminCommand');
+const logger = require('../log/index.js')('AdminCommand');
 
 function AdminCommand(redis, stats, packetSevice, proxyServer, apiThrehold) {
     if (!(this instanceof AdminCommand)) return new AdminCommand(redis, stats, packetSevice, proxyServer, apiThrehold);
 
     redis.on("message", function (channel, message) {
         if (channel == "adminCommand") {
-            var command = JSON.parse(message);
+            const command = JSON.parse(message);
             logger.debug( 'adminCommand %j', command);
             if (command.command == 'packetDropThreshold') {
                 logger.debug( 'setting packetDropThreshold %d', stats.packetDropThreshold);
@@ -16,7 +16,7 @@ function AdminCommand(redis, stats, packetSevice, proxyServer, apiThrehold) {
             } else if (command.command == 'startPacketService' && packetSevice) {
                 packetSevice.stopped = false;
             } else if (command.command == 'topicOnline') {
-                var online = proxyServer.getTopicOnline(command.topic);
+                const online = proxyServer.getTopicOnline(command.topic);
                 if (online > 0) {
                     redis.incrby("stats#topicOnline#" + command.topic, online);
                 }

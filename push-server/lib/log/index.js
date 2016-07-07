@@ -1,14 +1,14 @@
-var winston = require('winston-levelonly');
-var fs = require('fs');
+const winston = require('winston-levelonly');
+const fs = require('fs');
 
-var dir = 'log';
-var workerId = 1;
-var transports = [];
-var formatter = function (options) {
+let dir = 'log';
+let workerId = 1;
+const transports = [];
+const formatter = function (options) {
     return options.timestamp() + " " + 'work:' + workerId + ' ' + options.level.substring(0, 1).toUpperCase() + '/' + (undefined !== options.message ? options.message : '');
 }
 
-var logger;
+let logger;
 
 function setArgs(args) {
     if (args.workId) {
@@ -27,14 +27,14 @@ function setArgs(args) {
         }
     }
 
-    var level;
+    let level;
     if (args.debug) {
         level = 'debug';
     }  else {
         level = 'info';
     }
 
-    var opts = {
+    const opts = {
         name: 'error',
         json: false,
         level: 'error',
@@ -69,19 +69,19 @@ function setArgs(args) {
     });
 }
 
-var LogProxy = function (logger, tag) {
+const LogProxy = function (logger, tag) {
     this.logger = logger;
     this.tag = tag;
 };
 
-var meta = {};
+const meta = {};
 
 ['debug', 'info', 'error'].forEach(function (command) {
 
     LogProxy.prototype[command] = function (key, arg, callback) {
         if (this.logger) {
             arguments[0] = this.tag + ' ' + arguments[0];
-            var mainArguments = Array.prototype.slice.call(arguments);
+            const mainArguments = Array.prototype.slice.call(arguments);
             mainArguments.push(meta);
             this.logger[command].apply(this, mainArguments);
         }
@@ -89,13 +89,13 @@ var meta = {};
 
 });
 
-var defaultArgs = {
+const defaultArgs = {
     workId: 1,
     dir: 'log',
     debug: 1,
     foreground: 1
 }
-var Logger = function Logger(tag) {
+const Logger = function Logger(tag) {
     if ((typeof tag) == 'string') {
         if (!logger) {
             setArgs(defaultArgs)

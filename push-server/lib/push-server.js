@@ -2,12 +2,12 @@ module.exports = PushServer;
 
 function PushServer(config) {
     if (!(this instanceof PushServer)) return new PushServer(config);
-    var instance = config.instance || 1;
+    const instance = config.instance || 1;
     console.log("starting instance #" + instance);
     config.io_port = config.io_port + instance - 1;
     config.api_port = config.api_port + instance - 1;
 
-    var cluster = require('./redis/simpleRedisHashCluster')(config.redis);
+    const cluster = require('./redis/simpleRedisHashCluster')(config.redis);
 
     this.io = require('socket.io')(config.io_port, {
         pingTimeout: config.pingTimeout,
@@ -17,29 +17,29 @@ function PushServer(config) {
     console.log("start server on port " + config.io_port);
     this.tagService = require('./service/tagService')(cluster);
     this.stats = require('./stats/stats')(cluster, config.io_port, config.statsCommitThreshold);
-    var socketIoRedis = require('./redis/redisAdapter')({
+    const socketIoRedis = require('./redis/redisAdapter')({
         pubClient: cluster,
         subClient: cluster,
         key: 'io'
     }, null, this.stats);
     this.io.adapter(socketIoRedis);
-    var packetService;
+    let packetService;
     if (config.redis.event) {
         packetService = require('./service/packetService')(cluster, cluster);
     }
     this.uidStore = require('./redis/uidStore')(cluster);
     this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version);
-    var tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
+    const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
     this.notificationService = require('./service/notificationService')(config.apns, cluster, this.ttlService, tokenTTL);
     this.httpProxyService = require('./service/httpProxyService')(config.http_remove_headers);
-    var proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.notificationService, this.uidStore, this.ttlService, this.httpProxyService, this.tagService);
-    var apiThreshold = require('./api/apiThreshold')(cluster);
-    var adminCommand = require('./server/adminCommand')(cluster, this.stats, packetService, proxyServer, apiThreshold);
-    var topicOnline;
+    const proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.notificationService, this.uidStore, this.ttlService, this.httpProxyService, this.tagService);
+    const apiThreshold = require('./api/apiThreshold')(cluster);
+    const adminCommand = require('./server/adminCommand')(cluster, this.stats, packetService, proxyServer, apiThreshold);
+    let topicOnline;
     if (config.topicOnlineFilter) {
         topicOnline = require('./stats/topicOnline')(cluster, this.io, this.stats.id, config.topicOnlineFilter);
     }
-    var providerFactory = require('./service/notificationProviderFactory')();
+    const providerFactory = require('./service/notificationProviderFactory')();
     this.notificationService.providerFactory = providerFactory;
     if (config.apns != undefined) {
         this.apnService = require('./service/apnProvider')(config.apns, config.apnsSliceServers, cluster, this.stats, tokenTTL);

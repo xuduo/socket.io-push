@@ -1,8 +1,8 @@
 module.exports = PacketService;
 
-var logger = require('../log/index.js')('PacketService');
+const logger = require('../log/index.js')('PacketService');
 
-var randomstring = require("randomstring");
+const randomstring = require("randomstring");
 
 function PacketService(redis, subClient) {
     if (!(this instanceof PacketService)) return new PacketService(redis, subClient);
@@ -10,27 +10,27 @@ function PacketService(redis, subClient) {
 }
 
 PacketService.prototype.publishPacket = function (data) {
-    var path = data.path;
-    var pushId = data.pushId;
+    const path = data.path;
+    const pushId = data.pushId;
     if (path && pushId) {
         if (!data.sequenceId) {
             data.sequenceId = randomstring.generate(16);
         }
         data.timestamp = Date.now();
-        var strData = JSON.stringify(data);
+        const strData = JSON.stringify(data);
         this.redis.publish("event#client", strData);
     }
 };
 
 PacketService.prototype.publishDisconnect = function (socket) {
-    var self = this;
+    const self = this;
     this.redis.get("pushIdSocketId#" + socket.pushId, function (err, lastSocketId) {
         // reply is null when the key is missing
         logger.debug("pushIdSocketId redis %s %s %s", socket.id, lastSocketId, socket.pushId);
         if (lastSocketId == socket.id) {
             logger.debug("publishDisconnect current socket disconnect %s", socket.id);
             self.redis.del("pushIdSocketId#" + socket.pushId);
-            var data = {pushId: socket.pushId, path: "/socketDisconnect"};
+            const data = {pushId: socket.pushId, path: "/socketDisconnect"};
             if (socket.uid) {
                 data.uid = socket.uid;
             }
@@ -40,14 +40,14 @@ PacketService.prototype.publishDisconnect = function (socket) {
 };
 
 PacketService.prototype.publishConnect = function (socket) {
-    var self = this;
+    const self = this;
     this.redis.get("pushIdSocketId#" + socket.pushId, function (err, lastSocketId) {
         // reply is null when the key is missing
         if (lastSocketId) {
             logger.debug("reconnect do not publish", lastSocketId);
         } else {
             logger.debug("first connect publish", lastSocketId);
-            var data = {pushId: socket.pushId, path: "/socketConnect"};
+            const data = {pushId: socket.pushId, path: "/socketConnect"};
             if (socket.uid) {
                 data.uid = socket.uid;
             }

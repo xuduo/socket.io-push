@@ -1,11 +1,11 @@
 module.exports = ApiRouter;
 
-var logger = require('../log/index.js')('ApiRouter');
+const logger = require('../log/index.js')('ApiRouter');
 
-var util = require('../util/util.js');
-var request = require('request');
+const util = require('../util/util.js');
+const request = require('request');
 const pushEvent = 'push';
-var serverIndex = 0;
+let serverIndex = 0;
 
 function ApiRouter(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls) {
     if (!(this instanceof ApiRouter)) return new ApiRouter(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls);
@@ -18,7 +18,7 @@ function ApiRouter(uidStore, notificationService, ttlService, tagService, maxPus
 }
 
 ApiRouter.prototype.notification = function (notification, pushAll, pushIds, uids, tag, timeToLive) {
-    var self = this;
+    const self = this;
 
     if (pushAll) {
         this.notificationService.sendAll(notification, timeToLive);
@@ -31,7 +31,7 @@ ApiRouter.prototype.notification = function (notification, pushAll, pushIds, uid
             });
         });
     } else if (tag) {
-        var batch = [];
+        let batch = [];
         this.tagService.scanPushIdByTag(tag, this.maxPushIds, function (pushId) {
             batch.push(pushId);
             if (batch.length == self.maxPushIds) {
@@ -45,7 +45,7 @@ ApiRouter.prototype.notification = function (notification, pushAll, pushIds, uid
 };
 
 ApiRouter.prototype.push = function (pushData, topic, pushIds, uids, timeToLive) {
-    var self = this;
+    const self = this;
     if (pushIds) {
         pushIds.forEach(function (id) {
             self.ttlService.addTTL(id, pushEvent, timeToLive, pushData, true);
@@ -72,8 +72,8 @@ ApiRouter.prototype.sendNotificationByPushIds = function (notification, pushIds,
     }
     if (pushIds.length > this.maxPushIds && this.remoteUrls) {
         logger.info("sendNotification to remote api ", this.maxPushIds, pushIds.length);
-        var batch = [];
-        var self = this;
+        let batch = [];
+        const self = this;
         pushIds.forEach(function (pushId, index) {
             batch.push(pushId);
             if (batch.length == self.maxPushIds || index == pushIds.length - 1) {
@@ -94,7 +94,7 @@ ApiRouter.prototype.callRemoteNotification = function (notification, pushIds, ti
     if (serverIndex == this.remoteUrls.length) {
         serverIndex = 0;
     }
-    var apiUrl = this.remoteUrls[serverIndex % this.remoteUrls.length];
+    const apiUrl = this.remoteUrls[serverIndex % this.remoteUrls.length];
 
     request({
             url: apiUrl + "/api/notification",

@@ -1,12 +1,12 @@
 module.exports = HttpProxyService;
 
-var request = require('request');
-var logger = require('../log/index.js')('HttpProxyService');
+const request = require('request');
+const logger = require('../log/index.js')('HttpProxyService');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
-var https = require('https');
-var httpsAgent = new https.Agent({keepAlive: true});
-var http = require('http');
-var httpAgent = new http.Agent({keepAlive: true});
+const https = require('https');
+const httpsAgent = new https.Agent({keepAlive: true});
+const http = require('http');
+const httpAgent = new http.Agent({keepAlive: true});
 
 function HttpProxyService(removeHeaders) {
     if (!(this instanceof HttpProxyService)) return new HttpProxyService(removeHeaders);
@@ -14,7 +14,7 @@ function HttpProxyService(removeHeaders) {
 }
 
 HttpProxyService.prototype.request = function (opts, callback) {
-    var requestOpts = {
+    const requestOpts = {
         method: opts[0],
         url: opts[1],
         headers: opts[2]
@@ -35,9 +35,9 @@ HttpProxyService.prototype.request = function (opts, callback) {
         requestOpts.form = opts[3];
     }
 
-    var self = this
+    const self = this
 
-    var start = Date.now();
+    const start = Date.now();
 
     request(requestOpts, function (error, response, body) {
             logger.debug("request ", requestOpts.url, Date.now() - start);
@@ -47,7 +47,7 @@ HttpProxyService.prototype.request = function (opts, callback) {
                 if (self.removeHeaders) {
                     response.headers = {};
                 }
-                var resultBody;
+                let resultBody;
                 try {
                     resultBody = JSON.parse(body);
                 } catch (e) {

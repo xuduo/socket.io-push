@@ -9,10 +9,10 @@ module.exports = {
         return array[module.exports.hash(key) % array.length];
     },
     hash: function (key) {
-        var hash = 0;
+        let hash = 0;
         if (!key || key.length == 0) return 0;
-        for (var i = 0; i < key.length; i++) {
-            var char = key.charCodeAt(i);
+        for (let i = 0; i < key.length; i++) {
+            const char = key.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
             hash = hash & hash; // Convert to 32bit integer
         }

@@ -1,17 +1,17 @@
 module.exports = RestApi;
-var restify = require('restify');
-var logger = require('../log/index.js')('RestApi');
+const restify = require('restify');
+const logger = require('../log/index.js')('RestApi');
 
 function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore) {
 
     if (!(this instanceof RestApi)) return new RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore);
 
-    var self = this;
+    const self = this;
 
     this.apiAuth = apiAuth;
     this.apiRouter = apiRouter;
 
-    var server = restify.createServer();
+    const server = restify.createServer();
 
     this.server = server;
 
@@ -29,7 +29,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     server.use(restify.queryParser());
     server.use(restify.bodyParser());
 
-    var staticConfig = restify.serveStatic({
+    const staticConfig = restify.serveStatic({
         directory: __dirname + '/../../static',
         default: 'index.html'
     });
@@ -50,7 +50,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
 
     server.get("/", staticConfig);
 
-    var handlePush = function (req, res, next) {
+    const handlePush = function (req, res, next) {
         if (self.apiAuth && !self.apiAuth("/api/push", req, logger)) {
             logger.error("push denied %j %j", req.params, req.headers);
             res.statusCode = 400;
@@ -64,15 +64,15 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
             return next();
         }
 
-        var data = req.params.data;
-        var json = req.params.json;
+        const data = req.params.data;
+        const json = req.params.json;
         if (!data && !json) {
             res.statusCode = 400;
             res.send({code: "error", message: 'data is required'});
             return next();
         }
         logger.debug("push %j", req.params);
-        var pushData = {};
+        const pushData = {};
         if (data) {
             pushData.data = data;
         }
@@ -84,8 +84,8 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
             }
         }
 
-        var pushIds = parseArrayParam(req.params.pushId);
-        var uids = parseArrayParam(req.params.uid);
+        const pushIds = parseArrayParam(req.params.pushId);
+        const uids = parseArrayParam(req.params.uid);
 
         if (!pushIds && !uids && !req.params.topic) {
             res.statusCode = 400;
@@ -108,7 +108,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         return next();
     };
 
-    var handleNotification = function (req, res, next) {
+    const handleNotification = function (req, res, next) {
         if (self.apiAuth && !self.apiAuth("/api/notification", req, logger)) {
             logger.error("notification denied %j %j", req.params, req.headers);
             res.statusCode = 400;
@@ -121,7 +121,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
             return next();
         }
 
-        var notification;
+        let notification;
         try {
             notification = JSON.parse(req.params.notification);
         } catch (err) {
@@ -150,8 +150,8 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
 
         logger.debug("notification ", req.params);
 
-        var pushIds = parseArrayParam(req.params.pushId);
-        var uids = parseArrayParam(req.params.uid);
+        const pushIds = parseArrayParam(req.params.pushId);
+        const uids = parseArrayParam(req.params.uid);
 
         if (req.params.pushAll == 'true') {
             logger.info('notification pushAll ', req.params);
@@ -167,30 +167,30 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         return next();
     };
 
-    var handleStatsBase = function (req, res, next) {
+    const handleStatsBase = function (req, res, next) {
         stats.getSessionCount(function (count) {
             res.send(count);
         });
         return next();
     };
 
-    var handleChartStats = function (req, res, next) {
-        var key = req.params.key;
+    const handleChartStats = function (req, res, next) {
+        const key = req.params.key;
         stats.find(key, function (result) {
             res.send(result);
         });
         return next();
     };
 
-    var handleAddPushIdToUid = function (req, res, next) {
+    const handleAddPushIdToUid = function (req, res, next) {
         uidStore.bindUid(req.params.pushId, req.params.uid, parseInt(req.params.timeToLive), req.params.platform, parseInt(req.params.platformLimit));
         res.send({code: "success"});
         return next();
     };
 
-    var removeRemoveUid = function (req, res, next) {
-        var pushIds = parseArrayParam(req.params.pushId);
-        var uids = parseArrayParam(req.params.uid);
+    const removeRemoveUid = function (req, res, next) {
+        const pushIds = parseArrayParam(req.params.pushId);
+        const uids = parseArrayParam(req.params.uid);
         if (pushIds) {
             pushIds.forEach(function (pushId) {
                 uidStore.removePushId(pushId, true);
@@ -209,7 +209,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         return next();
     };
 
-    var handleQueryDataKeys = function (req, res, next) {
+    const handleQueryDataKeys = function (req, res, next) {
         stats.getQueryDataKeys(function (result) {
             logger.debug("getQueryDataKeys result: " + result)
             res.send({"result": result});
@@ -217,7 +217,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         return next();
     }
 
-    var handleApnSlice = function (req, res, next) {
+    const handleApnSlice = function (req, res, next) {
         apnService.sliceSendAll(JSON.parse(req.params.notification), req.params.timeToLive, req.params.pattern);
         res.send({code: "success"});
         return next();
@@ -243,7 +243,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
             res.send({code: 'error', message: 'topicOnline not configured'});
             return next();
         }
-        var topic = req.params.topic;
+        const topic = req.params.topic;
         if (!topic) {
             res.statusCode = 400;
             res.send({code: 'error', message: 'topic is required'})
@@ -296,7 +296,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
 
     server.get('/api/redis/hkeys', function (req, res, next) {
         redis.hkeys(req.params.key, function (err, result) {
-            var strs = [];
+            const strs = [];
             result.forEach(function (token) {
                 strs.push(token.toString('ascii'));
             });
@@ -324,7 +324,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     });
 
     server.get('/api/ip', function (req, res, next) {
-        var ip = req.connection.remoteAddress;
+        let ip = req.connection.remoteAddress;
         ip = ip.substr(ip.lastIndexOf(':') + 1, ip.length);
         res.writeHead(200, {
             'Content-Length': Buffer.byteLength(ip),
@@ -335,7 +335,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         return next();
     });
 
-    var handleEcho = function (req, res, next) {
+    const handleEcho = function (req, res, next) {
         res.send(req.params);
         return next();
     };
@@ -354,7 +354,7 @@ RestApi.prototype.close = function () {
 };
 
 function parseArrayParam(param) {
-    var arr;
+    let arr;
     if (typeof param === 'string') {
         if (param.startsWith('[')) {
             arr = JSON.parse(param);

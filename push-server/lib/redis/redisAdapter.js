@@ -2,13 +2,13 @@
  * Module dependencies.
  */
 
-var uid2 = require('uid2');
-var redis = require('redis').createClient;
-var msgpack = require('msgpack-js');
-var Adapter = require('socket.io-adapter');
-var logger = require('../log/index.js')('RedisAdapter');
+const uid2 = require('uid2');
+const redis = require('redis').createClient;
+const msgpack = require('msgpack-js');
+const Adapter = require('socket.io-adapter');
+const logger = require('../log/index.js')('RedisAdapter');
 
-var async = require('async');
+const async = require('async');
 
 /**
  * Module exports.
@@ -41,18 +41,18 @@ function adapter(uri, opts, stats) {
     }
 
     // opts
-    var host = opts.host || '127.0.0.1';
-    var port = Number(opts.port || 6379);
-    var pub = opts.pubClient;
-    var sub = opts.subClient;
-    var prefix = opts.key || 'socket.io';
+    const host = opts.host || '127.0.0.1';
+    const port = Number(opts.port || 6379);
+    let pub = opts.pubClient;
+    let sub = opts.subClient;
+    const prefix = opts.key || 'socket.io';
 
     // init clients if needed
     if (!pub) pub = redis(port, host);
     if (!sub) sub = redis(port, host, {return_buffers: true});
 
     // this server's key
-    var uid = uid2(6);
+    const uid = uid2(6);
 
     /**
      * Adapter constructor.
@@ -69,7 +69,7 @@ function adapter(uri, opts, stats) {
         this.pubClient = pub;
         this.subClient = sub;
 
-        var self = this;
+        const self = this;
         sub.subscribe(prefix, function (err) {
             if (err) self.emit('error', err);
         });
@@ -98,8 +98,8 @@ function adapter(uri, opts, stats) {
             logger.debug('skip parse channel %s', prefix);
         }
 
-        var args = msgpack.decode(msg);
-        var packet;
+        const args = msgpack.decode(msg);
+        let packet;
 
         if (uid == args.shift()) {
             return;
@@ -132,10 +132,10 @@ function adapter(uri, opts, stats) {
     Redis.prototype.broadcast = function (packet, opts, remote) {
         Adapter.prototype.broadcast.call(this, packet, opts);
         if (!remote) {
-            var msg = msgpack.encode([uid, packet, opts]);
+            const msg = msgpack.encode([uid, packet, opts]);
             if (opts.rooms) {
                 opts.rooms.forEach(function (room) {
-                    var chnRoom = prefix + "#" + room;
+                    const chnRoom = prefix + "#" + room;
                     pub.publish(chnRoom, msg);
                 });
             } else {
@@ -154,10 +154,10 @@ function adapter(uri, opts, stats) {
      */
 
     Redis.prototype.add = function (id, room, fn) {
-        var self = this;
-        var needRedisSub = this.rooms.hasOwnProperty(room) && this.rooms[room]
+        const self = this;
+        const needRedisSub = this.rooms.hasOwnProperty(room) && this.rooms[room]
         Adapter.prototype.add.call(this, id, room);
-        var channel = prefix + '#' + room;
+        const channel = prefix + '#' + room;
         if (id == room) {
             return;
         }
@@ -187,8 +187,8 @@ function adapter(uri, opts, stats) {
      */
 
     Redis.prototype.del = function (id, room, fn) {
-        var self = this;
-        var hasRoom = this.rooms.hasOwnProperty(room);
+        const self = this;
+        const hasRoom = this.rooms.hasOwnProperty(room);
         Adapter.prototype.del.call(this, id, room);
 
         if (id == room) {
@@ -197,7 +197,7 @@ function adapter(uri, opts, stats) {
 
         if (hasRoom && !this.rooms[room]) {
 
-            var channel = prefix + '#' + room;
+            const channel = prefix + '#' + room;
             sub.unsubscribe(channel, function (err) {
                 if (err) {
                     self.emit('error', err);
@@ -220,8 +220,8 @@ function adapter(uri, opts, stats) {
      */
 
     Redis.prototype.delAll = function (id, fn) {
-        var self = this;
-        var rooms = this.sids[id];
+        const self = this;
+        const rooms = this.sids[id];
 
         if (!rooms) {
             if (fn) process.nextTick(fn.bind(null, null));

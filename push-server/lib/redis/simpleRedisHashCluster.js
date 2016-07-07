@@ -1,9 +1,9 @@
 module.exports = SimpleRedisHashCluster;
 
-var commands = require('redis-commands');
-var IoRedis = require('ioredis');
-var util = require("../util/util.js");
-var logger = require('../log/index.js')('SimpleRedisHashCluster');
+const commands = require('redis-commands');
+const IoRedis = require('ioredis');
+const util = require("../util/util.js");
+const logger = require('../log/index.js')('SimpleRedisHashCluster');
 
 const REDIS_MASTER = 'master';    // ioreids use when fetch sentinel
 const REDIS_SLAVE = 'slave';     // ioreids use when fetch sentinel
@@ -18,7 +18,7 @@ function SimpleRedisHashCluster(config) {
         logger.info("read slave not in config using write");
         this.read = this.write;
     }
-    var self = this;
+    const self = this;
 
     this.sub = [];
     if (config.sub) {
@@ -46,15 +46,15 @@ function SimpleRedisHashCluster(config) {
 }
 
 function getClientsFromSentinel(sentinels, names, role, subscribe) {
-    var clients = [];
+    const clients = [];
     if (names) {
         names.forEach(function (name) {
-            var client = new IoRedis({
+            const client = new IoRedis({
                 sentinels: sentinels,
                 name: name,
                 role: role,
                 retryStrategy: function (times) {
-                    var delay = Math.min(times * 300, 2000);
+                    const delay = Math.min(times * 300, 2000);
                     return delay;
                 },
                 connectTimeout: 10000000000000000
@@ -80,14 +80,14 @@ function getClientsFromSentinel(sentinels, names, role, subscribe) {
 }
 
 function getClientsFromIpList(addrs, subscribe) {
-    var clients = [];
+    const clients = [];
     if (addrs) {
         addrs.forEach(function (addr) {
-            var client = new IoRedis({
+            const client = new IoRedis({
                 host: addr.host,
                 port: addr.port,
                 retryStrategy: function (times) {
-                    var delay = Math.min(times * 300, 2000);
+                    const delay = Math.min(times * 300, 2000);
                     return delay;
                 },
                 connectTimeout: 10000000000000000
@@ -115,7 +115,7 @@ function getClientsFromIpList(addrs, subscribe) {
 commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
-        var client = util.getByHash(this.write, key);
+        const client = util.getByHash(this.write, key);
         handleCommand(command, arguments, client);
     }
 
@@ -125,12 +125,12 @@ commands.list.forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
         if (key == "event#client") {
-            var client = util.getByHash(this.event, key);
+            const client = util.getByHash(this.event, key);
             handleCommandBuffer(command, arguments, client);
         } else {
-            var args = arguments;
+            const args = arguments;
             this.pubs.forEach(function (pub) {
-                var client = util.getByHash(pub, key);
+                const client = util.getByHash(pub, key);
                 handleCommandBuffer(command, args, client);
             });
         }
@@ -141,7 +141,7 @@ commands.list.forEach(function (command) {
 ['subscribe', 'unsubscribe'].forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
-        var client = util.getByHash(this.sub, key);
+        const client = util.getByHash(this.sub, key);
         handleCommandBuffer(command, arguments, client);
     }
 
@@ -150,14 +150,14 @@ commands.list.forEach(function (command) {
 ['get', 'hkeys', 'hgetall', 'pttl', 'lrange'].forEach(function (command) {
 
     SimpleRedisHashCluster.prototype[command.toUpperCase()] = SimpleRedisHashCluster.prototype[command] = function (key, arg, callback) {
-        var client = util.getByHash(this.read, key);
+        const client = util.getByHash(this.read, key);
         handleCommand(command, arguments, client);
     }
 });
 
 
 SimpleRedisHashCluster.prototype["hscanStream"] = function (key, opts) {
-    var client = util.getByHash(this.read, key);
+    const client = util.getByHash(this.read, key);
     return client.hscanStream(key, opts || {});
 }
 
@@ -180,7 +180,7 @@ function handleCommandBuffer(command, callArguments, client) {
 }
 
 SimpleRedisHashCluster.prototype.hash = function (key, callback) {
-    var client = util.getByHash(this.read, key);
+    const client = util.getByHash(this.read, key);
     callback({host: client.options.host, port: client.options.port});
 }
 
@@ -189,7 +189,7 @@ SimpleRedisHashCluster.prototype.on = function (message, callback) {
     if (message === "message") {
         this.messageCallbacks.push(callback);
     } else {
-        var err = "on " + message + " not supported";
+        const err = "on " + message + " not supported";
         logger.error(error);
         throw err;
     }
@@ -197,13 +197,13 @@ SimpleRedisHashCluster.prototype.on = function (message, callback) {
 
 
 SimpleRedisHashCluster.prototype.status = function () {
-    var masterError = 0;
+    let masterError = 0;
     this.pubs.forEach(function (pub) {
         pub.forEach(function (master) {
             master.status !== 'ready' && masterError++;
         });
     });
-    var slaveError = 0;
+    let slaveError = 0;
     this.sub.forEach(function (slave) {
         slave.status !== 'ready' && slaveError++;
     });
@@ -211,10 +211,10 @@ SimpleRedisHashCluster.prototype.status = function () {
 }
 
 function toArray(args) {
-    var len = args.length,
-        arr = new Array(len), i;
+    const len = args.length;
+    const arr = new Array(len);
 
-    for (i = 0; i < len; i += 1) {
+    for (let i = 0; i < len; i += 1) {
         arr[i] = args[i];
     }
 

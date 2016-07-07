@@ -1,10 +1,10 @@
 module.exports = NotificationService;
 
-var logger = require('../log/index.js')('NotificationService');
-var util = require('../util/util.js');
-var apn = require('apn');
-var randomstring = require("randomstring");
-var async = require('async');
+const logger = require('../log/index.js')('NotificationService');
+const util = require('../util/util.js');
+const apn = require('apn');
+const randomstring = require("randomstring");
+const async = require('async');
 
 function NotificationService(providerFactory, redis, ttlService, tokenTTL) {
     if (!(this instanceof NotificationService)) return new NotificationService(providerFactory, redis, ttlService, tokenTTL);
@@ -17,13 +17,13 @@ function NotificationService(providerFactory, redis, ttlService, tokenTTL) {
 NotificationService.prototype.setThirdPartyToken = function (data) {
     logger.debug("setThirdPartyToken ", data);
     if (data && data.pushId && data.token) {
-        var pushId = data.pushId;
+        const pushId = data.pushId;
         delete data.pushId;
         this.providerFactory.addToken(data);
-        var tokenData = JSON.stringify(data);
-        var token = data.token;
-        var self = this;
-        var tokenToPushIdKey = "tokenToPushId#" + data.type + "#" + token;
+        const tokenData = JSON.stringify(data);
+        const token = data.token;
+        const self = this;
+        const tokenToPushIdKey = "tokenToPushId#" + data.type + "#" + token;
         this.redis.get(tokenToPushIdKey, function (err, oldPushId) {
             logger.debug("oldPushId %s", oldPushId);
             if (oldPushId && oldPushId != pushId) {
@@ -31,7 +31,7 @@ NotificationService.prototype.setThirdPartyToken = function (data) {
                 logger.debug("remove old pushId to token %s %s", oldPushId, tokenData);
             }
             self.redis.set(tokenToPushIdKey, pushId);
-            var pushIdToTokenKey = "pushIdToToken#" + pushId;
+            const pushIdToTokenKey = "pushIdToToken#" + pushId;
             self.redis.set(pushIdToTokenKey, tokenData);
             self.redis.pexpire(pushIdToTokenKey, self.tokenTTL);
             self.redis.pexpire(tokenToPushIdKey, self.tokenTTL);
@@ -41,7 +41,7 @@ NotificationService.prototype.setThirdPartyToken = function (data) {
 
 NotificationService.prototype.getTokenDataByPushId = function (pushId, callback) {
     this.redis.get("pushIdToToken#" + pushId, function (err, reply) {
-        var token;
+        let token;
         if (reply) {
             token = JSON.parse(reply);
         }
@@ -50,15 +50,15 @@ NotificationService.prototype.getTokenDataByPushId = function (pushId, callback)
 }
 
 NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, notification) {
-    var self = this;
+    const self = this;
     addIdAndTimestamp(notification);
 
-    mapTypeToToken = {};
+    const mapTypeToToken = {};
     async.each(pushIds, function(pushId, callback){  //集合元素并发执行,如果全部未出错,则最后callback中err为undefined; 否则如果中途出错,直接调用callback,其他未执行完的任务继续(只执行一次callback..)
         self.getTokenDataByPushId(pushId, function(token){
             logger.debug('pushId: %s to token: %j', pushId, token);
             if(token){  //小米&华为&苹果之外的终端没有对应的token
-                tokenList = mapTypeToToken[token.type] || [];
+                const tokenList = mapTypeToToken[token.type] || [];
                 tokenList.push(token);
                 mapTypeToToken[token.type] = tokenList;
             } else {
@@ -70,7 +70,7 @@ NotificationService.prototype.sendByPushIds = function (pushIds, timeToLive, not
             }
             callback();
         });
-    }, function(err){
+    }, function(){
         self.providerFactory.sendMany(notification, mapTypeToToken, timeToLive);
     });
 

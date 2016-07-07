@@ -1,12 +1,12 @@
 module.exports = XiaomiProvider;
 
-var logger = require('../log/index.js')('XiaomiProvider');
+const logger = require('../log/index.js')('XiaomiProvider');
 
-var util = require('../util/util.js');
-var request = require('request');
-var sendOneUrl = "https://api.xmpush.xiaomi.com/v3/message/regid";
-var sendAllUrl = "https://api.xmpush.xiaomi.com/v3/message/all";
-var timeout = 5000;
+const util = require('../util/util.js');
+const request = require('request');
+const sendOneUrl = "https://api.xmpush.xiaomi.com/v3/message/regid";
+const sendAllUrl = "https://api.xmpush.xiaomi.com/v3/message/all";
+const timeout = 5000;
 
 function XiaomiProvider(config, stats) {
     if (!(this instanceof XiaomiProvider)) return new XiaomiProvider(config, stats);
@@ -20,7 +20,7 @@ function XiaomiProvider(config, stats) {
 
 XiaomiProvider.prototype.sendMany = function (notification, tokenDataList, timeToLive, callback) {
     if (notification.android.title) {
-        var self = this;
+        const self = this;
         self.stats.addPushTotal(1, self.type);
         request.post({
             url: sendOneUrl,
@@ -40,7 +40,7 @@ XiaomiProvider.prototype.sendMany = function (notification, tokenDataList, timeT
 
 XiaomiProvider.prototype.getPostData = function (notification, tokenDataList, timeToLive) {
     logger.debug("getPostData notification ", notification, ": tokenlist: ", tokenDataList);
-    var postData = {
+    const postData = {
         title: notification.android.title,
         description: notification.android.message,
         notify_id: util.hash(notification.id),
@@ -66,7 +66,7 @@ XiaomiProvider.prototype.addToken = function (data) {
 
 XiaomiProvider.prototype.sendAll = function (notification, timeToLive, callback) {
     if (notification.android.title) {
-        var self = this;
+        const self = this;
         self.stats.addPushTotal(1, self.type + "All");
         logger.debug("addPushTotal");
         request.post({
@@ -90,7 +90,7 @@ function success(error, response, body, callback) {
         callback(error);
     }
     if (!error && response && response.statusCode == 200) {
-        var result = JSON.parse(body);
+        const result = JSON.parse(body);
         if (result.code == 0 || result.code == 20301) {
             return true;
         }

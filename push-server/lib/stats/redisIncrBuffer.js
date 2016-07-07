@@ -13,19 +13,19 @@ function RedisIncrBuffer(redis, commitThreshHold) {
 }
 
 RedisIncrBuffer.prototype.incrby = function (key, by) {
-    var currentIncr = this.map[key] || 0;
+    const currentIncr = this.map[key] || 0;
     this.map[key] = currentIncr + by;
     this.checkCommit();
 };
 
 RedisIncrBuffer.prototype.checkCommit = function () {
-    var timestamp = Date.now();
+    const timestamp = Date.now();
     if ((timestamp - this.timestamp) >= this.commitThreshold) {
-        for (var key in this.map) {
+        for (const key in this.map) {
             this.redis.incrby(key, this.map[key]);
-            var index = key.indexOf("#totalCount");
+            const index = key.indexOf("#totalCount");
             if (index != -1) {
-                var str = key.substring("stats#".length, index);
+                const str = key.substring("stats#".length, index);
                 this.redis.hset("queryDataKeys", str, Date.now())
             }
         }

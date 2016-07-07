@@ -1,6 +1,6 @@
 module.exports = ProxyServer;
-var logger = require('../log/index.js')('ProxyServer');
-var http = require('http');
+const logger = require('../log/index.js')('ProxyServer');
+const http = require('http');
 
 function ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService) {
     if (!(this instanceof ProxyServer)) return new ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService);
@@ -19,7 +19,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
             }
         });
 
-        var oldPacket = socket.packet;
+        const oldPacket = socket.packet;
         socket.packet = function (packet, preEncoded) {
             if (stats.shouldDrop()) {
                 return;
@@ -35,7 +35,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                     socket.platform = data.platform.toLowerCase();
                 }
                 stats.addPlatformSession(socket.platform);
-                var topics = data.topics;
+                const topics = data.topics;
                 if (topics && topics.length > 0) {
                     topics.forEach(function (topic) {
                         socket.join(topic);
@@ -48,7 +48,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                     }
                     tagService.getTagsByPushId(data.id, function (tags) {
                         uidStore.getUidByPushId(data.id, function (uid) {
-                            var reply = {id: data.id};
+                            const reply = {id: data.id};
                             if (tags) {
                                 reply.tags = tags;
                             }
@@ -61,9 +61,9 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                                 packetService.publishConnect(socket);
                             }
                             socket.emit('pushId', reply);
-                            var lastPacketIds = data.lastPacketIds;
+                            const lastPacketIds = data.lastPacketIds;
                             if (lastPacketIds) {
-                                for (var topic in lastPacketIds) {
+                                for (const topic in lastPacketIds) {
                                     ttlService.getPackets(topic, lastPacketIds[topic], socket);
                                 }
                             }
@@ -87,14 +87,14 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
         });
 
         socket.on('subscribeTopic', function (data) {
-            var topic = data.topic;
+            const topic = data.topic;
             ttlService.getPackets(topic, data.lastPacketId, socket);
             socket.join(topic);
         });
 
         socket.on('unsubscribeTopic', function (data) {
             logger.debug("on unsubscribeTopic %j", data);
-            var topic = data.topic;
+            const topic = data.topic;
             socket.leave(topic);
         });
 
@@ -104,7 +104,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
             });
         });
 
-        var token = function (data) {
+        const token = function (data) {
             logger.debug("on token %s %j", socket.pushId, data);
             if (socket.pushId) {
                 data.pushId = socket.pushId;
@@ -146,7 +146,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
 }
 
 ProxyServer.prototype.getTopicOnline = function (topic) {
-    var online = this.io.nsps['/'].adapter.rooms[topic].length;
+    const online = this.io.nsps['/'].adapter.rooms[topic].length;
     logger.debug("on topic online %s %d", topic, online);
     return online;
 }

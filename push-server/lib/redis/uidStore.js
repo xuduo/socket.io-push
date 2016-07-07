@@ -1,5 +1,5 @@
 module.exports = UidStore;
-var logger = require('../log/index.js')('UidStore');
+const logger = require('../log/index.js')('UidStore');
 
 function UidStore(redis, subClient) {
     if (!(this instanceof UidStore)) return new UidStore(redis, subClient);
@@ -10,16 +10,16 @@ UidStore.prototype.bindUid = function (pushId, uid, timeToLive, platform, platfo
     timeToLive = timeToLive || 3600 * 1000 * 24 * 14;
     platformLimit = platformLimit || 0;
     logger.debug("bindUid pushId %s %s", uid, pushId, platformLimit);
-    var self = this;
+    const self = this;
     self.removePushId(pushId, false, function () {
         self.redis.hgetall("uidToPushId#" + uid, function (err, reply) {
-            var toDelete = [];
-            var oldPlatformPushIds = [];
+            const toDelete = [];
+            const oldPlatformPushIds = [];
             if (reply) {
-                var current = Date.now();
-                for (var key in reply) {
+                const current = Date.now();
+                for (const key in reply) {
                     if (key != pushId) {
-                        var val = reply[key].split(",");
+                        const val = reply[key].split(",");
                         if (current > val[1] + val[2]) {
                             toDelete.push(key);
                         } else if (val[0] == platform && platformLimit > 0) {
@@ -32,8 +32,9 @@ UidStore.prototype.bindUid = function (pushId, uid, timeToLive, platform, platfo
                 oldPlatformPushIds.sort(function (a, b) {
                     return b[1] - a[1];
                 });
-                for (var i = platformLimit - 1; i < oldPlatformPushIds.length; i++)
+                for (let i = platformLimit - 1; i < oldPlatformPushIds.length; i++) {
                     toDelete.push(oldPlatformPushIds[i][0]);
+                }
             }
             if (toDelete.length > 0) {
                 self.redis.hdel("uidToPushId#" + uid, toDelete);
@@ -46,8 +47,8 @@ UidStore.prototype.bindUid = function (pushId, uid, timeToLive, platform, platfo
 
 UidStore.prototype.removePushId = function (pushId, removePushIdToUid, callback) {
     logger.debug("removePushId pushId  %s", pushId);
-    var key = "pushIdToUid#" + pushId;
-    var self = this;
+    const key = "pushIdToUid#" + pushId;
+    const self = this;
     this.redis.get(key, function (err, oldUid) {
         if (oldUid) {
             self.redis.hdel("uidToPushId#" + oldUid, pushId, function () {
@@ -72,7 +73,7 @@ UidStore.prototype.removePushId = function (pushId, removePushIdToUid, callback)
 
 UidStore.prototype.removeUid = function (uid) {
     logger.debug("removePushId pushId  %s", uid);
-    var self = this;
+    const self = this;
     this.getPushIdByUid(uid, function (pushIds) {
         if (pushIds) {
             pushIds.forEach(function (pushId) {
@@ -93,7 +94,7 @@ UidStore.prototype.getUidByPushId = function (pushId, callback) {
 UidStore.prototype.getPushIdByUid = function (uid, callback) {
     this.redis.hkeys("uidToPushId#" + uid, function (err, reply) {
         if (reply) {
-            var pushIds = [];
+            const pushIds = [];
             reply.forEach(function (val) {
                 pushIds.push(val);
             });

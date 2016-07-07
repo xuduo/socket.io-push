@@ -1,19 +1,19 @@
 module.exports = HuaweiProvider;
 
-var logger = require('../log/index.js')('HuaweiProvider');
+const logger = require('../log/index.js')('HuaweiProvider');
 
-var util = require('../util/util.js');
-var request = require('request');
-var tokenUrl = "https://login.vmall.com/oauth2/token";
-var apiUrl = "https://api.vmall.com/rest.php";
-var timeout = 5000;
+const util = require('../util/util.js');
+const request = require('request');
+const tokenUrl = "https://login.vmall.com/oauth2/token";
+const apiUrl = "https://api.vmall.com/rest.php";
+const timeout = 5000;
 
 function HuaweiProvider(config, stats) {
     if (!(this instanceof HuaweiProvider)) return new HuaweiProvider(config, stats);
     this.stats = stats;
     this.access_token = "";
     this.authInfo = {};
-    var self = this;
+    const self = this;
     this.default_package_name = undefined;
     config.forEach(function (val) {
         self.authInfo[val.package_name] = val;
@@ -29,26 +29,26 @@ function HuaweiProvider(config, stats) {
 HuaweiProvider.prototype.sendMany = function (notification, tokenDataList, timeToLive, callback) {
     if (notification.android.title) {
 
-        var self = this;
+        const self = this;
         self.stats.addPushTotal(tokenDataList.length, self.type);
 
-        var mapTokenData = {};
+        const mapTokenData = {};
         for (const tokenData of tokenDataList) {
-            var package_name = tokenData.package_name || this.default_package_name;
+            const package_name = tokenData.package_name || this.default_package_name;
             if (!this.authInfo[package_name]) {
                 logger.error('huawei package name not supported: ', package_name);
                 continue;
             }
-            tokenList = mapTokenData[package_name] || [];
+            const tokenList = mapTokenData[package_name] || [];
             tokenList.push(tokenData);
             mapTokenData[package_name] = tokenList;
         }
 
-        for (var packet_name in mapTokenData) {
+        for (const package_name in mapTokenData) {
             this.checkToken(package_name, function (tokenError) {
                 if (!tokenError) {
                     logger.debug("sendMany ", notification, timeToLive);
-                    var postData = self.getPostData(1, notification, package_name, mapTokenData[package_name], timeToLive);
+                    const postData = self.getPostData(1, notification, package_name, mapTokenData[package_name], timeToLive);
                     request.post({
                         url: apiUrl,
                         form: postData,
@@ -71,7 +71,7 @@ HuaweiProvider.prototype.sendMany = function (notification, tokenDataList, timeT
 };
 
 HuaweiProvider.prototype.getPostData = function (push_type, notification, package_name, tokenDataList, timeToLive) {
-    var postData = {
+    const postData = {
         access_token: this.authInfo[package_name].access_token,
         nsp_svc: "openpush.openapi.notification_send",
         nsp_fmt: "JSON",
@@ -103,15 +103,15 @@ HuaweiProvider.prototype.addToken = function (data) {
 
 HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback) {
     if (notification.android.title) {
-        var self = this;
+        const self = this;
 
-        var httpResponseCount = 0;
-        for (var package_name in this.authInfo) {
+        const httpResponseCount = 0;
+        for (const package_name in this.authInfo) {
             self.stats.addPushTotal(1, self.type + "All");
             this.checkToken(package_name, function (tokenError) {
                 if (!tokenError) {
                     logger.debug("sendAll ", notification, timeToLive);
-                    var postData = self.getPostData(2, notification, package_name, 0, timeToLive);
+                    const postData = self.getPostData(2, notification, package_name, 0, timeToLive);
                     request.post({
                         url: apiUrl,
                         form: postData
@@ -135,8 +135,8 @@ HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback)
 };
 
 HuaweiProvider.prototype.checkToken = function (package_name, callback) {
-    var self = this;
-    var authInfo = self.authInfo[package_name];
+    const self = this;
+    const authInfo = self.authInfo[package_name];
     if (authInfo.access_token && Date.now() < authInfo.access_token_expire) {
         callback();
         return;
@@ -152,7 +152,7 @@ HuaweiProvider.prototype.checkToken = function (package_name, callback) {
             timeout: timeout
         }, function (error, response, body) {
             if (!error) {
-                var data = JSON.parse(body);
+                const data = JSON.parse(body);
                 authInfo.access_token = data.access_token;
                 authInfo.access_token_expire = Date.now() + data.expires_in * 1000 - 60 * 1000;
                 logger.info("get access token success", data);
@@ -166,10 +166,10 @@ HuaweiProvider.prototype.checkToken = function (package_name, callback) {
 };
 
 function formatHuaweiDate(date) {
-    var tzo = -date.getTimezoneOffset(),
+    const tzo = -date.getTimezoneOffset(),
         dif = tzo >= 0 ? '+' : '-',
         pad = function (num) {
-            var norm = Math.abs(Math.floor(num));
+            const norm = Math.abs(Math.floor(num));
             return (norm < 10 ? '0' : '') + norm;
         };
     return date.getFullYear()
