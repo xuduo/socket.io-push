@@ -52,18 +52,28 @@ function ApnProvider(apnConfigs, sliceServers, redis, stats, tokenTTL) {
     logger.info("defaultBundleId %s", this.defaultBundleId);
 }
 
-ApnProvider.prototype.sendOne = function (notification, apnData, timeToLive) {
+ApnProvider.prototype.sendMany = function (notification, apnDataList, timeToLive) { 
     if (!notification.apn || !this.apnConnections) {
         logger.debug("no apn info skip");
         return;
     }
-    var bundleId = apnData.bundleId;
-    var apnConnection = this.apnConnections[bundleId];
-    if (apnConnection) {
-        this.stats.addPushTotal(1, this.type);
-        var note = toApnNotification(notification, timeToLive);
-        apnConnection.pushNotification(note, apnData.token);
-        logger.debug("send to notification to ios %s %s", apnData.bundleId, apnData.token);
+    
+    var mapApnToken = {};
+    for(var apnData of apnDataList){
+        bundleId = apnData.bundleId;
+        apnList = mapApnToken[bundleId] || [];
+        apnList.push(apnData.token);
+        mapApnToken[bundleId] = apnList;
+    }
+
+    for(var bundle in mapApnToken){
+        var apnConnection = this.apnConnections[bundle];
+        if(apnConnection){
+            this.stats.addPushTotal(1, this.type);
+            var note = toApnNotification(notification, timeToLive);
+            apnConnection.pushNotification(note, mapApnToken[bundle]);
+            logger.debug("send to notification to ios %s %s", bundle, mapApnToken[bundle]);
+        }
     }
 };
 

@@ -26,11 +26,11 @@ describe('xiaomi test', function () {
         });
     });
 
-    it('sendOne', function (done) {
+    it('sendMany', function (done) {
         var notificationOne = {
             android: {title: "sendOne", message: "sendOne Msg", payload: {test: "wwwwqqq"}}
         };
-        xiaomiProvider.sendOne(notificationOne, {token: "mQO6QyoRCz/Mazl83rjqph2fXSlxqaJ7hy/rnqEeMjo="}, 60 * 60 * 1000, function () {
+        xiaomiProvider.sendMany(notificationOne, [{token: "mzxxxzoRCz/Mazl83rjqph2fXSlxqaJ7hy/rnqEeMjo="}, {token: "mQO6QyoRCz/Mazl83rjqph2fXSlxqaJ7hy/rnqEeMjo="}], 60 * 60 * 1000, function () {
             done();
         });
     });

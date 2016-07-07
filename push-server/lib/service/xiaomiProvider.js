@@ -18,13 +18,13 @@ function XiaomiProvider(config, stats) {
     this.notify_foreground = config.notify_foreground || 1;
 }
 
-XiaomiProvider.prototype.sendOne = function (notification, tokenData, timeToLive, callback) {
+XiaomiProvider.prototype.sendMany = function (notification, tokenDataList, timeToLive, callback) {
     if (notification.android.title) {
         var self = this;
         self.stats.addPushTotal(1, self.type);
         request.post({
             url: sendOneUrl,
-            form: this.getPostData(notification, tokenData, timeToLive),
+            form: this.getPostData(notification, tokenDataList, timeToLive),
             headers: this.headers,
             timeout: timeout
         }, function (error, response, body) {
@@ -38,8 +38,8 @@ XiaomiProvider.prototype.sendOne = function (notification, tokenData, timeToLive
     }
 };
 
-XiaomiProvider.prototype.getPostData = function (notification, tokenData, timeToLive) {
-    logger.debug("getPostData notification ", notification);
+XiaomiProvider.prototype.getPostData = function (notification, tokenDataList, timeToLive) {
+    logger.debug("getPostData notification ", notification, ": tokenlist: ", tokenDataList);
     var postData = {
         title: notification.android.title,
         description: notification.android.message,
@@ -47,8 +47,10 @@ XiaomiProvider.prototype.getPostData = function (notification, tokenData, timeTo
         "extra.notify_foreground": this.notify_foreground,
         payload: JSON.stringify({android: notification.android, id: notification.id})
     };
-    if (tokenData && tokenData.token) {
-        postData.registration_id = tokenData.token;
+    if (tokenDataList) {
+        postData.registration_id = tokenDataList.map(function (tokenData) {
+            return tokenData.token;
+        }).join();
     }
     if (timeToLive > 0) {
         postData.time_to_live = timeToLive;
