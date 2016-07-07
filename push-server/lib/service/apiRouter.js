@@ -35,11 +35,11 @@ ApiRouter.prototype.notification = function (notification, pushAll, pushIds, uid
         this.tagService.scanPushIdByTag(tag, this.maxPushIds, function (pushId) {
             batch.push(pushId);
             if (batch.length == self.maxPushIds) {
-                self.callRemoteNotification(notification, batch, timeToLive);
+                self.sendNotificationByPushIds(notification, batch, timeToLive);
                 batch = [];
             }
         }, function () {
-            self.callRemoteNotification(notification, batch, timeToLive);
+            self.sendNotificationByPushIds(notification, batch, timeToLive);
         });
     }
 };
@@ -67,6 +67,9 @@ ApiRouter.prototype.push = function (pushData, topic, pushIds, uids, timeToLive)
 };
 
 ApiRouter.prototype.sendNotificationByPushIds = function (notification, pushIds, timeToLive) {
+    if (pushIds.length == 0) {
+        return;
+    }
     if (pushIds.length > this.maxPushIds && this.remoteUrls) {
         logger.info("sendNotification to remote api ", this.maxPushIds, pushIds.length);
         var batch = [];
@@ -78,15 +81,15 @@ ApiRouter.prototype.sendNotificationByPushIds = function (notification, pushIds,
                 batch = [];
             }
         });
+        this.callRemoteNotification(notification, batch, timeToLive);
+    } else if (pushIds.length == this.maxPushIds && this.remoteUrls) {
+        this.callRemoteNotification(notification, pushIds, timeToLive);
     } else {
         this.notificationService.sendByPushIds(pushIds, timeToLive, notification);
     }
 };
 
 ApiRouter.prototype.callRemoteNotification = function (notification, pushIds, timeToLive) {
-    if (!pushIds) {
-        return;
-    }
     serverIndex++;
     if (serverIndex == this.remoteUrls.length) {
         serverIndex = 0;
@@ -101,8 +104,8 @@ ApiRouter.prototype.callRemoteNotification = function (notification, pushIds, ti
                 notification: JSON.stringify(notification),
                 timeToLive: timeToLive
             }
-        }, function (error, response, body) {
-            logger.info("call remote api batch ", pushIds.length, apiUrl, body);
+        }, function (error) {
+            logger.info("call remote api batch ", pushIds.length, apiUrl, error);
         }
     );
 };

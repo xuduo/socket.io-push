@@ -44,12 +44,7 @@ describe('apn test', function () {
                 .set('Accept', 'application/json')
                 .end(function (err, res) {
                     expect(res.text).to.be.equal('{"code":"success"}');
-                    setTimeout(function () {
-                        pushService.notificationService.getTokenDataByPushId(pushClient.pushId, function (token) {
-                            expect(token).to.be.undefined;
-                            done();
-                        });
-                    }, 7000);
+                    done();
                 });
         });
 

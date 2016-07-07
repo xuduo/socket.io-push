@@ -55,12 +55,40 @@ describe('tag', function () {
             done();
         });
         pushClient.disconnect();
-        pushClient.connect ();
+        pushClient.connect();
     });
 
-    it('notification', function (done) {
+    it('notification remote', function (done) {
         var title = 'hello',
             message = 'hello world';
+        var data = {
+            "android": {"title": title, "message": message}
+        }
+        var str = JSON.stringify(data);
+
+        var notificationCallback = function (data) {
+            expect(data.title).to.be.equal(title);
+            expect(data.message).to.be.equal(message);
+            done();
+        }
+        pushClient.on('notification', notificationCallback);
+
+        request
+            .post(apiUrl + '/api/notification')
+            .send({
+                tag: 'tag2',
+                notification: str
+            })
+            .set('Accept', 'application/json')
+            .end(function (err, res) {
+                expect(res.text).to.be.equal('{"code":"success"}');
+            });
+    });
+
+    it('notification no remote', function (done) {
+        pushService.apiRouter.remoteUrls = null;
+        var title = 'hello 2',
+            message = 'hello world 2';
         var data = {
             "android": {"title": title, "message": message}
         }

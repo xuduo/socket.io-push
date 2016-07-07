@@ -4,7 +4,7 @@ var chai = require('chai');
 
 var expect = chai.expect;
 
-describe('apn test', function () {
+describe('apn send one', function () {
 
     before(function () {
         var config = require('../config.js');
@@ -13,9 +13,10 @@ describe('apn test', function () {
         global.pushClient = require('../lib/client/push-client.js')('http://localhost:' + config.io_port);
         global.pushClient2 = require('../lib/client/push-client.js')('http://localhost:' + config.io_port);
 
-        global.pushClient2.on('connect', function(){
+        global.pushClient2.on('connect', function () {
             pushClient2.socket.emit("token", {token: 'ffff', bundleId: "com.xuduo.pushtest", type: 'apn'}); //这里emit可能比下面的request还晚,所以可能出问题
-            pushClient2.on('notification', function(){});
+            pushClient2.on('notification', function () {
+            });
         })
 
     });
@@ -41,19 +42,14 @@ describe('apn test', function () {
             request
                 .post(apiUrl + '/api/notification')
                 .send({
-                    pushId: [pushClient.pushId,pushClient2.pushId],
+                    pushId: [pushClient.pushId, pushClient2.pushId],
                     //pushId: pushClient2.pushId,
                     notification: str
                 })
                 .set('Accept', 'application/json')
                 .end(function (err, res) {
                     expect(res.text).to.be.equal('{"code":"success"}');
-                    setTimeout(function () {
-                        pushService.notificationService.getTokenDataByPushId(pushClient.pushId, function (token) {
-                            expect(token).to.be.undefined;
-                            done();
-                        });
-                    }, 5000);
+                    done();
                 });
         });
 

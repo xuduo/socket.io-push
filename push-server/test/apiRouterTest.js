@@ -8,8 +8,8 @@ describe('push test', function () {
 
     before(function () {
         global.config = require('../config.js');
-        config.routerMaxPushIds = 3;
-        global.pushService = require('../lib/push-server.js')(config);
+        global.pushService = require('../lib/push-server.js')(global.config);
+        global.pushService.apiRouter.maxPushIds = 3;
         global.apiUrl = 'http://localhost:' + config.api_port;
         global.pushClient = require('../lib/client/push-client.js')('http://localhost:' + config.io_port, {
             transports: ['websocket', 'polling'],
