@@ -55,7 +55,6 @@ TopicOnline.prototype.getTopicOnline = function (topic, callback) {
                     count = count + data.length;
                 }
             }
-            ;
             if (delKey.length > 0) {
                 self.redis.hdel("stats#topicOnline#" + topic, delKey);
             }
