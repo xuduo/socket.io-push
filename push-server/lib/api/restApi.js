@@ -215,16 +215,16 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
             res.send({"result": result});
         });
         return next();
-    }
+    };
 
-    const handleApnSlice = function (req, res, next) {
-        apnService.sliceSendAll(JSON.parse(req.params.notification), req.params.timeToLive, req.params.pattern);
+    const handleApn = function (req, res, next) {
+        apnService.callLocal(JSON.parse(req.params.notification), req.params.bundleId, parseArrayParam(req.params.tokens), req.params.pattern);
         res.send({code: "success"});
         return next();
-    }
+    };
 
-    server.get('/api/sliceSendAll', handleApnSlice);
-    server.post('/api/sliceSendAll', handleApnSlice);
+    server.get('/api/apn', handleApn);
+    server.post('/api/apn', handleApn);
     server.get('/api/stats/base', handleStatsBase);
     server.get('/api/stats/chart', handleChartStats);
     server.get('/api/push', handlePush);

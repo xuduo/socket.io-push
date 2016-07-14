@@ -42,7 +42,7 @@ function PushServer(config) {
     const providerFactory = require('./service/notificationProviderFactory')();
     this.notificationService.providerFactory = providerFactory;
     if (config.apns != undefined) {
-        this.apnService = require('./service/apnProvider')(config.apns, config.apnsSliceServers, cluster, this.stats, tokenTTL);
+        this.apnService = require('./service/apnProvider')(config.apns, config.apnApiUrls, cluster, this.stats, tokenTTL);
         providerFactory.addProvider(this.apnService);
     }
     if (config.huawei) {

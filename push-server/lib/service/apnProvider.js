@@ -4,46 +4,51 @@ const logger = require('../log/index.js')('ApnProvider');
 
 const util = require('../util/util.js');
 const apn = require('apn');
-const request = require('superagent');
+const request = require('request');
 
-function ApnProvider(apnConfigs, sliceServers, redis, stats, tokenTTL) {
-    if (!(this instanceof ApnProvider)) return new ApnProvider(apnConfigs, sliceServers, redis, stats, tokenTTL);
+function ApnProvider(apnConfigs, apnApiUrls = [], redis, stats, tokenTTL) {
+    if (!(this instanceof ApnProvider)) return new ApnProvider(apnConfigs, apnApiUrls, redis, stats, tokenTTL);
     this.redis = redis;
     this.type = "apn";
     this.apnConnections = {};
     this.stats = stats;
+    this.apnApiUrls = require("../util/infiniteArray")(apnApiUrls);
     this.tokenTTL = tokenTTL;
-    this.sliceServers = sliceServers;
     const self = this;
     const fs = require('fs');
     const ca = [fs.readFileSync(__dirname + "/../../cert/entrust_2048_ca.cer")];
 
     apnConfigs.forEach(function (apnConfig, index) {
-        apnConfig.maxConnections = apnConfig.maxConnections || 10;
-        apnConfig.ca = ca;
-        apnConfig.errorCallback = function (errorCode, notification, device) {
-            if (device && device.token) {
-                const id = device.token.toString('hex');
-                logger.error("apn errorCallback errorCode %d %s", errorCode, id);
-                stats.addPushError(1, errorCode, self.type);
-                redis.hdel("apnTokens#" + apnConfig.bundleId, id);
-                redis.get("tokenToPushId#apn#" + id, function (err, oldPushId) {
-                    logger.error("apn errorCallback pushId %s", oldPushId);
-                    if (oldPushId) {
-                        redis.del("pushIdToToken#" + oldPushId);
-                        redis.del("tokenToPushId#apn#" + id);
+        let connection = "";
+        if (apnConfig.cert && apnConfig.key) {
+            apnConfig.maxConnections = apnConfig.maxConnections || 10;
+            apnConfig.ca = ca;
+            apnConfig.errorCallback = function (errorCode, notification, device) {
+                if (device && device.token) {
+                    const id = device.token.toString('hex');
+                    logger.error("apn errorCallback errorCode %d %s", errorCode, id);
+                    stats.addPushError(1, errorCode, self.type);
+                    if (errorCode == 8) {
+                        redis.hdel("apnTokens#" + apnConfig.bundleId, id);
+                        redis.get("tokenToPushId#apn#" + id, function (err, oldPushId) {
+                            logger.error("apn errorCallback pushId %s", oldPushId);
+                            if (oldPushId) {
+                                redis.del("pushIdToToken#" + oldPushId);
+                                redis.del("tokenToPushId#apn#" + id);
+                            }
+                        });
                     }
-                });
-            } else {
-                logger.error("apn errorCallback no token %s %j", errorCode, device);
+                } else {
+                    logger.error("apn errorCallback no token %s %j", errorCode, device);
+                }
             }
+            connection = apn.Connection(apnConfig);
+            connection.index = index;
+            connection.on("transmitted", function () {
+                stats.addPushSuccess(1, self.type);
+            });
         }
-        const connection = apn.Connection(apnConfig);
-        connection.index = index;
         self.apnConnections[apnConfig.bundleId] = connection;
-        connection.on("transmitted", function () {
-            stats.addPushSuccess(1, self.type);
-        });
         logger.info("apnConnections init for %s maxConnections %s", apnConfig.bundleId, apnConfig.maxConnections);
     });
 
@@ -52,28 +57,22 @@ function ApnProvider(apnConfigs, sliceServers, redis, stats, tokenTTL) {
     logger.info("defaultBundleId %s", this.defaultBundleId);
 }
 
-ApnProvider.prototype.sendMany = function (notification, apnDataList, timeToLive) { 
+ApnProvider.prototype.sendMany = function (notification, apnDataList, timeToLive) {
     if (!notification.apn || !this.apnConnections) {
         logger.debug("no apn info skip");
         return;
     }
-    
     const mapApnToken = {};
-    for(const apnData of apnDataList){
-        bundleId = apnData.bundleId;
-        apnList = mapApnToken[bundleId] || [];
+    for (const apnData of apnDataList) {
+        const bundleId = apnData.bundleId;
+        const apnList = mapApnToken[bundleId] || [];
         apnList.push(apnData.token);
         mapApnToken[bundleId] = apnList;
     }
 
-    for(const bundle in mapApnToken){
-        const apnConnection = this.apnConnections[bundle];
-        if(apnConnection){
-            this.stats.addPushTotal(1, this.type);
-            const note = toApnNotification(notification, timeToLive);
-            apnConnection.pushNotification(note, mapApnToken[bundle]);
-            logger.debug("send to notification to ios %s %s", bundle, mapApnToken[bundle]);
-        }
+    for (const bundle in mapApnToken) {
+        logger.debug("send notification to ios %s", bundle);
+        this.batchSendToApn(notification, bundle, mapApnToken[bundle], timeToLive);
     }
 };
 
@@ -84,53 +83,50 @@ ApnProvider.prototype.addToken = function (data) {
     }
 };
 
-ApnProvider.prototype.sliceSendAll = function (notification, timeToLive, pattern) {
-    const self = this;
-    const note = toApnNotification(notification, timeToLive);
-    this.bundleIds.forEach(function (bundleId) {
-        self.redis.hscan("apnTokens#" + bundleId, "0", "MATCH", pattern, "COUNT", 10000000, function (err, replies) {
-            if (replies.length == 2) {
-                self.sendToApn(replies[1], bundleId, note);
-            }
-        });
-    });
+ApnProvider.prototype.batchSendToApn = function (notification, bundleId, tokens, timeToLive) {
+    if (this.apnApiUrls.hasNext()) {
+        this.callRemote(notification, bundleId, tokens, timeToLive);
+    } else {
+        this.callLocal(notification, bundleId, tokens, timeToLive);
+    }
 };
 
-ApnProvider.prototype.sendToApn = function (tokenToTime, bundleId, note) {
+ApnProvider.prototype.callLocal = function (notification, bundleId, tokens, timeToLive) {
     const apnConnection = this.apnConnections[bundleId];
-    const timestamp = Date.now();
-    if (tokenToTime) {
-        const tokens = [];
-        if (Array.isArray(tokenToTime)) {
-            for (let i = 0; i + 1 < tokenToTime.length; i = i + 2) {
-                const token = tokenToTime[i];
-                const time = tokenToTime[i + 1];
-                if (timestamp - time > this.tokenTTL) {
-                    logger.info("delete outdated apnToken %s", token);
-                    this.redis.hdel("apnTokens#" + bundleId, token);
-                } else {
-                    tokens.push(token.toString());
-                }
-            }
-        } else {
-            for (const token in tokenToTime) {
-                const time = tokenToTime[token];
-                if (timestamp - time > this.tokenTTL) {
-                    logger.info("delete outdated apnToken %s", token);
-                    this.redis.hdel("apnTokens#" + bundleId, token);
-                } else {
-                    tokens.push(token);
-                }
-            }
-        }
-        if (tokens.length > 0) {
-            logger.info("send apn %s", tokens);
-            apnConnection.pushNotification(note, tokens);
-            this.stats.addPushTotal(tokens.length, this.type);
-        }
+    if (!apnConnection) {
+        logger.error("bundleId not supported", bundleId);
+        return;
     }
-}
-const hexChars = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'a', 'b', 'c', 'd', 'e', 'f'];
+    if (!tokens || tokens.length == 0) {
+        logger.error("tokens empty ", bundleId);
+        return;
+    }
+    this.stats.addPushTotal(tokens.length, this.type);
+    const note = toApnNotification(notification, timeToLive);
+    apnConnection.pushNotification(note, tokens);
+    logger.debug("send to notification to ios %s %j", bundleId, tokens);
+};
+
+ApnProvider.prototype.callRemote = function (notification, bundleId, tokens, timeToLive, errorCount = 0) {
+    const apiUrl = this.apnApiUrls.next();
+    request({
+            url: apiUrl + "/api/apn",
+            method: "post",
+            form: {
+                bundleId: bundleId,
+                tokens: JSON.stringify(tokens),
+                notification: JSON.stringify(notification),
+                timeToLive: timeToLive
+            }
+        }, (error, response, body) => {
+            logger.debug("call remote api batch ", tokens.length, apiUrl, error, body);
+            if (error && errorCount < 2) {
+                logger.error("retry remote api batch ", tokens.length, apiUrl, error, body);
+                this.callRemote(notification, bundleId, tokens, timeToLive, errorCount + 1);
+            }
+        }
+    );
+};
 
 ApnProvider.prototype.sendAll = function (notification, timeToLive) {
     logger.info("sendAll %j", notification);
@@ -138,37 +134,26 @@ ApnProvider.prototype.sendAll = function (notification, timeToLive) {
         logger.debug("no apn info skip");
         return;
     }
-    const self = this;
-    if (self.sliceServers) {
-        let serverIndex = 0;
-        hexChars.forEach(function (first) {
-            hexChars.forEach(function (second) {
-                const pattern = first + second + "*";
-                const apiUrl = self.sliceServers[serverIndex % self.sliceServers.length];
-                serverIndex++;
-                request
-                    .post(apiUrl + '/api/sliceSendAll')
-                    .send({
-                        timeToLive: timeToLive,
-                        notification: JSON.stringify(notification),
-                        pattern: pattern
-                    })
-                    .set('Accept', 'application/json')
-                    .end(function (err, res) {
-                        if (err || res.text != '{"code":"success"}') {
-                            logger.error("slicing error %s %s %s %s", pattern, apiUrl, err, res && res.text);
-                        }
-                    });
-            });
-        });
-    } else {
-        const note = toApnNotification(notification, timeToLive);
-        this.bundleIds.forEach(function (bundleId) {
-            self.redis.hgetall("apnTokens#" + bundleId, function (err, replies) {
-                if (replies) {
-                    self.sendToApn(replies, bundleId, note);
+    for (const bundleId of this.bundleIds) {
+        const stream = this.redis.hscanStream("apnTokens#" + bundleId, {count: 1000});
+        let batch = [];
+        const timestamp = Date.now();
+        stream.on('data', result => {
+                for (let i = 0; i + 1 < result.length; i = i + 2) {
+                    const token = result[i];
+                    batch.push(token);
+                    const time = result[i + 1];
+                    if (timestamp - time > this.tokenTTL) {
+                        logger.debug("delete outdated apnToken %s", token);
+                        this.redis.hdel("apnTokens#" + bundleId, token);
+                    }
                 }
-            });
+                this.batchSendToApn(notification, bundleId, batch, timeToLive);
+                batch = [];
+            }
+        );
+        stream.on('end', () => {
+            this.batchSendToApn(notification, bundleId, batch, timeToLive);
         });
     }
 };

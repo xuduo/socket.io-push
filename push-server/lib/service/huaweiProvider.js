@@ -105,7 +105,6 @@ HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback)
     if (notification.android.title) {
         const self = this;
 
-        const httpResponseCount = 0;
         for (const package_name in this.authInfo) {
             self.stats.addPushTotal(1, self.type + "All");
             this.checkToken(package_name, function (tokenError) {

@@ -14,7 +14,7 @@ function ApiRouter(uidStore, notificationService, ttlService, tagService, maxPus
     this.ttlService = ttlService;
     this.tagService = tagService;
     this.maxPushIds = maxPushIds || 1000;
-    this.remoteUrls = remoteUrls;
+    this.remoteUrls = require("../util/infiniteArray")(remoteUrls);
 }
 
 ApiRouter.prototype.notification = function (notification, pushAll, pushIds, uids, tag, timeToLive) {
@@ -70,7 +70,7 @@ ApiRouter.prototype.sendNotificationByPushIds = function (notification, pushIds,
     if (pushIds.length == 0) {
         return;
     }
-    if (pushIds.length > this.maxPushIds && this.remoteUrls) {
+    if (pushIds.length > this.maxPushIds && this.remoteUrls.hasNext()) {
         logger.info("sendNotification to remote api ", this.maxPushIds, pushIds.length);
         let batch = [];
         const self = this;
@@ -82,20 +82,15 @@ ApiRouter.prototype.sendNotificationByPushIds = function (notification, pushIds,
             }
         });
         this.callRemoteNotification(notification, batch, timeToLive);
-    } else if (pushIds.length == this.maxPushIds && this.remoteUrls) {
+    } else if (pushIds.length == this.maxPushIds && this.remoteUrls.hasNext()) {
         this.callRemoteNotification(notification, pushIds, timeToLive);
     } else {
         this.notificationService.sendByPushIds(pushIds, timeToLive, notification);
     }
 };
 
-ApiRouter.prototype.callRemoteNotification = function (notification, pushIds, timeToLive) {
-    serverIndex++;
-    if (serverIndex == this.remoteUrls.length) {
-        serverIndex = 0;
-    }
-    const apiUrl = this.remoteUrls[serverIndex % this.remoteUrls.length];
-
+ApiRouter.prototype.callRemoteNotification = function (notification, pushIds, timeToLive, errorCount = 0) {
+    const apiUrl = this.remoteUrls.next();
     request({
             url: apiUrl + "/api/notification",
             method: "post",
@@ -104,8 +99,11 @@ ApiRouter.prototype.callRemoteNotification = function (notification, pushIds, ti
                 notification: JSON.stringify(notification),
                 timeToLive: timeToLive
             }
-        }, function (error) {
+        }, error => {
             logger.info("call remote api batch ", pushIds.length, apiUrl, error);
+            if (error && errorCount < 3) {
+                this.callRemoteNotification(notification, pushIds, timeToLive, errorCount + 1);
+            }
         }
     );
 };

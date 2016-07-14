@@ -4,7 +4,7 @@ var chai = require('chai');
 
 var expect = chai.expect;
 
-describe('push test', function () {
+describe('apiRouterTest', function () {
 
     before(function () {
         global.config = require('../config.js');
@@ -23,7 +23,7 @@ describe('push test', function () {
     });
 
     it('send notification', function (done) {
-        pushClient.on('connect', function (data) {
+        pushClient.on('connect', function () {
             var title = 'hello',
                 message = 'hello world';
             var data = {
