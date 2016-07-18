@@ -5,7 +5,6 @@ const logger = require('../log/index.js')('ApiRouter');
 const util = require('../util/util.js');
 const request = require('request');
 const pushEvent = 'push';
-let serverIndex = 0;
 
 function ApiRouter(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls) {
     if (!(this instanceof ApiRouter)) return new ApiRouter(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls);

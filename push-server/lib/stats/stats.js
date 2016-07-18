@@ -126,19 +126,25 @@ Stats.prototype.removeSession = function (count) {
 
 const mSecPerHour = 60 * 60 * 1000;
 
-function hourStrip(timestamp) {
-    return Math.floor(timestamp / mSecPerHour) * mSecPerHour;
+function strip(timestamp, interval = mSecPerHour) {
+    return Math.floor(timestamp / interval) * interval;
 }
 
 Stats.prototype.incr = function (key, timestamp) {
-    const hourKey = hourStrip(timestamp);
+    const hourKey = strip(timestamp);
     key = key + "#" + hourKey;
     this.redisIncrBuffer.incrby(key, 1);
 };
 
+Stats.prototype.set = function (key, value, timestamp, interval) {
+    const hourKey = strip(timestamp, interval);
+    key = key + "#" + hourKey;
+    this.redisIncrBuffer.set(key, value);
+};
+
 Stats.prototype.incrby = function (key, timestamp, by) {
     if (by > 0) {
-        const hourKey = hourStrip(timestamp);
+        const hourKey = strip(timestamp);
         key = key + "#" + hourKey;
         this.redisIncrBuffer.incrby(key, by);
     }
@@ -217,8 +223,15 @@ const sortString = function (a, b) {
 }
 
 Stats.prototype.find = function (key, callback) {
-    const totalHour = 7 * 24;
-    let timestamp = hourStrip(Date.now() - (totalHour - 1) * mSecPerHour);
+    let interval = mSecPerHour;
+    if (key.indexOf("base_") > -1) {
+        interval = 60 * 10 * 1000;
+    }
+    let totalHour = 7 * 24 * 3600 * 1000 / interval;
+    if (totalHour > 1500) {
+        totalHour = 1500;
+    }
+    let timestamp = strip(Date.now() - (totalHour - 1) * interval);
     const keys = [];
     let totalCount = 0;
     let totalLatency = 0;
@@ -230,7 +243,7 @@ Stats.prototype.find = function (key, callback) {
         keys.push("stats#" + key + "#successCount#" + timestamp);
         keys.push("stats#" + key + "#totalLatency#" + timestamp);
         keys.push("stats#" + key + "#errorCount#" + timestamp);
-        timestamp += mSecPerHour;
+        timestamp += interval;
     }
 
     const results = [];
@@ -272,7 +285,7 @@ Stats.prototype.find = function (key, callback) {
                 totalChart.push(total);
                 latencyChart.push(Math.round(latency / success) || 0);
                 successRateChart.push(((100 * success / total) || 0).toFixed(3));
-                countPerSecondChart.push(total / mSecPerHour * 1000);
+                countPerSecondChart.push(total / interval * 1000);
 
                 if ((i + 1) % (24) == 0) {
                     successRateChartDay.push(((100 * successDay / totalDay) || 0).toFixed(3));
@@ -285,7 +298,7 @@ Stats.prototype.find = function (key, callback) {
             }
             const avgLatency = Math.round(totalLatency / totalSuccess) || 0;
             const successRate = totalSuccess / totalCount;
-            const countPerSecond = totalCount / totalHour / mSecPerHour * 1000;
+            const countPerSecond = totalCount / totalHour / interval * 1000;
 
             const chartData = {
                 timestamps: timestamps,

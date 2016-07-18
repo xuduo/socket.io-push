@@ -109,6 +109,7 @@ ApnProvider.prototype.callLocal = function (notification, bundleId, tokens, time
 
 ApnProvider.prototype.callRemote = function (notification, bundleId, tokens, timeToLive, errorCount = 0) {
     const apiUrl = this.apnApiUrls.next();
+    const retryCount = 1;
     request({
             url: apiUrl + "/api/apn",
             method: "post",
@@ -120,7 +121,7 @@ ApnProvider.prototype.callRemote = function (notification, bundleId, tokens, tim
             }
         }, (error, response, body) => {
             logger.debug("call remote api batch ", tokens.length, apiUrl, error, body);
-            if (error && errorCount < 2) {
+            if (error && errorCount <= retryCount) {
                 logger.error("retry remote api batch ", tokens.length, apiUrl, error, body);
                 this.callRemote(notification, bundleId, tokens, timeToLive, errorCount + 1);
             }

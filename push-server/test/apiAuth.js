@@ -5,17 +5,17 @@ var chai = require('chai');
 var expect = chai.expect;
 
 
-describe('api auth', function () {
+describe('api auth', () => {
 
-    before(function () {
+    before(() => {
         global.pushServer = require('../lib/push-server.js')(config);
     });
 
-    after(function () {
+    after(() => {
         global.pushServer.close();
     });
 
-    it('check should pass', function (done) {
+    it('check should pass', done => {
         request
             .post(apiUrl + '/api/push')
             .send({
@@ -25,7 +25,7 @@ describe('api auth', function () {
                 data: 'test'
             })
             .set('Accept', 'application/json')
-            .end(function (err, res) {
+            .end((err, res) => {
                 expect(JSON.parse(res.text).code).to.be.equal("success");
                 done();
             });
@@ -34,7 +34,7 @@ describe('api auth', function () {
 
     it('check should not pass', function (done) {
 
-        var apiCheckDenyAll = function (path, req) {
+        var apiCheckDenyAll = ()=> {
             return false;
         }
 
@@ -49,7 +49,7 @@ describe('api auth', function () {
                 data: 'test'
             })
             .set('Accept', 'application/json')
-            .end(function (err, res) {
+            .end((err, res) => {
                 expect(JSON.parse(res.text).code).to.be.equal("error");
                 request
                     .post(apiUrl + '/api/notification')
