@@ -1,5 +1,5 @@
 module.exports = ApiThreshold;
-const logger = require('../log/index.js')('ApiThreshold');
+const logger = require('winston-proxy')('ApiThreshold');
 
 function ApiThreshold(redis) {
     if (!(this instanceof ApiThreshold)) return new ApiThreshold(redis);

@@ -1,6 +1,6 @@
 module.exports = Stats;
 
-const logger = require('../log/index.js')('Stats');
+const logger = require('winston-proxy')('Stats');
 const randomstring = require("randomstring");
 
 function Stats(redis, port, commitThreshHold) {

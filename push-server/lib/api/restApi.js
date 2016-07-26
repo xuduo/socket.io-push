@@ -1,6 +1,6 @@
 module.exports = RestApi;
 const restify = require('restify');
-const logger = require('../log/index.js')('RestApi');
+const logger = require('winston-proxy')('RestApi');
 
 function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore) {
 

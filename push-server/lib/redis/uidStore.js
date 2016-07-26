@@ -1,5 +1,5 @@
 module.exports = UidStore;
-const logger = require('../log/index.js')('UidStore');
+const logger = require('winston-proxy')('UidStore');
 
 function UidStore(redis, subClient) {
     if (!(this instanceof UidStore)) return new UidStore(redis, subClient);

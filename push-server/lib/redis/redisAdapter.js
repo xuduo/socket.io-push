@@ -6,7 +6,7 @@ const uid2 = require('uid2');
 const redis = require('redis').createClient;
 const msgpack = require('msgpack-js');
 const Adapter = require('socket.io-adapter');
-const logger = require('../log/index.js')('RedisAdapter');
+const logger = require('winston-proxy')('RedisAdapter');
 
 const async = require('async');
 

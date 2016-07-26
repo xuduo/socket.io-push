@@ -3,7 +3,7 @@ module.exports = SimpleRedisHashCluster;
 const commands = require('redis-commands');
 const IoRedis = require('ioredis');
 const util = require("../util/util.js");
-const logger = require('../log/index.js')('SimpleRedisHashCluster');
+const logger = require('winston-proxy')('SimpleRedisHashCluster');
 
 const REDIS_MASTER = 'master';    // ioreids use when fetch sentinel
 const REDIS_SLAVE = 'slave';     // ioreids use when fetch sentinel

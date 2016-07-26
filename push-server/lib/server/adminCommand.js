@@ -1,5 +1,5 @@
 module.exports = AdminCommand;
-const logger = require('../log/index.js')('AdminCommand');
+const logger = require('winston-proxy')('AdminCommand');
 
 function AdminCommand(redis, stats, packetSevice, proxyServer, apiThrehold) {
     if (!(this instanceof AdminCommand)) return new AdminCommand(redis, stats, packetSevice, proxyServer, apiThrehold);

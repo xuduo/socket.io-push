@@ -17,17 +17,20 @@ describe('unsubscribe test', function () {
     });
 
     it('sessionCount test', function (done) {
-        pushService.stats.redisIncrBuffer.commitThreshold = 0;
-        pushClient.on('connect', function () {
-            pushService.stats.writeStatsToRedis();
-            pushService.stats.getSessionCount(function (data) {
-                console.log(data);
-                expect(data.total).to.be.equal(1);
-                expect(data.processCount[0].count.total).to.be.equal(1);
-                expect(data.processCount[0].id).to.be.equal(pushService.stats.id);
-                done();
+        pushService.stats.redis.del("stats#sessionCount", () => {
+            pushService.stats.redisIncrBuffer.commitThreshold = 0;
+            pushClient.on('connect', function () {
+                pushService.stats.writeStatsToRedis();
+                pushService.stats.getSessionCount(function (data) {
+                    console.log(data);
+                    expect(data.total).to.be.equal(1);
+                    expect(data.processCount[0].count.total).to.be.equal(1);
+                    expect(data.processCount[0].id).to.be.equal(pushService.stats.id);
+                    done();
+                });
             });
         });
+
     });
 
     it('packetDrop test', function (done) {

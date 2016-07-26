@@ -1,6 +1,6 @@
 module.exports = ApiRouter;
 
-const logger = require('../log/index.js')('ApiRouter');
+const logger = require('winston-proxy')('ApiRouter');
 
 const util = require('../util/util.js');
 const request = require('request');

@@ -1,6 +1,6 @@
 module.exports = PacketService;
 
-const logger = require('../log/index.js')('PacketService');
+const logger = require('winston-proxy')('PacketService');
 
 const randomstring = require("randomstring");
 

@@ -6,7 +6,7 @@ var apiUrl = 'http://localhost:' + config.api_port;
 var chai = require('chai');
 var randomstring = require("randomstring");
 var expect = chai.expect;
-var logger = require('../lib/log/index.js')('TTLServiceTest');
+var logger = require('winston-proxy')('TTLServiceTest');
 
 describe('push test', function () {
 
