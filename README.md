@@ -17,7 +17,7 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * [服务器 push-server](push-server)
 * [Android SDK & Demo](https://github.com/xuduo/socket.io-push-android)
 * [IOS SDK & Demo](https://github.com/xuduo/socket.io-push-ios)
-* [Browser](push-server/lib/client)
+* [Browser](push-client)
 
 ###名词
 * `push-server` 推送服务器, 提供客户端长连接, http api接口

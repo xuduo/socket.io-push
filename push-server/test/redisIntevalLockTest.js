@@ -21,19 +21,19 @@ describe('RedisIntervalLockTest', function () {
 
     it('test2', function (done) {
         let count = 0;
-        const interval1 = lock2.setInterval("test2", 50, ()=> {
+        const interval1 = lock2.setInterval("test2", 100, ()=> {
             count++;
         });
-        const interval2 = lock1.setInterval("test2", 50, ()=> {
+        const interval2 = lock1.setInterval("test2", 100, ()=> {
             count++;
         });
 
-        const interval3 = lock3.setInterval("test2", 50, ()=> {
+        const interval3 = lock3.setInterval("test2", 100, ()=> {
             count++;
         });
 
         setTimeout(()=> {
-            expect(count).to.be.equal(10);
+            expect(count).to.be.equal(6);
             clearInterval(interval1);
             clearInterval(interval2);
             clearInterval(interval3);
