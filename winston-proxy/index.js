@@ -2,12 +2,11 @@ const winston = require('winston');
 const rotatefile = require('winston-daily-rotate-file');
 const fs = require('fs');
 
-function createLogger(opts){
-    opts = opts || {};
-    let level = opts.debug ? 'debug' : 'info';
-    let dir = opts.dir || 'log';
+function createLogger(opts) {
+    let level = opts.level;
+    let dir = opts.dir;
     fs.access(dir, err => {
-        if(err){
+        if (err) {
             fs.mkdirSync(dir);
         }
     });
@@ -27,7 +26,7 @@ function createLogger(opts){
     fileOpt.level = 'error';
     fileOpt.filename = dir + '/error_';
     transports.push(new rotatefile(fileOpt));
-    if(opts.foreground){
+    if (opts.foreground) {
         let consoleOpt = {
             name: 'console',
             json: false,
@@ -44,9 +43,10 @@ function createLogger(opts){
         transports: transports
     });
 
-    function timestamp(){
+    function timestamp() {
         return new Date().toLocaleString();
     }
+
     function formatter(args) {
         return args.timestamp() + " work:" + workId + " "
             + args.level.substring(0, 1).toUpperCase() + "/"
@@ -54,12 +54,11 @@ function createLogger(opts){
     }
 }
 
-let loggers = {};
+let logger = null;
 let workId = '01';
-let startAutoDel = false;
-function LogProxy(module){
-    this.module = module ;
-    this.logger = loggers[module] || loggers['default'];
+function LogProxy(module) {
+    this.module = module;
+    this.logger = logger;
 }
 ['debug', 'info', 'error'].forEach(function (command) {
     LogProxy.prototype[command] = function (key, arg, callback) {
@@ -74,41 +73,47 @@ function LogProxy(module){
 deleteOutdatedLog = function (dir, days = 7) {
     const msPerDay = 24 * 60 * 60 * 1000;
     fs.readdir(dir, (err, files) => {
-        if(err){
-            return ;
+        if (err) {
+            return;
         }
         let now = new Date();
         files.forEach((filename) => {
             let stat = fs.statSync(dir + '/' + filename);
             let time_diff = now - stat.mtime;
-            if( time_diff > days * msPerDay ) {
+            if (time_diff > days * msPerDay) {
                 fs.unlinkSync(dir + '/' + filename);
             }
         });
     });
 };
 
-const Logger = function (module, opts) {
-    if(typeof opts == 'object'){
-        let logger = createLogger(opts);
-        loggers[module] = logger;
-    }else if(typeof module == 'object'){    //init default options
-        let preDefinedOpt = module;
-        let logger = createLogger(preDefinedOpt);
-        loggers['default'] = logger;
-        workId = preDefinedOpt.workId || 1;
-        workId = workId < 10 ? '0'+workId : workId;
-        const msPerDel = 24 * 60 * 60 * 1000;
-        if(!startAutoDel){
-            deleteOutdatedLog(preDefinedOpt.dir || 'log');
-            setInterval(() => {
-                    this.deleteOutdatedLog(preDefinedOpt.dir || 'log');
-                },msPerDel);
-            startAutoDel = true;
-        }
+function init(opts) {
+    opts = opts || {};
+    opts.dir = opts.dir || 'log';
+    opts.level = opts.debug ? 'debug' : 'info';
+    logger = createLogger(opts);
+    workId = opts.workId || 1;
+    workId = workId < 10 ? '0' + workId : workId;
+    const msPerDel = 24 * 60 * 60 * 1000;
+    if (workId == 1) {
+        deleteOutdatedLog(opts.dir);
+        setInterval(() => {
+            deleteOutdatedLog(opts.dir);
+        }, msPerDel);
     }
-    if(typeof module == 'string'){
-        return new LogProxy(module);
+}
+
+const Logger = function (optsOrLabel) {
+    if (typeof optsOrLabel == 'object') {
+        if (logger) {
+            throw Error("can't init twice");
+        }
+        init(optsOrLabel);
+    } else if (typeof optsOrLabel == 'string') {
+        if (!logger) {
+            init();
+        }
+        return new LogProxy(optsOrLabel);
     }
 };
 
