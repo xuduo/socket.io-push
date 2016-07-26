@@ -23,7 +23,6 @@ function Stats(redis, port, commitThreshHold) {
     setInterval(function () {
         self.writeStatsToRedis();
     }, 10000);
-    redis.del("stats#sessionCount");
 }
 
 Stats.prototype.writeStatsToRedis = function () {

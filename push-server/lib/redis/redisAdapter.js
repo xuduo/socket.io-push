@@ -167,6 +167,7 @@ function adapter(uri, opts, stats) {
             return;
         }
         sub.subscribe(channel, function (err) {
+            logger.debug("subscribe ", channel);
             if (err) {
                 logger.error('subscribe error %s', channel);
                 self.emit('error', err);
@@ -196,8 +197,8 @@ function adapter(uri, opts, stats) {
         }
 
         if (hasRoom && !this.rooms[room]) {
-
             const channel = prefix + '#' + room;
+            logger.debug("unsubscribe ", channel);
             sub.unsubscribe(channel, function (err) {
                 if (err) {
                     self.emit('error', err);

@@ -156,9 +156,14 @@ commands.list.forEach(function (command) {
 });
 
 
-SimpleRedisHashCluster.prototype["hscanStream"] = function (key, opts) {
+SimpleRedisHashCluster.prototype.hscanStream = function (key, opts) {
     const client = util.getByHash(this.read, key);
     return client.hscanStream(key, opts || {});
+}
+
+SimpleRedisHashCluster.prototype.call = function (command, key) {
+    const client = util.getByHash(this.write, key);
+    return client.call.apply(client, arguments);
 }
 
 
@@ -187,6 +192,7 @@ SimpleRedisHashCluster.prototype.hash = function (key, callback) {
 
 SimpleRedisHashCluster.prototype.on = function (message, callback) {
     if (message === "message") {
+        logger.debug("on message ");
         this.messageCallbacks.push(callback);
     } else {
         const err = "on " + message + " not supported";

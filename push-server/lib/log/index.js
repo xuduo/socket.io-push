@@ -30,7 +30,7 @@ function setArgs(args) {
     let level;
     if (args.debug) {
         level = 'debug';
-    }  else {
+    } else {
         level = 'info';
     }
 

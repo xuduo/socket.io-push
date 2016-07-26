@@ -167,6 +167,13 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         return next();
     };
 
+    const heapdump = function (req, res, next) {
+        var file = process.cwd() + "/" + Date.now() + '.heapsnapshot';
+        require('heapdump').writeSnapshot(file);
+        res.send({code: "success", file: file});
+        return next();
+    };
+
     const handleStatsBase = function (req, res, next) {
         stats.getSessionCount(function (count) {
             res.send(count);
@@ -223,6 +230,8 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         return next();
     };
 
+    server.get('/api/heapdump', heapdump);
+    server.post('/api/heapdump', heapdump);
     server.get('/api/apn', handleApn);
     server.post('/api/apn', handleApn);
     server.get('/api/stats/base', handleStatsBase);
