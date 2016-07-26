@@ -9,7 +9,7 @@ describe('unsubscribe test', function () {
         var config = require('../config.js');
         global.pushService = require('../lib/push-server.js')(config);
         global.apiUrl = 'http://localhost:' + config.api_port;
-        global.pushClient = require('../lib/client/push-client.js')('http://localhost:' + config.io_port);
+        global.pushClient = require('socket.io-push-client')('http://localhost:' + config.io_port);
 
     });
 

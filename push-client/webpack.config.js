@@ -1,9 +1,9 @@
 module.exports = {
-  entry: './lib/client/push-client.js',
+  entry: './index.js',
   output: {
     library: 'PushClient',
     libraryTarget: 'umd',
-    path:'static/js/',
+    path:'./',
     filename: 'push-client-1.0.js'
   },
   externals: {

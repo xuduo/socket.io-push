@@ -19,7 +19,7 @@ describe('push test', function () {
     });
 
     it('test ttl to single', function (done) {
-        var pushClient = require('../lib/client/push-client.js')('http://localhost:' + config.io_port);
+        var pushClient = require('socket.io-push-client')('http://localhost:' + config.io_port);
         pushClient.on('push', function (data) {
             logger.debug('receive first push');
             expect(data.message).to.equal(1);

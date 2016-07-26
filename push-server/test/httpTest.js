@@ -7,7 +7,7 @@ describe('http test', function () {
     before(function () {
         global.config = require('../config.js');
         global.pushService = require('../lib/push-server.js')(config);
-        global.pushClient = require('../lib/client/push-client.js')('http://localhost:' + config.io_port, {
+        global.pushClient = require('socket.io-push-client')('http://localhost:' + config.io_port, {
             transports: ['websocket', 'polling'],
             useNotification: true
         });

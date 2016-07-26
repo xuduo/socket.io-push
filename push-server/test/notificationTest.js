@@ -15,11 +15,11 @@ describe('push test', function () {
         config.api_port = oldApiPort;
         global.apiService = require('../lib/push-server.js')(config);
         global.apiUrl = 'http://localhost:' + config.api_port;
-        global.pushClient = require('../lib/client/push-client.js')('http://localhost:' + config.io_port, {
+        global.pushClient = require('socket.io-push-client')('http://localhost:' + config.io_port, {
             transports: ['websocket', 'polling'],
             useNotification: true
         });
-        global.pushClient2 = require('../lib/client/push-client.js')('http://localhost:' + config.io_port, {
+        global.pushClient2 = require('socket.io-push-client')('http://localhost:' + config.io_port, {
             transports: ['websocket', 'polling'],
             useNotification: true
         });

@@ -38,7 +38,7 @@ describe('RedisIntervalLockTest', function () {
             clearInterval(interval2);
             clearInterval(interval3);
             done();
-        }, 525);
+        }, 530);
     });
 
 });

@@ -105,7 +105,7 @@ PushClient.prototype.setItem = function (key, val) {
 // private
 PushClient.prototype.initStorage = function () {
     if (typeof localStorage === "undefined" || localStorage === null) {
-        localStorage = require('./localStorage')();
+        localStorage = require('./lib/localStorage')();
     }
 }
 
