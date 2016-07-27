@@ -7,10 +7,13 @@ var expect = chai.expect;
 describe('unsubscribe test', function () {
 
     before(function () {
-        var config = require('../config.js');
-        global.pushService = require('../lib/push-server.js')(config);
-        global.apiUrl = 'http://localhost:' + config.api_port;
-        global.pushClient = require('socket.io-push-client')('http://localhost:' + config.io_port);
+
+        global.pushService = require('../lib/push-server')();
+        global.apiUrl = 'http://localhost:' + pushService.api.port;
+        global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
+            transports: ['websocket', 'polling'],
+            useNotification: true
+        });
 
     });
 
@@ -18,6 +21,7 @@ describe('unsubscribe test', function () {
         global.pushService.close();
         global.pushClient.disconnect();
     });
+
 
     it('connect', function (done) {
         pushClient.on('connect', function (data) {

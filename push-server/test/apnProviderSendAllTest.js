@@ -7,14 +7,12 @@ var expect = chai.expect;
 describe('apn test', function () {
 
     before(function () {
-        var config = require('../config.js');
-        global.apiUrl = 'http://localhost:' + config.api_port;
-        config.apnsSliceServers = [
-            apiUrl, apiUrl, apiUrl
-        ];
-        global.pushService = require('../lib/push-server.js')(config);
-        global.pushClient = require('socket.io-push-client')('http://localhost:' + config.io_port);
-
+        global.pushService = require('../lib/push-server')();
+        global.apiUrl = 'http://localhost:' + pushService.api.port;
+        global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
+            transports: ['websocket', 'polling'],
+            useNotification: true
+        });
     });
 
     after(function () {

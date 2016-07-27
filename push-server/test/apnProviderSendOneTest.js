@@ -7,18 +7,16 @@ var expect = chai.expect;
 describe('apn send one', function () {
 
     before(function () {
-        var config = require('../config.js');
-        global.apiUrl = 'http://localhost:' + config.api_port;
-        global.pushService = require('../lib/push-server.js')(config);
-        global.pushClient = require('socket.io-push-client')('http://localhost:' + config.io_port);
-        global.pushClient2 = require('socket.io-push-client')('http://localhost:' + config.io_port);
-
-        global.pushClient2.on('connect', function () {
-            pushClient2.socket.emit("token", {token: 'ffff', bundleId: "com.xuduo.pushtest", type: 'apn'}); //这里emit可能比下面的request还晚,所以可能出问题
-            pushClient2.on('notification', function () {
-            });
-        })
-
+        global.pushService = require('../lib/push-server')();
+        global.apiUrl = 'http://localhost:' + pushService.api.port;
+        global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
+            transports: ['websocket', 'polling'],
+            useNotification: true
+        });
+        global.pushClient2 = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
+            transports: ['websocket', 'polling'],
+            useNotification: true
+        });
     });
 
     after(function () {

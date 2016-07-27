@@ -1,25 +1,21 @@
 module.exports = function (config, server) {
-    return new Proxy(config, server);
+    return new Api(config, server);
 }
 
-class Proxy {
+class Api {
 
     constructor(config, server) {
         const instance = config.instance || 1;
         console.log("starting instance #" + instance);
-        config.io_port = config.io_port + instance - 1;
         config.api_port = config.api_port + instance - 1;
 
         const cluster = require('./redis/simpleRedisHashCluster')(config.redis);
 
+        this.port = config.api_port;
         this.io = require('./redis/emitter')(cluster);
 
         this.tagService = require('./service/tagService')(cluster);
-        this.stats = require('./stats/stats')(cluster, config.io_port, config.statsCommitThreshold);
-        let packetService;
-        if (config.redis.event) {
-            packetService = require('./service/packetService')(cluster, cluster);
-        }
+        this.stats = require('./stats/stats')(cluster, 0, config.statsCommitThreshold);
         this.uidStore = require('./redis/uidStore')(cluster);
         this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version);
         const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
@@ -52,9 +48,6 @@ class Proxy {
     }
 
     close() {
-        this.io.close();
-        if (this.restApi) {
-            this.restApi.close();
-        }
+        this.restApi.close();
     }
 }

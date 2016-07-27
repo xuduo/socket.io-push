@@ -5,10 +5,16 @@ var expect = chai.expect;
 describe('unsubscribe test', function () {
 
     before(function () {
-        var config = require('../config.js');
-        global.pushService = require('../lib/push-server.js')(config);
-        global.apiUrl = 'http://localhost:' + config.api_port;
-        global.pushClient = require('socket.io-push-client')('http://localhost:' + config.io_port);
+        global.pushService = require('../lib/push-server')();
+        global.apiUrl = 'http://localhost:' + pushService.api.port;
+        global.stats = pushService.proxy.stats;
+        stats.redis.del("stats#sessionCount");
+
+        stats.redisIncrBuffer.commitThreshold = 0;
+        global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
+            transports: ['websocket', 'polling'],
+            useNotification: true
+        });
     });
 
     after(function () {
@@ -17,20 +23,16 @@ describe('unsubscribe test', function () {
     });
 
     it('sessionCount test', function (done) {
-        pushService.stats.redis.del("stats#sessionCount", () => {
-            pushService.stats.redisIncrBuffer.commitThreshold = 0;
-            pushClient.on('connect', function () {
-                pushService.stats.writeStatsToRedis();
-                pushService.stats.getSessionCount(function (data) {
-                    console.log(data);
-                    expect(data.total).to.be.equal(1);
-                    expect(data.processCount[0].count.total).to.be.equal(1);
-                    expect(data.processCount[0].id).to.be.equal(pushService.stats.id);
-                    done();
-                });
+        pushClient.on('connect', function () {
+            stats.writeStatsToRedis();
+            stats.getSessionCount(function (data) {
+                console.log(data);
+                expect(data.total).to.be.equal(1);
+                expect(data.processCount[0].count.total).to.be.equal(1);
+                expect(data.processCount[0].id).to.be.equal(stats.id);
+                done();
             });
         });
-
     });
 
     it('packetDrop test', function (done) {
@@ -40,7 +42,7 @@ describe('unsubscribe test', function () {
             if (i != 3) {
                 push();
             } else {
-                pushService.stats.packetDropThreshold = 1;
+                stats.packetDropThreshold = 1;
                 push();
                 push();
                 push();
@@ -56,14 +58,14 @@ describe('unsubscribe test', function () {
     });
 
     it('find', function (done) {
-        pushService.stats.find("toClientPacket", function (data) {
+        stats.find("toClientPacket", function (data) {
             expect(data.totalCount).to.greaterThan(0);
             done();
         });
     });
 
     it('find', function (done) {
-        pushService.stats.getQueryDataKeys(function (data) {
+        stats.getQueryDataKeys(function (data) {
             expect(data).to.contain("toClientPacket");
             done();
         });
@@ -80,8 +82,8 @@ describe('unsubscribe test', function () {
             }]
         });
         setTimeout(function () {
-            pushService.stats.writeStatsToRedis();
-            pushService.stats.find("request#StatsTestCase", function (data) {
+            stats.writeStatsToRedis();
+            stats.find("request#StatsTestCase", function (data) {
                 expect(data.totalCount).to.be.at.least(100);
                 expect(data.avgLatency).to.be.at.least(2);
                 done();

@@ -7,12 +7,13 @@ var expect = chai.expect;
 
 describe('api param check', function () {
 
-    before(function () {
-        global.pushServer = require('../lib/push-server.js')(config);
+    before(() => {
+        global.apiServer = require('../lib/api')(require('../config-api'));
+        global.apiUrl = 'http://localhost:' + apiServer.port;
     });
 
-    after(function () {
-        global.pushServer.close();
+    after(() => {
+        global.apiServer.close();
     });
 
     it('topic is required', function (done) {

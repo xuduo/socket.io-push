@@ -6,10 +6,9 @@ var expect = chai.expect;
 describe('tag', function () {
 
     before(function () {
-        global.config = require('../config.js');
-        global.pushService = require('../lib/push-server.js')(config);
-        global.apiUrl = 'http://localhost:' + config.api_port;
-        global.pushClient = require('socket.io-push-client')('http://localhost:' + config.io_port, {
+        global.pushService = require('../lib/push-server')();
+        global.apiUrl = 'http://localhost:' + pushService.api.port;
+        global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
             transports: ['websocket', 'polling'],
             useNotification: true
         });
@@ -25,9 +24,9 @@ describe('tag', function () {
             pushClient.addTag("tag1");
             pushClient.addTag("tag2");
             setTimeout(function () {
-                global.pushService.tagService.getTagsByPushId(pushClient.pushId, function (tags) {
+                global.pushService.api.tagService.getTagsByPushId(pushClient.pushId, function (tags) {
                     expect(tags).to.deep.include.members(["tag1"]);
-                    global.pushService.tagService.getPushIdsByTag("tag1", function (pushIds) {
+                    global.pushService.api.tagService.getPushIdsByTag("tag1", function (pushIds) {
                         expect(pushIds).to.deep.include.members([pushClient.pushId]);
                         done();
                     });
@@ -39,9 +38,9 @@ describe('tag', function () {
     it('remove tag', function (done) {
         pushClient.removeTag("tag1");
         setTimeout(function () {
-            global.pushService.tagService.getTagsByPushId(pushClient.pushId, function (tags) {
+            global.pushService.api.tagService.getTagsByPushId(pushClient.pushId, function (tags) {
                 expect(tags).to.not.deep.include.members(["tag1"]);
-                global.pushService.tagService.getPushIdsByTag("tag1", function (pushIds) {
+                global.pushService.api.tagService.getPushIdsByTag("tag1", function (pushIds) {
                     expect(pushIds).to.not.deep.include.members([pushClient.pushId]);
                     done();
                 });
@@ -86,7 +85,7 @@ describe('tag', function () {
     });
 
     it('notification no remote', function (done) {
-        pushService.apiRouter.remoteUrls = null;
+        pushService.api.apiRouter.remoteUrls = null;
         var title = 'hello 2',
             message = 'hello world 2';
         var data = {

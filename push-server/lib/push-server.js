@@ -1,8 +1,32 @@
-module.exports = PushServer;
+module.exports = function (opts) {
+    return new PushServer(opts);
+}
 
-function PushServer(config) {
-    if (!(this instanceof PushServer)) return new PushServer(config);
-    const server = require('http').createServer();
-    const proxy = require('./proxy')(config, server);
-    const api = require('./api')(config, server);
+class PushServer {
+
+    constructor(opts) {
+        const server = require('http').createServer();
+        if (!opts) {
+            opts = {
+                proxy: require("../config-proxy"),
+                api: require("../config-api")
+            }
+        }
+        if (opts.proxy) {
+            this.proxy = require('./proxy')(opts.proxy, server);
+        }
+        if (opts.api) {
+            this.api = require('./api')(opts.api, server);
+        }
+    }
+
+    close() {
+        if (this.proxy) {
+            this.proxy.close();
+        }
+        if (this.api) {
+            this.api.close();
+        }
+    }
+
 }

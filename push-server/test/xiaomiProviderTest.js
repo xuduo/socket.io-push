@@ -1,18 +1,14 @@
-var config = {
-    app_secret: "ynJJ6b+MkCLyw1cdrg/72w=="
-}
-
 describe('xiaomi test', function () {
 
     before(function () {
-        var config = require('../config.js');
-        global.pushService = require('../lib/push-server.js')(config);
-        global.xiaomiProvider = pushService.xiaomiProvider;
-        global.apiUrl = 'http://localhost:' + config.api_port;
+        global.config = require('../config-api');
+        global.apiServer = require('../lib/api')(config);
+        global.apiUrl = 'http://localhost:' + apiServer.port;
+        global.xiaomiProvider = apiServer.xiaomiProvider;
     });
 
     after(function () {
-        global.pushService.close();
+        global.apiServer.close();
     });
 
 

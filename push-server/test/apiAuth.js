@@ -1,6 +1,4 @@
 var request = require('superagent');
-var config = require('../config.js');
-var apiUrl = 'http://localhost:' + config.api_port;
 var chai = require('chai');
 var expect = chai.expect;
 
@@ -8,11 +6,12 @@ var expect = chai.expect;
 describe('api auth', () => {
 
     before(() => {
-        global.pushServer = require('../lib/push-server.js')(config);
+        global.apiServer = require('../lib/api')(require('../config-api'));
+        global.apiUrl = 'http://localhost:' + apiServer.port;
     });
 
     after(() => {
-        global.pushServer.close();
+        global.apiServer.close();
     });
 
     it('check should pass', done => {
@@ -38,7 +37,7 @@ describe('api auth', () => {
             return false;
         }
 
-        pushServer.restApi.apiAuth = apiCheckDenyAll;
+        apiServer.restApi.apiAuth = apiCheckDenyAll;
 
         request
             .post(apiUrl + '/api/push')
@@ -82,7 +81,7 @@ describe('api auth', () => {
             }
         }
 
-        pushServer.restApi.apiAuth = apiCheckIp;
+        apiServer.restApi.apiAuth = apiCheckIp;
 
         request
             .post(apiUrl + '/api/push')

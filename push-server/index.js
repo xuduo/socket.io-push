@@ -33,5 +33,5 @@ if (cluster.isMaster) {
         count: program.count
     }
     require('winston-proxy')(args);
-    require('./lib/push-server.js')(config);
+    require('./lib/push-server.js')();
 }

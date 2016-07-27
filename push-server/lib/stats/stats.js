@@ -20,9 +20,11 @@ function Stats(redis, port, commitThreshHold) {
     logger.debug("ip file %s %s", ipPath, ip);
     this.id = ip || randomstring.generate(32);
     const self = this;
-    setInterval(function () {
-        self.writeStatsToRedis();
-    }, 10000);
+    if (port > 0) {
+        setInterval(function () {
+            self.writeStatsToRedis();
+        }, 10000);
+    }
 }
 
 Stats.prototype.writeStatsToRedis = function () {

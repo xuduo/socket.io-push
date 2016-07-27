@@ -8,10 +8,10 @@ describe('apiRouterTest', function () {
 
     before(function () {
         global.config = require('../config.js');
-        global.pushService = require('../lib/push-server.js')(global.config);
-        global.pushService.apiRouter.maxPushIds = 3;
-        global.apiUrl = 'http://localhost:' + config.api_port;
-        global.pushClient = require('socket.io-push-client')('http://localhost:' + config.io_port, {
+        global.pushService = require('../lib/push-server.js')();
+        global.pushService.api.apiRouter.maxPushIds = 3;
+        global.apiUrl = 'http://localhost:' + pushService.api.port;
+        global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
             transports: ['websocket', 'polling'],
             useNotification: true
         });

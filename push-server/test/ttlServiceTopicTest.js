@@ -9,12 +9,13 @@ var expect = chai.expect;
 
 describe('push test', function () {
 
-    before(function(){
-        global.pushServer = require('../lib/push-server.js')(config);
+    before(function () {
+        global.pushService = require('../lib/push-server')();
+        global.apiUrl = 'http://localhost:' + pushService.api.port;
     });
 
-    after(function(){
-        global.pushServer.close();
+    after(function () {
+        global.pushService.close();
     });
 
     it('test ttl to topic', function (done) {
@@ -30,7 +31,7 @@ describe('push test', function () {
             .set('Accept', 'application/json')
             .end(function (err, res) {
                 expect(res.text).to.be.equal('{"code":"success"}');
-                var pushClient = require('socket.io-push-client')('http://localhost:' + config.io_port, {
+                var pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
                     transports: ['websocket', 'polling'],
                     useNotification: true
                 });

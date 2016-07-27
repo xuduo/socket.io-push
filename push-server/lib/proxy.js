@@ -8,7 +8,6 @@ class Proxy {
         const instance = config.instance || 1;
         console.log("starting instance #" + instance);
         config.io_port = config.io_port + instance - 1;
-        config.api_port = config.api_port + instance - 1;
 
         const cluster = require('./redis/simpleRedisHashCluster')(config.redis);
 
@@ -17,6 +16,7 @@ class Proxy {
             pingInterval: config.pingInterval,
             transports: ['websocket', 'polling']
         });
+        this.port = config.io_port;
         server.listen(config.io_port);
         console.log("start server on port " + config.io_port);
         this.tagService = require('./service/tagService')(cluster);

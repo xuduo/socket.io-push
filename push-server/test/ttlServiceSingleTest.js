@@ -1,7 +1,4 @@
 var request = require('superagent');
-var config = require('../config.js');
-
-var apiUrl = 'http://localhost:' + config.api_port;
 
 var chai = require('chai');
 var randomstring = require("randomstring");
@@ -11,15 +8,19 @@ var logger = require('winston-proxy')('TTLServiceTest');
 describe('push test', function () {
 
     before(function () {
-        global.pushServer = require('../lib/push-server.js')(config);
+        global.pushService = require('../lib/push-server')();
+        global.apiUrl = 'http://localhost:' + pushService.api.port;
+        global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
+            transports: ['websocket', 'polling'],
+            useNotification: true
+        });
     });
 
     after(function () {
-        global.pushServer.close();
+        global.pushService.close();
     });
 
     it('test ttl to single', function (done) {
-        var pushClient = require('socket.io-push-client')('http://localhost:' + config.io_port);
         pushClient.on('push', function (data) {
             logger.debug('receive first push');
             expect(data.message).to.equal(1);

@@ -3,14 +3,14 @@ var expect = require('chai').expect;
 describe('huawei test', function () {
 
     before(function () {
-        global.config = require('../config.js');
-        global.pushService = require('../lib/push-server.js')(config);
-        global.huaweiProvider = pushService.huaweiProvider;
-        global.apiUrl = 'http://localhost:' + config.api_port;
+        global.config = require('../config-api');
+        global.apiServer = require('../lib/api')(config);
+        global.apiUrl = 'http://localhost:' + apiServer.port;
+        global.huaweiProvider = apiServer.huaweiProvider;
     });
 
     after(function () {
-        global.pushService.close();
+        global.apiServer.close();
     });
 
     it('huawei send all ', function (done) {
@@ -27,6 +27,7 @@ describe('huawei test', function () {
             }
         });
     });
+
     it('huawei send one', function(done){
         var notificationOne = {
             android: {title: "sendOne", message: "sendOne Msg", payload: {test: "wwwwqqq"}}

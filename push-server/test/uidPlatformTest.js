@@ -8,14 +8,14 @@ var expect = chai.expect;
 describe('push test', function () {
 
     before(function () {
-        var config = require('../config.js');
-        global.apiService = require('../lib/push-server.js')(config);
-        global.apiUrl = 'http://localhost:' + config.api_port;
+        global.pushService = require('../lib/push-server')();
+        global.apiUrl = 'http://localhost:' + pushService.api.port;
+        global.apiService = global.pushService.api;
 
     });
 
     after(function () {
-        global.apiService.close();
+        global.pushService.close();
     });
 
     it('bind uid', function (done) {
