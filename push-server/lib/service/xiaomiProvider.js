@@ -1,6 +1,6 @@
 module.exports = XiaomiProvider;
 
-const logger = require('../log/index.js')('XiaomiProvider');
+const logger = require('winston-proxy')('XiaomiProvider');
 
 const util = require('../util/util.js');
 const request = require('request');

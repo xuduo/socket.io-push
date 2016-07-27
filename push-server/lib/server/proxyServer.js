@@ -1,5 +1,5 @@
 module.exports = ProxyServer;
-const logger = require('../log/index.js')('ProxyServer');
+const logger = require('winston-proxy')('ProxyServer');
 const http = require('http');
 
 function ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService) {

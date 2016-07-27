@@ -1,7 +1,7 @@
 module.exports = HttpProxyService;
 
 const request = require('request');
-const logger = require('../log/index.js')('HttpProxyService');
+const logger = require('winston-proxy')('HttpProxyService');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
 const https = require('https');
 const httpsAgent = new https.Agent({keepAlive: true});

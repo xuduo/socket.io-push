@@ -1,6 +1,6 @@
 module.exports = TTLService;
 
-var logger = require('../log/index.js')('TTLService');
+var logger = require('winston-proxy')('TTLService');
 var randomstring = require("randomstring");
 
 function TTLService(io, redis, protocolVersion) {

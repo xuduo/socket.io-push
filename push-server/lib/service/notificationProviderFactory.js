@@ -1,6 +1,6 @@
 module.exports = NotificationProviderFactory;
 
-const logger = require('../log/index.js')('NotificationProviderFactory');
+const logger = require('winston-proxy')('NotificationProviderFactory');
 
 function NotificationProviderFactory() {
     if (!(this instanceof NotificationProviderFactory)) return new NotificationProviderFactory();

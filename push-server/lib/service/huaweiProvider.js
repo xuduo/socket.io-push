@@ -1,6 +1,6 @@
 module.exports = HuaweiProvider;
 
-const logger = require('../log/index.js')('HuaweiProvider');
+const logger = require('winston-proxy')('HuaweiProvider');
 
 const util = require('../util/util.js');
 const request = require('request');
