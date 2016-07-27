@@ -3,7 +3,6 @@
  */
 
 const uid2 = require('uid2');
-const redis = require('redis').createClient;
 const msgpack = require('msgpack-js');
 const Adapter = require('socket.io-adapter');
 const logger = require('../log/index.js')('RedisAdapter');
@@ -40,16 +39,9 @@ function adapter(uri, opts, stats) {
         opts.port = uri[1];
     }
 
-    // opts
-    const host = opts.host || '127.0.0.1';
-    const port = Number(opts.port || 6379);
     let pub = opts.pubClient;
     let sub = opts.subClient;
     const prefix = opts.key || 'socket.io';
-
-    // init clients if needed
-    if (!pub) pub = redis(port, host);
-    if (!sub) sub = redis(port, host, {return_buffers: true});
 
     // this server's key
     const uid = uid2(6);
@@ -159,6 +151,7 @@ function adapter(uri, opts, stats) {
         Adapter.prototype.add.call(this, id, room);
         const channel = prefix + '#' + room;
         if (id == room) {
+            if (fn) fn(null);
             return;
         }
         if (needRedisSub) {
@@ -192,11 +185,7 @@ function adapter(uri, opts, stats) {
         const hasRoom = this.rooms.hasOwnProperty(room);
         Adapter.prototype.del.call(this, id, room);
 
-        if (id == room) {
-            return;
-        }
-
-        if (hasRoom && !this.rooms[room]) {
+        if (id != room && hasRoom && !this.rooms[room]) {
             const channel = prefix + '#' + room;
             logger.debug("unsubscribe ", channel);
             sub.unsubscribe(channel, function (err) {
