@@ -8,17 +8,17 @@ var expect = chai.expect;
 
 describe('api topicOnline', function () {
 
-    var data = {"topic:Test1" : { length: 3},  "testTopic2" : { length:4}};
+    var data = {"topic:Test1": {length: 3}, "testTopic2": {length: 4}};
 
     it('Test topicOnline', function (done) {
         topicOnline.writeTopicOnline(data);
         topicOnline1.writeTopicOnline(data);
-        setTimeout(function(){
-            topicOnline.getTopicOnline('topic:Test1', function(result){
+        setTimeout(function () {
+            topicOnline.getTopicOnline('topic:Test1', function (result) {
                 expect(result).to.be.equal(6);
-                topicOnline.getTopicOnline('xxxx', function(result){
+                topicOnline.getTopicOnline('xxxx', function (result) {
                     expect(result).to.be.equal(0);
-                    topicOnline.getTopicOnline('testTopic2', function(result){
+                    topicOnline.getTopicOnline('testTopic2', function (result) {
                         expect(result).to.be.equal(0);
                         done();
                     });
@@ -28,10 +28,10 @@ describe('api topicOnline', function () {
 
     });
 
-    it('Test topicOnline data timeOut', function(done){
+    it('Test topicOnline data timeOut', function (done) {
         topicOnline.timeValidWithIn = 500;
-        setTimeout(function(){
-            topicOnline.getTopicOnline('topic:Test1', function(result){
+        setTimeout(function () {
+            topicOnline.getTopicOnline('topic:Test1', function (result) {
                 expect(result).to.be.equal(0);
                 done();
             });

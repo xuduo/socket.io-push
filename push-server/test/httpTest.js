@@ -5,7 +5,10 @@ var expect = chai.expect;
 describe('http test', function () {
 
     before(function () {
-        global.pushService = require('../lib/push-server.js')();
+        global.pushService = require('../lib/push-server.js')({
+            proxy: require("../config-proxy"),
+            api: require("../config-api")
+        });
         global.pushService.api.apiRouter.maxPushIds = 3;
         global.apiUrl = 'http://localhost:' + pushService.api.port;
         global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {

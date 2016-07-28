@@ -9,21 +9,32 @@ program
     .option('-c, --count <n>', 'process count to start', parseInt)
     .parse(process.argv);
 
-var config = require(process.cwd() + "/config");
-config.instance = program.instance;
 
 if (!program.count) {
     program.count = 1;
 }
 var cluster = require('cluster');
 
+let opts = {};
+
+try {
+    opts.proxy = require("./config-proxy");
+} catch (ex) {
+    console.log(ex);
+}
+
+try {
+    opts.api = require("./config-api");
+} catch (ex) {
+    console.log(ex);
+}
+
 if (cluster.isMaster) {
-    console.log("config " + JSON.stringify(config, null, 4));
     for (var i = 0; i < program.count; i++) {
         cluster.fork();
     }
 } else {
-    config.instance = cluster.worker.id;
+    instance = cluster.worker.id;
     var args = {
         workId: cluster.worker.id,
         dir: 'log',
@@ -33,5 +44,5 @@ if (cluster.isMaster) {
         count: program.count
     }
     require('winston-proxy')(args);
-    require('./lib/push-server.js')();
+    require('./lib/push-server.js')(opts, cluster.worker.id);
 }

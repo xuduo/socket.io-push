@@ -27,7 +27,7 @@ config.huawei = [{
     package_name: "com.yy.misaka.demo",
     client_id: 10513719,
     client_secret: "9l7fwfxt0m37qt61a1rh3w0lg9hjza1l"
-},{
+}, {
     package_name: "com.yy.misaka.demo2",
     client_id: 10578747,
     client_secret: "43b37a2893af873910eb38b3417d8855"
@@ -60,20 +60,11 @@ config.redis = {
             {host: "127.0.0.1", port: 6379}
         ]
     ],
-    sub: [
-        {host: "127.0.0.1", port: 6379}
-    ],
     write: [
         {host: "127.0.0.1", port: 6379}
     ],
     read: [
         {host: "127.0.0.1", port: 6379}
-    ],
-    event: [
-        {
-            host: "127.0.0.1",
-            port: 6379
-        }
     ]
 };
 

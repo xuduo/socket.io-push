@@ -11,7 +11,6 @@ describe('xiaomi test', function () {
         global.apiServer.close();
     });
 
-
     it('sendAll', function (done) {
         var notificationAll = {
             android: {title: "sendAll", message: "sendAll Msg", payload: {test: "wwwwqqq"}}

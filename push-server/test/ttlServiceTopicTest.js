@@ -6,7 +6,10 @@ var expect = chai.expect;
 describe('push test', function () {
 
     before(function () {
-        global.pushService = require('../lib/push-server')();
+        global.pushService = require('../lib/push-server.js')({
+            proxy: require("../config-proxy"),
+            api: require("../config-api")
+        });
         global.apiUrl = 'http://localhost:' + pushService.api.port;
     });
 
@@ -37,7 +40,7 @@ describe('push test', function () {
                     var send = false;
                     pushClient.on("disconnect", function () {
                         console.log("pushClient.on(disconnect");
-                        if(!send){
+                        if (!send) {
                             send = true;
                             request
                                 .post(apiUrl + '/api/push')
