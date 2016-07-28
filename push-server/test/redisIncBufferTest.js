@@ -5,7 +5,7 @@ var expect = chai.expect;
 describe('test redisIncBuffer', function () {
 
     it('base test', function (done) {
-        var redis = require('../lib/redis/simpleRedisHashCluster.js')(require('../config.js').redis);
+        var redis = require('../lib/redis/simpleRedisHashCluster.js')(require('../config-proxy.js').redis);
         var incBuffer = require('../lib/stats/redisIncrBuffer.js')(redis);
         incBuffer.commitThreshold = 50;
         redis.set("incBufferTest", 1, function () {

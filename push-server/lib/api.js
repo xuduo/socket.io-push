@@ -6,12 +6,11 @@ class Api {
 
     constructor(config, server) {
         const instance = config.instance || 1;
-        console.log("starting instance #" + instance);
-        config.api_port = config.api_port + instance - 1;
+        this.port = config.port = config.port + instance - 1;
 
+        console.log(`start api on port  ${this.port} #${instance}`);
         const cluster = require('./redis/simpleRedisHashCluster')(config.redis);
 
-        this.port = config.api_port;
         this.io = require('./redis/emitter')(cluster);
 
         this.tagService = require('./service/tagService')(cluster);
@@ -40,11 +39,9 @@ class Api {
             this.xiaomiProvider = require('./service/xiaomiProvider')(config.xiaomi, this.stats);
             providerFactory.addProvider(this.xiaomiProvider);
         }
-        if (config.api_port) {
-            this.apiRouter = require('./service/apiRouter')(this.uidStore, this.notificationService, this.ttlService, this.tagService, config.routerMaxPushIds, config.routerApiUrls);
-            this.restApi = require('./api/restApi')(this.apiRouter, topicOnline, this.stats, config, cluster, apiThreshold, this.apnService, config.apiAuth, this.uidStore);
-            this.onlineStats = require('./stats/onlineStats')(this.stats, config.api_port);
-        }
+        this.apiRouter = require('./service/apiRouter')(this.uidStore, this.notificationService, this.ttlService, this.tagService, config.routerMaxPushIds, config.routerApiUrls);
+        this.restApi = require('./api/restApi')(this.apiRouter, topicOnline, this.stats, config, cluster, apiThreshold, this.apnService, config.apiAuth, this.uidStore);
+        this.onlineStats = require('./stats/onlineStats')(this.stats, this.port);
     }
 
     close() {

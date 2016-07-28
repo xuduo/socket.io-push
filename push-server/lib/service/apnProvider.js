@@ -76,13 +76,6 @@ ApnProvider.prototype.sendMany = function (notification, apnDataList, timeToLive
     }
 };
 
-ApnProvider.prototype.addToken = function (data) {
-    logger.debug("addToken %j", data);
-    if (data.bundleId && data.token) {
-        this.redis.hset("apnTokens#" + data.bundleId, data.token, Date.now());
-    }
-};
-
 ApnProvider.prototype.batchSendToApn = function (notification, bundleId, tokens, timeToLive) {
     if (this.apnApiUrls.hasNext()) {
         this.callRemote(notification, bundleId, tokens, timeToLive);

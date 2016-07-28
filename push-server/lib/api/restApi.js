@@ -352,7 +352,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     server.get('/api/echo', handleEcho);
     server.post('/api/echo', handleEcho);
 
-    server.listen(config.api_port, function () {
+    server.listen(config.port, function () {
         logger.debug('%s listening at %s', server.name, server.url);
     });
 

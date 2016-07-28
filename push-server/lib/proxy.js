@@ -6,8 +6,7 @@ class Proxy {
 
     constructor(config, server) {
         const instance = config.instance || 1;
-        console.log("starting instance #" + instance);
-        config.io_port = config.io_port + instance - 1;
+        this.port = config.port + instance - 1;
 
         const cluster = require('./redis/simpleRedisHashCluster')(config.redis);
 
@@ -16,11 +15,12 @@ class Proxy {
             pingInterval: config.pingInterval,
             transports: ['websocket', 'polling']
         });
-        this.port = config.io_port;
-        server.listen(config.io_port);
-        console.log("start server on port " + config.io_port);
+        server.listen(this.port);
+
+        console.log(`start proxy on port  ${this.port} #${instance}`);
+
         this.tagService = require('./service/tagService')(cluster);
-        this.stats = require('./stats/stats')(cluster, config.io_port, config.statsCommitThreshold);
+        this.stats = require('./stats/stats')(cluster, this.port, config.statsCommitThreshold);
         const socketIoRedis = require('./redis/redisAdapter')({
             pubClient: cluster,
             subClient: cluster,
@@ -34,28 +34,12 @@ class Proxy {
         this.uidStore = require('./redis/uidStore')(cluster);
         this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version);
         const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
-        this.notificationService = require('./service/notificationService')(config.apns, cluster, this.ttlService, tokenTTL);
         this.httpProxyService = require('./service/httpProxyService')(config.http_remove_headers);
-        const proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.notificationService, this.uidStore, this.ttlService, this.httpProxyService, this.tagService);
-        const apiThreshold = require('./api/apiThreshold')(cluster);
-        const adminCommand = require('./server/adminCommand')(cluster, this.stats, packetService, proxyServer, apiThreshold);
-        let topicOnline;
+        this.tokenService = require('./service/tokenService')(cluster, tokenTTL);
+
+        this.proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.tokenService, this.uidStore, this.ttlService, this.httpProxyService, this.tagService);
         if (config.topicOnlineFilter) {
-            topicOnline = require('./stats/topicOnline')(cluster, this.io, this.stats.id, config.topicOnlineFilter);
-        }
-        const providerFactory = require('./service/notificationProviderFactory')();
-        this.notificationService.providerFactory = providerFactory;
-        if (config.apns != undefined) {
-            this.apnService = require('./service/apnProvider')(config.apns, config.apnApiUrls, cluster, this.stats, tokenTTL);
-            providerFactory.addProvider(this.apnService);
-        }
-        if (config.huawei) {
-            this.huaweiProvider = require('./service/huaweiProvider')(config.huawei, this.stats);
-            providerFactory.addProvider(this.huaweiProvider);
-        }
-        if (config.xiaomi) {
-            this.xiaomiProvider = require('./service/xiaomiProvider')(config.xiaomi, this.stats);
-            providerFactory.addProvider(this.xiaomiProvider);
+            this.topicOnline = require('./stats/topicOnline')(cluster, this.io, this.stats.id, config.topicOnlineFilter);
         }
     }
 

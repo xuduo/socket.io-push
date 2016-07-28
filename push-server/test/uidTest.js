@@ -1,5 +1,4 @@
 var request = require('superagent');
-var config = require('../config.js');
 
 var chai = require('chai');
 

@@ -116,7 +116,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                 data.token = data.apnToken;
                 delete data.apnToken;
             }
-            notificationService.setThirdPartyToken(data);
+            notificationService.setToken(data);
         };
         socket.on('apnToken', token);
         socket.on('token', token);

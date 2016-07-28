@@ -5,7 +5,6 @@ var expect = chai.expect;
 describe('http test', function () {
 
     before(function () {
-        global.config = require('../config.js');
         global.pushService = require('../lib/push-server.js')();
         global.pushService.api.apiRouter.maxPushIds = 3;
         global.apiUrl = 'http://localhost:' + pushService.api.port;
@@ -24,7 +23,7 @@ describe('http test', function () {
         pushClient.on("connect", function () {
             pushClient.http({
                 method: "get",
-                url: "http://localhost:" + config.api_port + "/api/echo",
+                url: "http://localhost:" + pushService.api.port + "/api/echo",
                 data: {param1: "value1", param2: "value2"}
             }, function (result) {
                 expect(result.body.param1).to.be.equal("value1");
@@ -38,7 +37,7 @@ describe('http test', function () {
     it('post', function (done) {
         pushClient.http({
             method: "post",
-            url: "http://localhost:" + config.api_port + "/api/echo",
+            url: "http://localhost:" + pushService.api.port + "/api/echo",
             params: {param1: "value1", param2: "value2"}
         }, function (result) {
             expect(result.body.param1).to.be.equal("value1");
@@ -50,7 +49,7 @@ describe('http test', function () {
     it('error', function (done) {
         pushClient.http({
             method: "post",
-            url: "http://localhost2:" + config.api_port + "/api/echo",
+            url: "http://localhost2:" + pushService.api.port + "/api/echo",
             params: {param1: "value1", param2: "value2"}
         }, function (result) {
             expect(result.statusCode).to.be.equal(0);

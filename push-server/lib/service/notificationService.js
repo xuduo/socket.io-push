@@ -2,7 +2,6 @@ module.exports = NotificationService;
 
 const logger = require('winston-proxy')('NotificationService');
 const util = require('../util/util.js');
-const apn = require('apn');
 const randomstring = require("randomstring");
 const async = require('async');
 
@@ -13,31 +12,6 @@ function NotificationService(providerFactory, redis, ttlService, tokenTTL) {
     this.providerFactory = providerFactory;
     this.tokenTTL = tokenTTL;
 }
-
-NotificationService.prototype.setThirdPartyToken = function (data) {
-    logger.debug("setThirdPartyToken ", data);
-    if (data && data.pushId && data.token) {
-        const pushId = data.pushId;
-        delete data.pushId;
-        this.providerFactory.addToken(data);
-        const tokenData = JSON.stringify(data);
-        const token = data.token;
-        const self = this;
-        const tokenToPushIdKey = "tokenToPushId#" + data.type + "#" + token;
-        this.redis.get(tokenToPushIdKey, function (err, oldPushId) {
-            logger.debug("oldPushId %s", oldPushId);
-            if (oldPushId && oldPushId != pushId) {
-                self.redis.del("pushIdToToken#" + oldPushId);
-                logger.debug("remove old pushId to token %s %s", oldPushId, tokenData);
-            }
-            self.redis.set(tokenToPushIdKey, pushId);
-            const pushIdToTokenKey = "pushIdToToken#" + pushId;
-            self.redis.set(pushIdToTokenKey, tokenData);
-            self.redis.pexpire(pushIdToTokenKey, self.tokenTTL);
-            self.redis.pexpire(tokenToPushIdKey, self.tokenTTL);
-        });
-    }
-};
 
 NotificationService.prototype.getTokenDataByPushId = function (pushId, callback) {
     this.redis.get("pushIdToToken#" + pushId, function (err, reply) {

@@ -1,8 +1,5 @@
 var config = {};
 
-config.pingTimeout = 25000; //  心跳timeout
-config.pingInterval = 25000; // 心跳间隔
-
 config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei timeToLive
 
 config.statsCommitThreshold = 0;//ms,统计缓存commit间隔, 生产环境建议10秒以上
@@ -80,12 +77,9 @@ config.redis = {
     ]
 };
 
-config.io_port = 10001; //socket.io 长连接端口
-config.api_port = 11001; //api端口, 可选. 不配置,不提供api接口
+config.port = 11001; //api端口, 可选. 不配置,不提供api接口
 
 config.ttl_protocol_version = 2; //默认1, 推荐使用2,省流量
-
-config.http_remove_headers = true;
 
 config.routerMaxPushIds = 1000;
 

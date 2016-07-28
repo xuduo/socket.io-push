@@ -1,8 +1,4 @@
 var request = require('superagent');
-var config = require('../config.js');
-
-var apiUrl = 'http://localhost:' + config.api_port;
-
 var chai = require('chai');
 var randomstring = require("randomstring");
 var expect = chai.expect;

@@ -7,9 +7,14 @@ class PushServer {
     constructor(opts) {
         const server = require('http').createServer();
         if (!opts) {
-            opts = {
-                proxy: require("../config-proxy"),
-                api: require("../config-api")
+            opts = {};
+            try {
+                opts.proxy = require("../config-proxy");
+            } catch (ex) {
+            }
+            try {
+                opts.api = require("../config-api");
+            } catch (ex) {
             }
         }
         if (opts.proxy) {

@@ -60,10 +60,6 @@ XiaomiProvider.prototype.getPostData = function (notification, tokenDataList, ti
     return postData;
 }
 
-XiaomiProvider.prototype.addToken = function (data) {
-
-};
-
 XiaomiProvider.prototype.sendAll = function (notification, timeToLive, callback) {
     if (notification.android.title) {
         const self = this;

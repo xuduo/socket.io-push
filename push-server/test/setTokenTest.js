@@ -1,9 +1,8 @@
-
 var chai = require('chai');
 
 var expect = chai.expect;
 
-describe('unsubscribe test', function () {
+describe('set token test', function () {
 
     before(function () {
         global.pushService = require('../lib/push-server')();

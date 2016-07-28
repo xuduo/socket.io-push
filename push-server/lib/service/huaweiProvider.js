@@ -97,10 +97,6 @@ HuaweiProvider.prototype.getPostData = function (push_type, notification, packag
     return postData;
 };
 
-HuaweiProvider.prototype.addToken = function (data) {
-
-};
-
 HuaweiProvider.prototype.sendAll = function (notification, timeToLive, callback) {
     if (notification.android.title) {
         const self = this;
