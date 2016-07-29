@@ -9,32 +9,33 @@ program
     .option('-c, --count <n>', 'process count to start', parseInt)
     .parse(process.argv);
 
+let proxy;
 
-if (!program.count) {
-    program.count = 1;
+try {
+    proxy = require("./config-proxy");
+} catch (ex) {
+    console.log(ex);
+    proxy = {instances: 0}
 }
+
+let api;
+
+try {
+    api = require("./config-api");
+} catch (ex) {
+    console.log(ex);
+    api = {instances: 0};
+}
+
 var cluster = require('cluster');
 
-let opts = {};
-
-try {
-    opts.proxy = require("./config-proxy");
-} catch (ex) {
-    console.log(ex);
-}
-
-try {
-    opts.api = require("./config-api");
-} catch (ex) {
-    console.log(ex);
-}
-
 if (cluster.isMaster) {
-    for (var i = 0; i < program.count; i++) {
+    var totalFork = proxy.instances + api.instances;
+    for (var i = 0; i < totalFork; i++) {
         cluster.fork();
     }
+    console.log("cluster master totalFork ", totalFork);
 } else {
-    instance = cluster.worker.id;
     var args = {
         workId: cluster.worker.id,
         dir: 'log',
@@ -44,5 +45,11 @@ if (cluster.isMaster) {
         count: program.count
     }
     require('winston-proxy')(args);
-    require('./lib/push-server.js')(opts, cluster.worker.id);
+    if (cluster.worker.id <= proxy.instances) {
+        proxy.instance = cluster.worker.id;
+        require('./lib/proxy')(proxy);
+    } else if (cluster.worker.id > proxy.instances) {
+        api.instance = cluster.worker.id - proxy.instances;
+        require('./lib/api')(api);
+    }
 }

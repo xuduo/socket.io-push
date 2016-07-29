@@ -1,5 +1,9 @@
 var config = {};
 
+config.port = 11001; //api端口, 可选. 不配置,不提供api接口
+
+config.instances = 1;
+
 config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei timeToLive
 
 config.statsCommitThreshold = 0;//ms,统计缓存commit间隔, 生产环境建议10秒以上
@@ -67,8 +71,6 @@ config.redis = {
         {host: "127.0.0.1", port: 6379}
     ]
 };
-
-config.port = 11001; //api端口, 可选. 不配置,不提供api接口
 
 config.ttl_protocol_version = 2; //默认1, 推荐使用2,省流量
 

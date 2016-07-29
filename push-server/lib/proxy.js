@@ -1,21 +1,21 @@
-module.exports = function (config, server) {
-    return new Proxy(config, server);
+module.exports = function (config) {
+    return new Proxy(config);
 }
 
 class Proxy {
 
-    constructor(config, server) {
+    constructor(config) {
         const instance = config.instance || 1;
         this.port = config.port + instance - 1;
 
         const cluster = require('./redis/simpleRedisHashCluster')(config.redis);
 
-        this.io = require('socket.io')(server, {
+        this.io = require('socket.io')({
             pingTimeout: config.pingTimeout,
             pingInterval: config.pingInterval,
             transports: ['websocket', 'polling']
         });
-        server.listen(this.port);
+        this.io.listen(this.port);
 
         console.log(`start proxy on port  ${this.port} #${instance}`);
 

@@ -76,7 +76,6 @@ describe('push test', function () {
     });
 
     it('unbind uid', function (done) {
-
         pushClient.unbindUid();
         pushClient.disconnect();
         request
@@ -93,8 +92,6 @@ describe('push test', function () {
                     done();
                 });
             });
-
-
     });
 
 });
