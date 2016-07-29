@@ -54,12 +54,14 @@ function createLogger(opts) {
     }
 }
 
-let logger = null;
+let logger;
 let workId = '01';
+
 function LogProxy(module) {
     this.module = module;
     this.logger = logger;
 }
+
 ['debug', 'info', 'error'].forEach(function (command) {
     LogProxy.prototype[command] = function (key, arg, callback) {
         if (this.logger) {

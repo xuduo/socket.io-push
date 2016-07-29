@@ -36,15 +36,14 @@ if (cluster.isMaster) {
     }
     console.log("cluster master totalFork ", totalFork);
 } else {
-    var args = {
+    require('winston-proxy')({
         workId: cluster.worker.id,
         dir: 'log',
         foreground: program.F,
         debug: program.D,
         info: program.I,
         count: program.count
-    }
-    require('winston-proxy')(args);
+    });
     if (cluster.worker.id <= proxy.instances) {
         proxy.instance = cluster.worker.id;
         require('./lib/proxy')(proxy);
