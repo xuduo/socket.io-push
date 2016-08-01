@@ -9,23 +9,24 @@ program
     .option('-c, --count <n>', 'process count to start', parseInt)
     .parse(process.argv);
 
-let proxy;
+let proxy = {};
 
 try {
     proxy = require("./config-proxy");
 } catch (ex) {
     console.log(ex);
-    proxy = {instances: 0}
 }
+proxy.instances = proxy.instances || 0;
 
-let api;
+let api = {};
 
 try {
     api = require("./config-api");
+
 } catch (ex) {
     console.log(ex);
-    api = {instances: 0};
 }
+api.instances = api.instances || 0;
 
 var cluster = require('cluster');
 
@@ -34,6 +35,11 @@ if (cluster.isMaster) {
     for (var i = 0; i < totalFork; i++) {
         cluster.fork();
     }
+    require('fs').writeFile('./num_processes', totalFork + 1, (err) => {
+        if (err) {
+            console.log("fail to write num of processes");
+        }
+    });
     console.log("cluster master totalFork ", totalFork);
 } else {
     require('winston-proxy')({

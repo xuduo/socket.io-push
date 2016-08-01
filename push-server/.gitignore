@@ -11,3 +11,5 @@ pid_debug
 logs
 ip
 localstorage/
+num_processes
+
