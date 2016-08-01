@@ -12,7 +12,7 @@ program
 let proxy = {};
 
 try {
-    proxy = require("./config-proxy");
+    proxy = require(process.cwd() + "/config-proxy");
 } catch (ex) {
     console.log(ex);
 }
@@ -21,7 +21,7 @@ proxy.instances = proxy.instances || 0;
 let api = {};
 
 try {
-    api = require("./config-api");
+    api = require(process.cwd() + "/config-api");
 
 } catch (ex) {
     console.log(ex);
