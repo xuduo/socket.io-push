@@ -67,6 +67,7 @@ function LogProxy(module) {
         if (this.logger) {
             arguments[0] = this.module + ' ' + arguments[0];
             const mainArguments = Array.prototype.slice.call(arguments);
+            mainArguments.push({}); //this is a trick of winston
             this.logger[command].apply(this, mainArguments);
         }
     }
