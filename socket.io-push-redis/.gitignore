@@ -1,0 +1,7 @@
+.idea
+local.properties
+*.iml
+node_modules
+*.log
+dump.rdb
+
