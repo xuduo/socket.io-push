@@ -1,5 +1,5 @@
 {
-  "name": "redis-middleware",
+  "name": "socket.io-push-redis",
   "version": "0.0.1",
   "description": "redis operation for socket.io-push, include adapter, emitter, read/write ",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "www.github.com/xuduo/socket.io-push/redis-middleware"
+    "url": "www.github.com/xuduo/socket.io-push"
   },
   "keywords": [
     "redis",
