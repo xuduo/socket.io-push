@@ -1,8 +1,6 @@
 module.exports = ApnProvider;
 
 const logger = require('winston-proxy')('ApnProvider');
-
-const util = require('../util/util.js');
 const apn = require('apn');
 const request = require('request');
 

@@ -8,7 +8,7 @@ class Proxy {
         const instance = config.instance || 1;
         this.port = config.port + instance - 1;
 
-        const cluster = require('./redis/simpleRedisHashCluster')(config.redis);
+        const cluster = require('socket.io-push-redis/cluster')(config.redis);
 
         this.io = require('socket.io')({
             pingTimeout: config.pingTimeout,
@@ -21,7 +21,7 @@ class Proxy {
 
         this.tagService = require('./service/tagService')(cluster);
         this.stats = require('./stats/stats')(cluster, this.port, config.statsCommitThreshold);
-        const socketIoRedis = require('./redis/redisAdapter')({
+        const socketIoRedis = require('socket.io-push-redis/adapter')({
             pubClient: cluster,
             subClient: cluster,
             key: 'io'

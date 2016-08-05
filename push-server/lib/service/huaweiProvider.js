@@ -1,8 +1,6 @@
 module.exports = HuaweiProvider;
 
 const logger = require('winston-proxy')('HuaweiProvider');
-
-const util = require('../util/util.js');
 const request = require('request');
 const tokenUrl = "https://login.vmall.com/oauth2/token";
 const apiUrl = "https://api.vmall.com/rest.php";

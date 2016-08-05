@@ -1,7 +1,6 @@
 module.exports = NotificationService;
 
 const logger = require('winston-proxy')('NotificationService');
-const util = require('../util/util.js');
 const randomstring = require("randomstring");
 const async = require('async');
 

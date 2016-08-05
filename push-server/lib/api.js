@@ -9,9 +9,9 @@ class Api {
         this.port = config.port = config.port + instance - 1;
 
         console.log(`start api on port  ${this.port} #${instance}`);
-        const cluster = require('./redis/simpleRedisHashCluster')(config.redis);
+        const cluster = require('socket.io-push-redis/cluster')(config.redis);
 
-        this.io = require('./redis/emitter')(cluster);
+        this.io = require('socket.io-push-redis/emitter')(cluster);
 
         this.tagService = require('./service/tagService')(cluster);
         this.stats = require('./stats/stats')(cluster, 0, config.statsCommitThreshold);

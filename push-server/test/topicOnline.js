@@ -1,4 +1,5 @@
-var redis = require('redis').createClient();
+var Redis = require('ioredis');
+var redis = new Redis();
 var io = require('socket.io');
 var topicOnline = require('../lib/stats/topicOnline.js')(redis, io, 'Ys7Gh2NwDY9Dqti92ZwxJh8ymQL4mmZ2 ', ['topic:', 'message']);
 var topicOnline1 = require('../lib/stats/topicOnline.js')(redis, io, 'Ys7Gh2NwDY9Dqti92ZwxJh8ymQL4mmZ3 ', ['topic:', 'message']);
