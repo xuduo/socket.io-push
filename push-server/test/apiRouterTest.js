@@ -1,22 +1,15 @@
-var request = require('superagent');
-
+var request = require('request');
 var chai = require('chai');
-
 var expect = chai.expect;
+var defSetting = require('./defaultSetting');
 
 describe('apiRouterTest', function () {
 
     before(function () {
-        global.pushService = require('../lib/push-server.js')({
-            proxy: require("../config-proxy"),
-            api: require("../config-api")
-        });
+        global.pushService = defSetting.getDefaultPushService();
         global.pushService.api.apiRouter.maxPushIds = 3;
-        global.apiUrl = 'http://localhost:' + pushService.api.port;
-        global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
-            transports: ['websocket', 'polling'],
-            useNotification: true
-        });
+        global.apiUrl = defSetting.getDefaultApiUrl();
+        global.pushClient = defSetting.getDefaultPushClient();
     });
 
     after(function () {
@@ -43,16 +36,19 @@ describe('apiRouterTest', function () {
             pushClient.on('notification', notificationCallback);
 
 
-            request
-                .post(apiUrl + '/api/notification')
-                .send({
+            request({
+                url: apiUrl + '/api/notification',
+                method: "post",
+                headers: {
+                    'Accept': 'application/json'
+                },
+                form: {
                     pushId: JSON.stringify(["a", "b", "c", "x", "d", "e", pushClient.pushId]),
                     notification: str
-                })
-                .set('Accept', 'application/json')
-                .end(function (err, res) {
-                    expect(res.text).to.be.equal('{"code":"success"}');
-                });
+                }
+            }, (error, response, body) => {
+                expect(JSON.parse(body).code).to.be.equal("success");
+            });
         });
 
     });

@@ -1,13 +1,13 @@
-var request = require('superagent');
+var request = require('request');
 var chai = require('chai');
 var expect = chai.expect;
-
+var defSetting = require('./defaultSetting');
 
 describe('api auth', () => {
 
     before(() => {
-        global.apiServer = require('../lib/api')(require('../config-api'));
-        global.apiUrl = 'http://localhost:' + apiServer.port;
+        global.apiServer = defSetting.getDefaultApiServer();
+        global.apiUrl = defSetting.getDefaultApiUrl();
     });
 
     after(() => {
@@ -15,19 +15,19 @@ describe('api auth', () => {
     });
 
     it('check should pass', done => {
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushId: '',
                 pushAll: 'true',
                 topic: 'message',
                 data: 'test'
-            })
-            .set('Accept', 'application/json')
-            .end((err, res) => {
-                expect(JSON.parse(res.text).code).to.be.equal("success");
-                done();
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+            done();
+        });
     });
 
 
@@ -35,38 +35,37 @@ describe('api auth', () => {
 
         var apiCheckDenyAll = ()=> {
             return false;
-        }
+        };
 
         apiServer.restApi.apiAuth = apiCheckDenyAll;
 
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushId: '',
                 pushAll: 'true',
                 topic: 'message',
                 data: 'test'
-            })
-            .set('Accept', 'application/json')
-            .end((err, res) => {
-                expect(JSON.parse(res.text).code).to.be.equal("error");
-                request
-                    .post(apiUrl + '/api/notification')
-                    .send({
-                        pushId: '',
-                        pushAll: 'true',
-                        topic: 'message',
-                        data: 'test'
-                    })
-                    .set('Accept', 'application/json')
-                    .end(function (err, res) {
-                        expect(JSON.parse(res.text).code).to.be.equal("error");
-                        done();
-                    });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("error");
+            request({
+                url: apiUrl + '/api/notification',
+                method: "post",
+                form: {
+                    pushId: '',
+                    pushAll: 'true',
+                    topic: 'message',
+                    data: 'test'
+                }
+            }, (error, response, body) => {
+                expect(JSON.parse(response.body).code).to.be.equal("error");
+                done();
             });
-
-
+        });
     });
+
 
     it('check ip', function (done) {
 
@@ -79,50 +78,52 @@ describe('api auth', () => {
             } else {
                 return true;
             }
-        }
+        };
 
         apiServer.restApi.apiAuth = apiCheckIp;
 
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushId: '',
                 pushAll: 'true',
                 topic: 'message',
                 data: 'test'
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(JSON.parse(res.text).code).to.be.equal("error");
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("error");
+        });
 
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushId: 'test',
                 topic: 'message',
                 data: 'test'
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(JSON.parse(res.text).code).to.be.equal("success");
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
 
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            headers: {
+                'X-Real-IP': '127.0.0.2'
+            },
+            form: {
                 pushId: '',
                 pushAll: 'true',
                 topic: 'message',
                 data: 'test'
-            })
-            .set('X-Real-IP', '127.0.0.2')
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(JSON.parse(res.text).code).to.be.equal("success");
-                done();
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+            done();
+        });
     });
-
 
 });

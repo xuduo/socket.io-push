@@ -1,13 +1,13 @@
-var request = require('superagent');
+var request = require('request');
 var chai = require('chai');
 var expect = chai.expect;
-
+var defSetting = require('./defaultSetting');
 
 describe('api param check', function () {
 
     before(() => {
-        global.apiServer = require('../lib/api')(require('../config-api'));
-        global.apiUrl = 'http://localhost:' + apiServer.port;
+        global.apiServer = defSetting.getDefaultApiServer();
+        global.apiUrl = defSetting.getDefaultApiUrl();
     });
 
     after(() => {
@@ -15,103 +15,117 @@ describe('api param check', function () {
     });
 
     it('topic is required', function (done) {
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushId: '',
                 pushAll: 'true',
                 data: 'test',
                 topic: ''
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(JSON.parse(res.text).code).to.be.equal("error");
-                done();
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("error");
+            done();
+        });
+
     });
 
     it('data is required', function (done) {
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushId: '',
                 topic: 'www',
                 data: ''
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(JSON.parse(res.text).code).to.be.equal("error");
-                done();
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("error");
+            done();
+        });
+
     });
 
     it('pushId is required', function (done) {
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushId: '',
                 topic: '',
                 data: 'wwww'
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(JSON.parse(res.text).code).to.be.equal("error");
-                done();
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("error");
+            done();
+        });
+
     });
 
     it('notification target is required', function (done) {
-        request
-            .post(apiUrl + '/api/notification')
-            .send({
+
+        request({
+            url: apiUrl + '/api/notification',
+            method: "post",
+            form: {
                 notification: JSON.stringify({apn: {alert: 'wwww'}})
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(JSON.parse(res.text).code).to.be.equal("error");
-                done();
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("error");
+            done();
+        });
+
     });
 
     it('notification all success', function (done) {
-        request
-            .post(apiUrl + '/api/notification')
-            .send({
+
+        request({
+            url: apiUrl + '/api/notification',
+            method: "post",
+            form: {
                 notification: JSON.stringify({apn: {alert: 'wwww'}}),
                 pushAll: 'true'
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(JSON.parse(res.text).code).to.be.equal("success");
-                done();
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+            done();
+        });
+
     });
 
     it('notification tag success', function (done) {
-        request
-            .post(apiUrl + '/api/notification')
-            .send({
+
+        request({
+            url: apiUrl + '/api/notification',
+            method: "post",
+            form: {
                 notification: JSON.stringify({apn: {alert: 'wwww'}}),
                 tag: 'abc'
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(JSON.parse(res.text).code).to.be.equal("success");
-                done();
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+            done();
+        });
+
     });
 
     it('notification no target error success', function (done) {
-        request
-            .post(apiUrl + '/api/notification')
-            .send({
+
+        request({
+            url: apiUrl + '/api/notification',
+            method: "post",
+            form: {
                 notification: JSON.stringify({apn: {alert: 'wwww'}})
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(JSON.parse(res.text).code).to.be.equal("error");
-                done();
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("error");
+            done();
+        });
+
     });
 
 });

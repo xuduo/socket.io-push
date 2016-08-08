@@ -1,17 +1,14 @@
 var chai = require('chai');
-var request = require('superagent');
-
+var request = require('request');
 var expect = chai.expect;
+var defSetting = require('./defaultSetting');
 
 describe('tag', function () {
 
     before(function () {
-        global.pushService = require('../lib/push-server.js')({             proxy: require("../config-proxy"),             api: require("../config-api")         });
-        global.apiUrl = 'http://localhost:' + pushService.api.port;
-        global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
-            transports: ['websocket', 'polling'],
-            useNotification: true
-        });
+        global.pushService = defSetting.getDefaultPushService();
+        global.apiUrl = defSetting.getDefaultApiUrl();
+        global.pushClient = defSetting.getDefaultPushClient();
     });
 
     after(function () {
@@ -72,16 +69,17 @@ describe('tag', function () {
         }
         pushClient.on('notification', notificationCallback);
 
-        request
-            .post(apiUrl + '/api/notification')
-            .send({
+        request({
+            url: apiUrl + '/api/notification',
+            method: "post",
+            form: {
                 tag: 'tag2',
                 notification: str
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
+
     });
 
     it('notification no remote', function (done) {
@@ -100,16 +98,16 @@ describe('tag', function () {
         }
         pushClient.on('notification', notificationCallback);
 
-        request
-            .post(apiUrl + '/api/notification')
-            .send({
+        request({
+            url: apiUrl + '/api/notification',
+            method: "post",
+            form: {
                 tag: 'tag2',
                 notification: str
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
     });
 
 });

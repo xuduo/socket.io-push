@@ -1,26 +1,15 @@
-var request = require('superagent');
-
+var request = require('request');
 var chai = require('chai');
-
 var expect = chai.expect;
+var defSetting = require('./defaultSetting');
 
 describe('push test', function () {
 
     before(function () {
-
-        global.pushService = require('../lib/push-server.js')({
-            proxy: require("../config-proxy"),
-            api: require("../config-api")
-        });
-        global.apiUrl = 'http://localhost:' + pushService.api.port;
-        global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
-            transports: ['websocket', 'polling'],
-            useNotification: true
-        });
-        global.pushClient2 = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
-            transports: ['websocket', 'polling'],
-            useNotification: true
-        });
+        global.pushService = defSetting.getDefaultPushService();
+        global.apiUrl = defSetting.getDefaultApiUrl();
+        global.pushClient = defSetting.getDefaultPushClient();
+        global.pushClient2 = defSetting.getDefaultPushClient();
     });
 
     after(function () {
@@ -62,39 +51,42 @@ describe('push test', function () {
                 done();
             }
         });
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushId: pushClient.pushId,
                 topic: 'message',
                 json: json
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
 
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushAll: true,
                 json: json
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(JSON.parse(res.text).code).to.be.equal("error");
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("error");
+        });
 
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushId: pushClient2.pushId,
                 json: '{ "message":"ok"}'
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
     });
 
     it('Push raw String', function (done) {
@@ -106,17 +98,18 @@ describe('push test', function () {
 
         pushClient.on('push', messageCallback);
 
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushId: pushClient.pushId,
                 topic: 'message',
                 json: json
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
 
     });
 
@@ -129,17 +122,17 @@ describe('push test', function () {
 
         pushClient.on('push', messageCallback);
 
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushId: pushClient.pushId,
                 topic: 'message',
                 json: json
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
 
     });
 
@@ -156,52 +149,55 @@ describe('push test', function () {
 
         pushClient.on('push', messageCallback);
         pushClient2.on('push', messageCallback);
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushId: JSON.stringify(["abc", pushClient.pushId, pushClient2.pushId]),
                 json: json
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
 
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushId: ["abc", pushClient.pushId, pushClient2.pushId],
                 json: json
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
+
     });
 
     it('bind uid', function (done) {
 
-        request
-            .post(apiUrl + '/api/uid/bind')
-            .send({
+        request({
+            url: apiUrl + '/api/uid/bind',
+            method: "post",
+            form: {
                 pushId: pushClient.pushId,
                 uid: 1
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-                request
-                    .post(apiUrl + '/api/uid/bind')
-                    .send({
-                        pushId: pushClient2.pushId,
-                        uid: 2
-                    })
-                    .set('Accept', 'application/json')
-                    .end(function (err, res) {
-                        expect(res.text).to.be.equal('{"code":"success"}');
-                        done();
-                    });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+            request({
+                url: apiUrl + '/api/uid/bind',
+                method: "post",
+                form: {
+                    pushId: pushClient2.pushId,
+                    uid: 2
+                }
+            }, (error, response, body) => {
+                expect(JSON.parse(body).code).to.be.equal("success");
+                done();
             });
+        });
+
     });
 
     it('Push to uid', function (done) {
@@ -216,67 +212,77 @@ describe('push test', function () {
 
         pushClient.on('push', messageCallback);
         pushClient2.on('push', messageCallback);
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 uid: JSON.stringify([0, 1, 2, 3]),
                 json: json
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
 
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 uid: [0, 1, 2, 3],
                 json: json
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
+
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 uid: 5,
                 json: json
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
+
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 uid: "5",
                 json: json
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
+
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 uid: 1,
                 json: json
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
+
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 uid: "2",
                 json: json
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
     });
 
 
@@ -290,17 +296,18 @@ describe('push test', function () {
         }
         pushClient.subscribeTopic("message");
         pushClient.on('push', messageCallback);
-        request
-            .post(apiUrl + '/api/push')
-            .send({
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
                 pushAll: "true",
                 topic: 'message',
                 json: json
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
     });
 
 });

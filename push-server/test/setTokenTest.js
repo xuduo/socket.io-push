@@ -1,19 +1,13 @@
 var chai = require('chai');
-
 var expect = chai.expect;
+var defSetting = require('./defaultSetting');
 
 describe('set token test', function () {
 
     before(function () {
-        global.pushService = require('../lib/push-server.js')({
-            proxy: require("../config-proxy"),
-            api: require("../config-api")
-        });
-        global.apiUrl = 'http://localhost:' + pushService.api.port;
-        global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
-            transports: ['websocket', 'polling'],
-            useNotification: true
-        });
+        global.pushService = defSetting.getDefaultPushService();
+        global.apiUrl = defSetting.getDefaultApiUrl();
+        global.pushClient = defSetting.getDefaultPushClient();
     });
 
     after(function () {

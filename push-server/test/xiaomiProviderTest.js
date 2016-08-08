@@ -1,9 +1,10 @@
+var defSetting = require('./defaultSetting');
+
 describe('xiaomi test', function () {
 
     before(function () {
-        global.config = require('../config-api');
-        global.apiServer = require('../lib/api')(config);
-        global.apiUrl = 'http://localhost:' + apiServer.port;
+        global.apiServer = defSetting.getDefaultApiServer();
+        global.apiUrl = defSetting.getDefaultApiUrl();
         global.xiaomiProvider = apiServer.xiaomiProvider;
     });
 

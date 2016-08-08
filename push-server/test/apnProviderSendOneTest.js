@@ -1,22 +1,15 @@
-var request = require('superagent');
-
+var request = require('request');
 var chai = require('chai');
-
 var expect = chai.expect;
+var defSetting = require('./defaultSetting');
 
 describe('apn send one', function () {
 
     before(function () {
-        global.pushService = require('../lib/push-server.js')({             proxy: require("../config-proxy"),             api: require("../config-api")         });
-        global.apiUrl = 'http://localhost:' + pushService.api.port;
-        global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
-            transports: ['websocket', 'polling'],
-            useNotification: true
-        });
-        global.pushClient2 = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
-            transports: ['websocket', 'polling'],
-            useNotification: true
-        });
+        global.pushService = defSetting.getDefaultPushService();
+        global.apiUrl = defSetting.getDefaultApiUrl();
+        global.pushClient = defSetting.getDefaultPushClient();
+        global.pushClient2 = defSetting.getDefaultPushClient();
     });
 
     after(function () {
@@ -37,18 +30,21 @@ describe('apn send one', function () {
                 expect("do not receive").to.be.false
             });
 
-            request
-                .post(apiUrl + '/api/notification')
-                .send({
+
+            request({
+                url: apiUrl + '/api/notification',
+                method: "post",
+                headers: {
+                    'Accept': 'application/json'
+                },
+                form: {
                     pushId: [pushClient.pushId, pushClient2.pushId],
-                    //pushId: pushClient2.pushId,
                     notification: str
-                })
-                .set('Accept', 'application/json')
-                .end(function (err, res) {
-                    expect(res.text).to.be.equal('{"code":"success"}');
-                    done();
-                });
+                }
+            }, (error, response, body) => {
+                expect(JSON.parse(body).code).to.be.equal("success");
+                done();
+            });
         });
 
     });

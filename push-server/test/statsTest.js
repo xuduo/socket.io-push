@@ -1,23 +1,18 @@
 var chai = require('chai');
-var request = require('superagent');
+var request = require('request');
 var expect = chai.expect;
+var defSetting = require('./defaultSetting');
 
 describe('unsubscribe test', function () {
 
     before(function () {
-        global.pushService = require('../lib/push-server.js')({
-            proxy: require("../config-proxy"),
-            api: require("../config-api")
-        });
-        global.apiUrl = 'http://localhost:' + pushService.api.port;
+        global.pushService = defSetting.getDefaultPushService();
+        global.apiUrl = defSetting.getDefaultApiUrl();
         global.stats = pushService.proxy.stats;
         stats.redis.del("stats#sessionCount");
 
         stats.redisIncrBuffer.commitThreshold = 0;
-        global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
-            transports: ['websocket', 'polling'],
-            useNotification: true
-        });
+        global.pushClient = defSetting.getDefaultPushClient();
     });
 
     after(function () {
@@ -97,14 +92,16 @@ describe('unsubscribe test', function () {
 });
 
 function push() {
-    request
-        .post(apiUrl + '/api/push')
-        .send({
+
+    request({
+        url: apiUrl + '/api/push',
+        method: "post",
+        form: {
             pushId: pushClient.pushId,
             json: "wwww"
-        })
-        .set('Accept', 'application/json')
-        .end(function (err, res) {
-            expect(res.text).to.be.equal('{"code":"success"}');
-        });
+        }
+    }, (error, response, body) => {
+        expect(JSON.parse(body).code).to.be.equal("success");
+    });
+
 }

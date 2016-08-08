@@ -1,7 +1,5 @@
 var IA = require('../lib/util/infiniteArray');
-
 var expect = require('chai').expect;
-
 
 describe('infiniteArrayTest', function () {
 

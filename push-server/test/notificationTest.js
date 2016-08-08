@@ -1,27 +1,15 @@
-var request = require('superagent');
-
+var request = require('request');
 var chai = require('chai');
-
 var expect = chai.expect;
+var defSetting = require('./defaultSetting');
 
 describe('notification', function () {
 
     before(function () {
-
-        global.pushService = require('../lib/push-server.js')({
-            proxy: require("../config-proxy"),
-            api: require("../config-api")
-        });
-        global.apiUrl = 'http://localhost:' + pushService.api.port;
-        global.pushClient = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
-            transports: ['websocket', 'polling'],
-            useNotification: true
-        });
-        global.pushClient2 = require('socket.io-push-client')('http://localhost:' + pushService.proxy.port, {
-            transports: ['websocket', 'polling'],
-            useNotification: true
-        });
-
+        global.pushService = defSetting.getDefaultPushService();
+        global.apiUrl = defSetting.getDefaultApiUrl();
+        global.pushClient = defSetting.getDefaultPushClient();
+        global.pushClient2 = defSetting.getDefaultPushClient();
     });
 
     after(function () {
@@ -41,17 +29,17 @@ describe('notification', function () {
 
     it('bind uid', function (done) {
 
-        request
-            .post(apiUrl + '/api/uid/bind')
-            .send({
+        request({
+            url: apiUrl + '/api/uid/bind',
+            method: "post",
+            form: {
                 pushId: pushClient.pushId,
                 uid: 1
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-                done();
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+            done();
+        });
     });
 
 
@@ -71,16 +59,17 @@ describe('notification', function () {
         pushClient.on('notification', notificationCallback);
 
 
-        request
-            .post(apiUrl + '/api/notification')
-            .send({
+        request({
+            url: apiUrl + '/api/notification',
+            method: "post",
+            form: {
                 pushId: pushClient.pushId,
                 notification: str
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
+
     });
 
     it('Notification pushAll', function (done) {
@@ -100,17 +89,18 @@ describe('notification', function () {
         }
         pushClient.on('notification', notificationCallback);
 
-        request
-            .post(apiUrl + '/api/notification')
-            .send({
+
+        request({
+            url: apiUrl + '/api/notification',
+            method: "post",
+            form: {
                 pushId: '',
                 pushAll: 'true',
-                notification: str,
-            })
-            .set('Accept', 'application/json')
-            .end(function (err, res) {
-                expect(res.text).to.be.equal('{"code":"success"}');
-            });
+                notification: str
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+        });
     });
 
 
