@@ -96,7 +96,7 @@ ApnProvider.prototype.callLocal = function (notification, bundleId, tokens, time
     this.stats.addPushTotal(tokens.length, `${this.type}_${bundleId}_`);
     const note = toApnNotification(notification, timeToLive);
     apnConnection.pushNotification(note, tokens);
-    logger.debug("send to notification to ios %s %j", bundleId, tokens);
+    logger.info("callLocal ", bundleId, tokens.length, notification);
 };
 
 ApnProvider.prototype.callRemote = function (notification, bundleId, tokens, timeToLive, errorCount = 0) {
@@ -115,7 +115,7 @@ ApnProvider.prototype.callRemote = function (notification, bundleId, tokens, tim
                 timeToLive: timeToLive
             }
         }, (error, response, body) => {
-            logger.debug("call remote api batch ", tokens.length, apiUrl, error, body);
+            logger.info("callRemote api batch ", tokens.length, apiUrl, error, body, notification);
             if (error && errorCount <= retryCount) {
                 logger.error("retry remote api batch ", tokens.length, errorCount, apiUrl, error, body);
                 this.callRemote(notification, bundleId, tokens, timeToLive, errorCount + 1);

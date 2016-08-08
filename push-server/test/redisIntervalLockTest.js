@@ -33,7 +33,8 @@ describe('RedisIntervalLockTest', function () {
         });
 
         setTimeout(()=> {
-            expect(count).to.be.equal(6);
+            expect(count).to.be.greaterThan(5);
+            expect(count).to.be.lessThan(8);
             clearInterval(interval1);
             clearInterval(interval2);
             clearInterval(interval3);

@@ -21,10 +21,7 @@ class Api {
         this.notificationService = require('./service/notificationService')(config.apns, cluster, this.ttlService, tokenTTL);
 
         const apiThreshold = require('./api/apiThreshold')(cluster);
-        let topicOnline;
-        if (config.topicOnlineFilter) {
-            topicOnline = require('./stats/topicOnline')(cluster, this.io, this.stats.id, config.topicOnlineFilter);
-        }
+        const topicOnline = require('./stats/topicOnline')(cluster);
         const providerFactory = require('./service/notificationProviderFactory')();
         this.notificationService.providerFactory = providerFactory;
         if (config.apns != undefined) {

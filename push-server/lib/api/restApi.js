@@ -71,7 +71,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
             res.send({code: "error", message: 'data is required'});
             return next();
         }
-        logger.debug("push %j", req.params);
+        logger.info("handlePush %j", req.params);
         const pushData = {};
         if (data) {
             pushData.data = data;
@@ -148,13 +148,13 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
             delete notification.apn.payload;
         }
 
-        logger.debug("notification ", req.params);
+        logger.info("handleNotification %j", req.params);
 
         const pushIds = parseArrayParam(req.params.pushId);
         const uids = parseArrayParam(req.params.uid);
 
         if (req.params.pushAll == 'true') {
-            logger.info('notification pushAll ', req.params);
+            logger.info('handleNotification pushAll ', req.params);
         }
 
         if (!req.params.tag && !req.params.pushId && !req.params.uid && req.params.pushAll != 'true') {
@@ -247,11 +247,6 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     server.get('api/state/getQueryDataKeys', handleQueryDataKeys)
 
     server.get('/api/topicOnline', function (req, res, next) {
-        if (!topicOnline) {
-            res.statusCode = 400;
-            res.send({code: 'error', message: 'topicOnline not configured'});
-            return next();
-        }
         const topic = req.params.topic;
         if (!topic) {
             res.statusCode = 400;

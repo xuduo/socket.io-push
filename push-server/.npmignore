@@ -2,3 +2,6 @@ config.js
 config-proxy.js
 config-api.js
 log
+ip
+num_processes
+2idc_socket.io-push.png

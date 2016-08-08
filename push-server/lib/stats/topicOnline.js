@@ -15,19 +15,20 @@ function filterTopic(topic, filterArray) {
 function TopicOnline(redis, io, id, filterTopics) {
     if (!(this instanceof TopicOnline)) return new TopicOnline(redis, io, id, filterTopics);
     this.redis = redis;
-    this.io = io;
     this.id = id;
     this.filters = filterTopics;
     this.interval = 10000;
     this.timeValidWithIn = 20000;
     this.expire = 3600 * 24;
-    const self = this;
-    setInterval(function () {
-        if (self.io.nsps) {
-            const result = self.io.nsps['/'].adapter.rooms;
-            self.writeTopicOnline(result);
-        }
-    }, this.interval);
+    if (io) {
+        this.io = io;
+        setInterval(() => {
+            if (this.io.nsps) {
+                const result = this.io.nsps['/'].adapter.rooms;
+                this.writeTopicOnline(result);
+            }
+        }, this.interval);
+    }
 }
 
 TopicOnline.prototype.writeTopicOnline = function (data) {
