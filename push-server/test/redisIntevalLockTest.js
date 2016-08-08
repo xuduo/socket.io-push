@@ -4,7 +4,7 @@ describe('RedisIntervalLockTest', function () {
 
     before(function () {
         var config = require('../config-api');
-        global.redis = require('../lib/redis/simpleRedisHashCluster')(config.redis);
+        global.redis = require('socket.io-push-redis/cluster')(config.redis);
         global.lock1 = require('../lib/util/redisIntervalLock')(redis, "id1");
         global.lock2 = require('../lib/util/redisIntervalLock')(redis, "id2");
         global.lock3 = require('../lib/util/redisIntervalLock')(redis, "id3");

@@ -6,9 +6,7 @@ function UidStore(redis, subClient) {
     this.redis = redis;
 }
 
-UidStore.prototype.bindUid = function (pushId, uid, timeToLive, platform, platformLimit) {
-    timeToLive = timeToLive || 3600 * 1000 * 24 * 14;
-    platformLimit = platformLimit || 0;
+UidStore.prototype.bindUid = function (pushId, uid, timeToLive = 3600 * 1000 * 24 * 14, platform = 0, platformLimit) {
     logger.debug("bindUid pushId %s %s", uid, pushId, platformLimit);
     const self = this;
     self.removePushId(pushId, false, function () {
@@ -54,13 +52,9 @@ UidStore.prototype.removePushId = function (pushId, removePushIdToUid, callback)
             self.redis.hdel("uidToPushId#" + oldUid, pushId, function () {
                 if (removePushIdToUid) {
                     self.redis.del(key, callback);
-                    if (callback) {
-                        callback();
-                    }
-                } else {
-                    if (callback) {
-                        callback();
-                    }
+                }
+                if (callback) {
+                    callback();
                 }
             });
         } else {

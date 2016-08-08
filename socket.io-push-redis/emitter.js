@@ -118,7 +118,6 @@ Emitter.prototype.emit = function () {
         flags: this._flags
     };
     var msg = msgpack.encode([uid, packet, opts]);
-
     // publish
     if (opts.rooms && opts.rooms.length) {
         opts.rooms.forEach((room) => {

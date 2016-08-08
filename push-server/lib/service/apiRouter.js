@@ -1,8 +1,6 @@
 module.exports = ApiRouter;
 
 const logger = require('winston-proxy')('ApiRouter');
-
-const util = require('../util/util.js');
 const request = require('request');
 const pushEvent = 'push';
 

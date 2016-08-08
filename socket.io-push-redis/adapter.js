@@ -41,7 +41,7 @@ function adapter(uri, opts, stats) {
 
     let pub = opts.pubClient;
     let sub = opts.subClient;
-    const prefix = opts.key || 'socket.io';
+    const prefix = opts.key || 'io';
 
     // this server's key
     const uid = uid2(6);
@@ -160,7 +160,7 @@ function adapter(uri, opts, stats) {
             return;
         }
         sub.subscribe(channel, function (err) {
-            logger.debug("subscribe ", channel);
+            logger.info("subscribe ", channel);
             if (err) {
                 logger.error('subscribe error %s', channel);
                 self.emit('error', err);

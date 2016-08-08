@@ -1,4 +1,5 @@
-var util = require('../lib/util/util.js');
+var util = require('../util.js');
+
 var chai = require('chai');
 var expect = chai.expect;
 

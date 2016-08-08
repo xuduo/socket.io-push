@@ -2,7 +2,7 @@ module.exports = XiaomiProvider;
 
 const logger = require('winston-proxy')('XiaomiProvider');
 
-const util = require('../util/util.js');
+const util = require('socket.io-push-redis/util');//@tochange
 const request = require('request');
 const sendOneUrl = "https://api.xmpush.xiaomi.com/v3/message/regid";
 const sendAllUrl = "https://api.xmpush.xiaomi.com/v3/message/all";

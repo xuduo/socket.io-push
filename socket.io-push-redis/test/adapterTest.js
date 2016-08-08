@@ -2,8 +2,8 @@ var http = require('http').Server;
 var io = require('socket.io');
 var ioc = require('socket.io-client');
 var expect = require('expect.js');
-var redis = require('redis').createClient;
-var adapter = require('../lib/redis/redisAdapter.js');
+var redis = require('ioredis');
+var adapter = require('../adapter.js');
 
 describe('socket.io-redis', function () {
 
@@ -124,8 +124,8 @@ describe('socket.io-redis', function () {
         var srv = http();
         var sio = io(srv);
         sio.adapter(adapter({
-            pubClient: redis(),
-            subClient: redis(null, null, {return_buffers: true})
+            pubClient: new RedisClient(),
+            subClient: new RedisClient(true)
         }));
         srv.listen(function (err) {
             if (err) throw err; // abort tests
@@ -139,5 +139,28 @@ describe('socket.io-redis', function () {
             fn(sio.of(nsp), ioc(url));
         });
     }
+
+    function RedisClient(isSub){
+        if(! (this instanceof RedisClient)) return new RedisClient(isSub);
+        this.messageCallbacks = [];
+        this.client = new redis();
+        if(isSub){
+            this.client.on("messageBuffer", (channel, message) => {
+                this.messageCallbacks.forEach((callback) => {
+                   callback(channel, message);
+                });
+            });
+        }
+    }
+    RedisClient.prototype.on = function(message, callback){
+        if(message == "message"){
+            this.messageCallbacks.push(callback);
+        }
+    };
+    ["publish", "subscribe", "unsubscribe"].forEach((command) => {
+        RedisClient.prototype[command.toUpperCase()] = RedisClient.prototype[command] = function(key, arg, callback){
+            return this.client.callBuffer.apply(this.client, [command].concat(arguments));
+        };
+    })
 
 });
