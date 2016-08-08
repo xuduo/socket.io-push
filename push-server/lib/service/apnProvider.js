@@ -25,8 +25,8 @@ function ApnProvider(apnConfigs, apnApiUrls = [], redis, stats, tokenTTL) {
                 if (device && device.token) {
                     const id = device.token.toString('hex');
                     logger.error("apn errorCallback errorCode %d %s", errorCode, id);
-                    stats.addPushError(1, errorCode, self.type);
-                    if (errorCode == 8) {
+                    stats.addPushError(1, errorCode, `${self.type}_${apnConfig.bundleId}_`);
+                    if (errorCode == 8 || errorCode == 5) {
                         redis.hdel("apnTokens#" + apnConfig.bundleId, id);
                         redis.get("tokenToPushId#apn#" + id, function (err, oldPushId) {
                             logger.error("apn errorCallback pushId %s", oldPushId);
@@ -42,8 +42,9 @@ function ApnProvider(apnConfigs, apnApiUrls = [], redis, stats, tokenTTL) {
             }
             connection = apn.Connection(apnConfig);
             connection.index = index;
-            connection.on("transmitted", function () {
-                stats.addPushSuccess(1, self.type);
+            connection.on("transmitted", function (notification, device) {
+                logger.debug("transmitted ", apnConfig.bundleId, device.token.toString("hex"));
+                stats.addPushSuccess(1, `${self.type}_${apnConfig.bundleId}_`);
             });
         }
         self.apnConnections[apnConfig.bundleId] = connection;
@@ -92,15 +93,18 @@ ApnProvider.prototype.callLocal = function (notification, bundleId, tokens, time
         logger.error("tokens empty ", bundleId);
         return;
     }
-    this.stats.addPushTotal(tokens.length, this.type);
+    this.stats.addPushTotal(tokens.length, `${this.type}_${bundleId}_`);
     const note = toApnNotification(notification, timeToLive);
     apnConnection.pushNotification(note, tokens);
     logger.debug("send to notification to ios %s %j", bundleId, tokens);
 };
 
 ApnProvider.prototype.callRemote = function (notification, bundleId, tokens, timeToLive, errorCount = 0) {
+    if (!tokens || tokens.length == 0) {
+        return;
+    }
     const apiUrl = this.apnApiUrls.next();
-    const retryCount = 1;
+    const retryCount = 2;
     request({
             url: apiUrl + "/api/apn",
             method: "post",
@@ -113,7 +117,7 @@ ApnProvider.prototype.callRemote = function (notification, bundleId, tokens, tim
         }, (error, response, body) => {
             logger.debug("call remote api batch ", tokens.length, apiUrl, error, body);
             if (error && errorCount <= retryCount) {
-                logger.error("retry remote api batch ", tokens.length, apiUrl, error, body);
+                logger.error("retry remote api batch ", tokens.length, errorCount, apiUrl, error, body);
                 this.callRemote(notification, bundleId, tokens, timeToLive, errorCount + 1);
             }
         }

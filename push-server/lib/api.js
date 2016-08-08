@@ -4,7 +4,7 @@ module.exports = function (config, server) {
 
 class Api {
 
-    constructor(config, server) {
+    constructor(config) {
         const instance = config.instance || 1;
         this.port = config.port = config.port + instance - 1;
 
