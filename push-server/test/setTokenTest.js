@@ -5,13 +5,15 @@ var defSetting = require('./defaultSetting');
 describe('set token test', function () {
 
     before(function () {
-        global.pushService = defSetting.getDefaultPushService();
+        global.proxyServer = defSetting.getDefaultProxyServer();
+        global.apiServer = defSetting.getDefaultApiServer();
         global.apiUrl = defSetting.getDefaultApiUrl();
         global.pushClient = defSetting.getDefaultPushClient();
     });
 
     after(function () {
-        global.pushService.close();
+        global.proxyServer.close();
+        global.apiServer.close();
         global.pushClient.disconnect();
     });
 
@@ -19,7 +21,7 @@ describe('set token test', function () {
         pushClient.on('connect', function (data) {
             expect(data.pushId).to.be.equal(pushClient.pushId);
             pushClient.socket.emit("token", {token: "testToken", type: "testType"});
-            var notificationService = pushService.api.notificationService;
+            var notificationService = apiServer.notificationService;
             setTimeout(function () {
                 notificationService.getTokenDataByPushId(pushClient.pushId, function (token) {
                     expect(token.token).to.equal("testToken");

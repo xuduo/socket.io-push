@@ -33,7 +33,7 @@ describe('api auth', () => {
 
     it('check should not pass', function (done) {
 
-        var apiCheckDenyAll = ()=> {
+        const apiCheckDenyAll = ()=> {
             return false;
         };
 

@@ -6,14 +6,16 @@ var defSetting = require('./defaultSetting');
 describe('apn send one', function () {
 
     before(function () {
-        global.pushService = defSetting.getDefaultPushService();
+        global.proxyServer = defSetting.getDefaultProxyServer();
+        global.apiServer = defSetting.getDefaultApiServer();
         global.apiUrl = defSetting.getDefaultApiUrl();
         global.pushClient = defSetting.getDefaultPushClient();
         global.pushClient2 = defSetting.getDefaultPushClient();
     });
 
     after(function () {
-        global.pushService.close();
+        global.proxyServer.close();
+        global.apiServer.close();
         global.pushClient.disconnect();
         global.pushClient2.disconnect();
     });

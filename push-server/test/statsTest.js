@@ -6,9 +6,10 @@ var defSetting = require('./defaultSetting');
 describe('unsubscribe test', function () {
 
     before(function () {
-        global.pushService = defSetting.getDefaultPushService();
+        global.proxyServer = defSetting.getDefaultProxyServer();
+        global.apiServer = defSetting.getDefaultApiServer();
         global.apiUrl = defSetting.getDefaultApiUrl();
-        global.stats = pushService.proxy.stats;
+        global.stats = proxyServer.stats;
         stats.redis.del("stats#sessionCount");
 
         stats.redisIncrBuffer.commitThreshold = 0;
@@ -16,7 +17,8 @@ describe('unsubscribe test', function () {
     });
 
     after(function () {
-        global.pushService.close();
+        global.proxyServer.close();
+        global.apiServer.close();
         global.pushClient.disconnect();
     });
 

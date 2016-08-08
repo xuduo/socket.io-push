@@ -8,13 +8,15 @@ var defSetting = require('./defaultSetting');
 describe('push test', function () {
 
     before(function () {
-        global.pushService = defSetting.getDefaultPushService();
+        global.proxyServer = defSetting.getDefaultProxyServer();
+        global.apiServer = defSetting.getDefaultApiServer();
         global.apiUrl = defSetting.getDefaultApiUrl();
         global.pushClient = defSetting.getDefaultPushClient();
     });
 
     after(function () {
-        global.pushService.close();
+        global.proxyServer.close();
+        global.apiServer.close();
     });
 
     it('test ttl to single', function (done) {

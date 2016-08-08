@@ -6,16 +6,15 @@ var defSetting = require('./defaultSetting');
 describe('push test', function () {
 
     before(function () {
-
-        global.pushService = defSetting.getDefaultPushService();
+        global.proxyServer = defSetting.getDefaultProxyServer();
+        global.apiServer = defSetting.getDefaultApiServer();
         global.apiUrl = defSetting.getDefaultApiUrl();
         global.pushClient = defSetting.getDefaultPushClient();
-        global.apiService = pushService.api;
-
     });
 
     after(function () {
-        global.pushService.close();
+        global.proxyServer.close();
+        global.apiServer.close();
         global.pushClient.disconnect();
     });
 
@@ -54,9 +53,9 @@ describe('push test', function () {
                     pushClient.connect();
                     pushClient.on('connect', function (data) {
                         expect(data.uid).to.equal("2");
-                        apiService.uidStore.getPushIdByUid("1", function (pushIds) {
+                        apiServer.uidStore.getPushIdByUid("1", function (pushIds) {
                             expect(pushIds).to.not.contain(pushClient.pushId);
-                            apiService.uidStore.getPushIdByUid("2", function (pushIds) {
+                            apiServer.uidStore.getPushIdByUid("2", function (pushIds) {
                                 expect(pushIds).to.contain(pushClient.pushId);
                                 done();
                             });

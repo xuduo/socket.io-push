@@ -6,13 +6,15 @@ var defSetting = require('./defaultSetting');
 describe('tag', function () {
 
     before(function () {
-        global.pushService = defSetting.getDefaultPushService();
+        global.proxyServer = defSetting.getDefaultProxyServer();
+        global.apiServer = defSetting.getDefaultApiServer();
         global.apiUrl = defSetting.getDefaultApiUrl();
         global.pushClient = defSetting.getDefaultPushClient();
     });
 
     after(function () {
-        global.pushService.close();
+        global.proxyServer.close();
+        global.apiServer.close();
         global.pushClient.disconnect();
     });
 
@@ -21,9 +23,9 @@ describe('tag', function () {
             pushClient.addTag("tag1");
             pushClient.addTag("tag2");
             setTimeout(function () {
-                global.pushService.api.tagService.getTagsByPushId(pushClient.pushId, function (tags) {
+                global.apiServer.tagService.getTagsByPushId(pushClient.pushId, function (tags) {
                     expect(tags).to.deep.include.members(["tag1"]);
-                    global.pushService.api.tagService.getPushIdsByTag("tag1", function (pushIds) {
+                    global.apiServer.tagService.getPushIdsByTag("tag1", function (pushIds) {
                         expect(pushIds).to.deep.include.members([pushClient.pushId]);
                         done();
                     });
@@ -35,9 +37,9 @@ describe('tag', function () {
     it('remove tag', function (done) {
         pushClient.removeTag("tag1");
         setTimeout(function () {
-            global.pushService.api.tagService.getTagsByPushId(pushClient.pushId, function (tags) {
+            global.apiServer.tagService.getTagsByPushId(pushClient.pushId, function (tags) {
                 expect(tags).to.not.deep.include.members(["tag1"]);
-                global.pushService.api.tagService.getPushIdsByTag("tag1", function (pushIds) {
+                global.apiServer.tagService.getPushIdsByTag("tag1", function (pushIds) {
                     expect(pushIds).to.not.deep.include.members([pushClient.pushId]);
                     done();
                 });
@@ -83,7 +85,7 @@ describe('tag', function () {
     });
 
     it('notification no remote', function (done) {
-        pushService.api.apiRouter.remoteUrls = null;
+        apiServer.apiRouter.remoteUrls = null;
         var title = 'hello 2',
             message = 'hello world 2';
         var data = {

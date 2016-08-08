@@ -6,14 +6,16 @@ var defSetting = require('./defaultSetting');
 describe('apiRouterTest', function () {
 
     before(function () {
-        global.pushService = defSetting.getDefaultPushService();
-        global.pushService.api.apiRouter.maxPushIds = 3;
+        global.proxyServer = defSetting.getDefaultProxyServer();
+        global.apiServer = defSetting.getDefaultApiServer();
+        global.apiServer.apiRouter.maxPushIds = 3;
         global.apiUrl = defSetting.getDefaultApiUrl();
         global.pushClient = defSetting.getDefaultPushClient();
     });
 
     after(function () {
-        global.pushService.close();
+        global.proxyServer.close();
+        global.apiServer.close();
         global.pushClient.disconnect();
     });
 
