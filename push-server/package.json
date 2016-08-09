@@ -1,6 +1,6 @@
 {
   "name": "socket.io-push",
-  "version": "0.0.201",
+  "version": "0.0.202",
   "description": "socket.io-push server by xuduo",
   "main": "index.js",
   "bin": {
@@ -21,7 +21,9 @@
     "superagent": "^1.8.0",
     "winston-proxy": "~0.0.2",
     "socket.io-push-redis": "~0.0.1",
-    "request": "2.67.0"
+    "request": "2.67.0",
+    "express": "~4.14.0",
+    "body-parser": "1.15.2"
   },
   "devDependencies": {
     "socket.io-client": "1.4.8",
