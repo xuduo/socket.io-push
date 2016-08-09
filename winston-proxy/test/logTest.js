@@ -2,7 +2,7 @@ var fs = require('fs');
 var chai = require('chai');
 var expect = chai.expect;
 
-describe('log auto delete', () => {
+describe('rotate log test', () => {
 
     before(done => {
         fs.access('log', err => {
@@ -29,7 +29,7 @@ describe('log auto delete', () => {
     });
 
     it('auto delete', done => {
-        require('../index.js')({foreground: true, debug: true});
+        require('../index.js')('autoDel');
         setTimeout(() => {
             fs.access(testfile, err => {
                 expect(err).to.be.ok;

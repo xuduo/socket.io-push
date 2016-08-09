@@ -1,18 +1,26 @@
 const winston = require('winston');
 const rotatefile = require('winston-daily-rotate-file');
 const fs = require('fs');
+const path = require('path');
+const uuid = require('node-uuid');
 
-function createLogger(opts) {
-    let level = opts.level;
-    let dir = opts.dir;
-    fs.access(dir, err => {
-        if (err) {
-            fs.mkdirSync(dir);
-        }
+function localTimeString() {
+    return new Date().toLocaleString();
+}
+function readableFormatter(args) {
+    return args.timestamp() + " work:" + workId + " "
+        + args.level.substring(0, 1).toUpperCase() + "/"
+        + (undefined !== args.message ? args.message : '');
+}
+
+function createFileRotateTransport(dir, level, timestamp = localTimeString, formatter = readableFormatter){
+    fs.mkdir(dir, err => {
+       if(err && err.code != 'EEXIST'){
+           console.log('mkdir dir error, %s', dir);
+       }
     });
-    let transports = [];
-    let fileOpt = {
-        name: 'file',
+    let opt = {
+        name: 'rotate-file-'+level,
         json: false,
         level: level,
         showLevel: false,
@@ -21,44 +29,62 @@ function createLogger(opts) {
         timestamp: timestamp,
         formatter: formatter
     };
-    transports.push(new rotatefile(fileOpt));
-    fileOpt.name = 'error';
-    fileOpt.level = 'error';
-    fileOpt.filename = dir + '/error_';
-    transports.push(new rotatefile(fileOpt));
+    return new rotatefile(opt);
+}
+
+function createFileTransport(file, level, timestamp = localTimeString, formatter = readableFormatter){
+    fs.mkdir(path.dirname(file), err => {
+        if(err && err.code != 'EEXIST'){
+            console.log('mkdir dir error, %s', path.dirname(file));
+        }
+    });
+    let opt = {
+        name: 'file-'+level,
+        json: false,
+        level: level,
+        showLevel: false,
+        filename: file,
+        timestamp: timestamp,
+        formatter: formatter
+    };
+    return new winston.transports.File(opt);
+}
+function createConsoleTransport(level, timestamp = localTimeString, formatter = readableFormatter){
+    let opt = {
+        name: 'console',
+        json: false,
+        level: level,
+        showLevel: false,
+        timestamp: timestamp,
+        formatter: formatter,
+        colorize: 'all',
+        align: true
+    };
+    return new winston.transports.Console(opt);
+}
+
+function createLogger(opts) {
+    let transports = [];
+    if(opts.dir){
+        transports.push(createFileRotateTransport(opts.dir, opts.level));
+        transports.push(createFileRotateTransport(opts.dir, "error"));
+    }
+    if(opts.filename){
+        transports.push(createFileTransport(opts.filename, opts.level, opts.timestamp, opts.formatter))
+    }
     if (opts.foreground) {
-        let consoleOpt = {
-            name: 'console',
-            json: false,
-            level: 'debug',
-            showLevel: false,
-            timestamp: timestamp,
-            formatter: formatter,
-            colorize: 'all',
-            align: true
-        };
-        transports.push(new winston.transports.Console(consoleOpt));
+        transports.push(createConsoleTransport('debug'));
     }
     return new winston.Logger({
         transports: transports
     });
-
-    function timestamp() {
-        return new Date().toLocaleString();
-    }
-
-    function formatter(args) {
-        return args.timestamp() + " work:" + workId + " "
-            + args.level.substring(0, 1).toUpperCase() + "/"
-            + (undefined !== args.message ? args.message : '');
-    }
 }
 
 let logger;
-let workId = '01';
+let workId;
 
-function LogProxy(module) {
-    this.module = module;
+function LogProxy(label) {
+    this.module = label;
     this.logger = logger;
 }
 
@@ -67,7 +93,7 @@ function LogProxy(module) {
         if (this.logger) {
             arguments[0] = this.module + ' ' + arguments[0];
             const mainArguments = Array.prototype.slice.call(arguments);
-            mainArguments.push({}); //this is a trick of winston
+            mainArguments.push({id: uuid.v4()});
             this.logger[command].apply(this, mainArguments);
         }
     }
@@ -90,15 +116,26 @@ deleteOutdatedLog = function (dir, days = 7) {
     });
 };
 
-function init(opts) {
-    opts = opts || {};
-    opts.dir = opts.dir || 'log';
+function init() {
+    let opts = {};
+    try {
+        opts = require(process.cwd() + '/config-log');
+    }
+    catch (ex) {
+        console.log(ex);
+    }
+
     opts.level = opts.debug ? 'debug' : 'info';
     logger = createLogger(opts);
-    workId = opts.workId || 1;
+    try {
+        workId = require('cluster').workder.id;
+    }
+    catch (ex) {
+        workId = 1;
+    }
     workId = workId < 10 ? '0' + workId : workId;
     const msPerDel = 24 * 60 * 60 * 1000;
-    if (workId == 1) {
+    if (workId == 1 && opts.dir) {
         deleteOutdatedLog(opts.dir);
         setInterval(() => {
             deleteOutdatedLog(opts.dir);
@@ -106,17 +143,12 @@ function init(opts) {
     }
 }
 
-const Logger = function (optsOrLabel) {
-    if (typeof optsOrLabel == 'object') {
-        if (logger) {
-            throw Error("can't init twice");
-        }
-        init(optsOrLabel);
-    } else if (typeof optsOrLabel == 'string') {
+const Logger = function (label) {
+    if (typeof label == 'string') {
         if (!logger) {
             init();
         }
-        return new LogProxy(optsOrLabel);
+        return new LogProxy(label);
     }
 };
 
