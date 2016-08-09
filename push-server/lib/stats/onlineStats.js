@@ -18,14 +18,17 @@ OnlineStats.prototype.writeStats = function () {
             url: `http://127.0.0.1:${this.port}/api/stats/base`
         }, (error, response, body) => {
             if (!error && body) {
-                const result = JSON.parse(body);
-                const timestamp = Date.now();
-                this.writeRedis(result, "total", timestamp);
-                this.writeRedis(result, "android", timestamp);
-                this.writeRedis(result, "ios", timestamp);
-                this.writeRedis(result, "packetAverage1", timestamp);
-                this.writeRedis(result, "pc", timestamp);
-                this.writeRedis(result, "browser", timestamp);
+                try {
+                    const result = JSON.parse(body);
+                    const timestamp = Date.now();
+                    this.writeRedis(result, "total", timestamp);
+                    this.writeRedis(result, "android", timestamp);
+                    this.writeRedis(result, "ios", timestamp);
+                    this.writeRedis(result, "packetAverage1", timestamp);
+                    this.writeRedis(result, "pc", timestamp);
+                    this.writeRedis(result, "browser", timestamp);
+                } catch (err) {
+                }
             }
         }
     );

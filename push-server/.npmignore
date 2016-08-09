@@ -1,6 +1,7 @@
 config.js
 config-proxy.js
 config-api.js
+config-admin.js
 log
 ip
 num_processes

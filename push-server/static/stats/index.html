@@ -4,10 +4,10 @@
 <head>
     <title>Statistics</title>
     <style>
-       li{
-           list-style:none;
-       }
-    
+        li {
+            list-style: none;
+        }
+
     </style>
 </head>
 <body>
@@ -86,6 +86,7 @@
 </div>
 
 <script src="/js/jquery-1.8.0.min.js"></script>
+<script src="/js/jquery.cookie.js"></script>
 <script src="/js/Chart.Core.min.js"></script>
 <script src="/js/Chart.Scatter.min.js"></script>
 
@@ -104,7 +105,8 @@
                 return sParameterName[1] === undefined ? true : sParameterName[1];
             }
         }
-    };
+    }
+    ;
 
     var options = {
         animation: false,
@@ -137,7 +139,7 @@
     function loadData() {
         $.ajax({
             type: 'GET',
-            url: '/api/stats/chart',
+            url: $.cookie("api_url") + '/api/stats/chart',
             data: {key: $("#key").val()},
             dataType: 'json',
             success: function (data) {
@@ -159,7 +161,7 @@
 
         $.ajax({
             type: 'GET',
-            url: '/api/stats/base',
+            url: $.cookie("api_url") + '/api/stats/base',
             success: function (data) {
                 $("#sessionCount").text(data.sessionCount);
                 $("#iosSessionCount").text(data.ios);
@@ -171,20 +173,20 @@
     function loadQueryDataKeys() {
         $.ajax({
             type: 'GET',
-            url: 'api/state/getQueryDataKeys',
+            url: $.cookie("api_url") + '/api/stats/getQueryDataKeys',
             success: function (data) {
                 var result = data.result;
                 for (var i = 0; i < result.length; i++) {
-                    $("#key").append("<option value='"+result[i]+"'> "+result[i]+"</option>");
-                    var $li_1= $("<li><a href='#' text='"+result[i]+"' class='keys'>"+result[i]+"</a></li>");
+                    $("#key").append("<option value='" + result[i] + "'> " + result[i] + "</option>");
+                    var $li_1 = $("<li><a href='#' text='" + result[i] + "' class='keys'>" + result[i] + "</a></li>");
                     $("ul").append($li_1);
                 }
-                if(result.length>0) {
+                if (result.length > 0) {
                     $("#key").val(result[0])
                     loadData();
                 }
 
-                $('.keys').click(function(){
+                $('.keys').click(function () {
                     $("#key").val($(this).attr("text"));
                     loadData();
                 });

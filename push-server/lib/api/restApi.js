@@ -1,5 +1,5 @@
 module.exports = RestApi;
-const restify = require('restify');
+var express = require('express');
 const logger = require('winston-proxy')('RestApi');
 
 function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore) {
@@ -11,67 +11,49 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     this.apiAuth = apiAuth;
     this.apiRouter = apiRouter;
 
-    const server = restify.createServer();
+    const app = express();
+    var bodyParser = require('body-parser');
+    app.use("/api",bodyParser.urlencoded({     // to support URL-encoded bodies
+        extended: true
+    }));
 
-    this.server = server;
-
-    server.on('uncaughtException', function (req, res, route, err) {
-        try {
-            logger.error("RestApi uncaughtException " + err.stack + " \n params: \n" + JSON.stringify(req.params));
-            res.statusCode = 500;
-            res.send({code: "error", message: "exception " + err.stack});
-        } catch (err) {
-            logger.error("RestApi uncaughtException catch " + err.stack);
+    app.use("/api", (req, res, next) => {
+        req.p = {};
+        for (const param in req.body) {
+            req.p[param] = req.body[param];
         }
+        for (const param in req.query) {
+            req.p[param] = req.query[param];
+        }
+        res.set("Access-Control-Allow-Origin", "*");
+        return next();
     });
 
-    server.use(restify.acceptParser(server.acceptable));
-    server.use(restify.queryParser());
-    server.use(restify.bodyParser());
 
-    const staticConfig = restify.serveStatic({
-        directory: __dirname + '/../../static',
-        default: 'index.html'
-    });
-
-    server.get(/^\/push\/?.*/, staticConfig);
-
-    server.get(/^\/client\/?.*/, staticConfig);
-
-    server.get(/^\/notification\/?.*/, staticConfig);
-
-    server.get(/^\/uid\/?.*/, staticConfig);
-
-    server.get(/^\/handleStatsBase\/?.*/, staticConfig);
-
-    server.get(/^\/stats\/?.*/, staticConfig);
-
-    server.get(/^\/js\/?.*/, staticConfig);
-
-    server.get("/", staticConfig);
+    this.server = app.listen(config.port);
 
     const handlePush = function (req, res, next) {
         if (self.apiAuth && !self.apiAuth("/api/push", req, logger)) {
-            logger.error("push denied %j %j", req.params, req.headers);
+            logger.error("push denied %j %j", req.p, req.headers);
             res.statusCode = 400;
-            res.send({code: "error", message: 'not authorized'});
+            res.json({code: "error", message: 'not authorized'});
             return next();
         }
 
-        if (!req.params.topic && !req.params.pushId && !req.params.uid) {
+        if (!req.p.topic && !req.p.pushId && !req.p.uid) {
             res.statusCode = 400;
-            res.send({code: "error", message: 'topic or pushId or uid is required'});
+            res.json({code: "error", message: 'topic or pushId or uid is required'});
             return next();
         }
 
-        const data = req.params.data;
-        const json = req.params.json;
+        const data = req.p.data;
+        const json = req.p.json;
         if (!data && !json) {
             res.statusCode = 400;
-            res.send({code: "error", message: 'data is required'});
+            res.json({code: "error", message: 'data is required'});
             return next();
         }
-        logger.info("handlePush %j", req.params);
+        logger.info("handlePush %j", req.p);
         const pushData = {};
         if (data) {
             pushData.data = data;
@@ -84,53 +66,53 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
             }
         }
 
-        const pushIds = parseArrayParam(req.params.pushId);
-        const uids = parseArrayParam(req.params.uid);
+        const pushIds = parseArrayParam(req.p.pushId);
+        const uids = parseArrayParam(req.p.uid);
 
-        if (!pushIds && !uids && !req.params.topic) {
+        if (!pushIds && !uids && !req.p.topic) {
             res.statusCode = 400;
-            res.send({code: "error", message: "pushId or uid is required"});
+            res.json({code: "error", message: "pushId or uid is required"});
             return next();
         }
 
-        if (req.params.topic) {
-            apiThreshold.checkPushDrop(req.params.topic, function (call) {
+        if (req.p.topic) {
+            apiThreshold.checkPushDrop(req.p.topic, function (call) {
                 if (!call) {
                     res.statusCode = 400;
-                    res.send({code: "error", message: "call threshold exceeded"});
+                    res.json({code: "error", message: "call threshold exceeded"});
                     return next();
                 }
             });
         }
 
-        apiRouter.push(pushData, req.params.topic, pushIds, uids, parseInt(req.params.timeToLive));
-        res.send({code: "success"});
+        apiRouter.push(pushData, req.p.topic, pushIds, uids, parseInt(req.p.timeToLive));
+        res.json({code: "success"});
         return next();
     };
 
     const handleNotification = function (req, res, next) {
+        logger.info("handleNotification %j", req.p);
         if (self.apiAuth && !self.apiAuth("/api/notification", req, logger)) {
-            logger.error("notification denied %j %j", req.params, req.headers);
+            logger.error("notification denied %j %j", req.p, req.headers);
             res.statusCode = 400;
-            res.send({code: "error", message: 'not authorized'});
+            res.json({code: "error", message: 'not authorized'});
             return next();
         }
-        if (!req.params.notification) {
+        if (!req.p.notification) {
             res.statusCode = 400;
-            res.send({code: "error", message: 'notification is required'});
+            res.json({code: "error", message: 'notification is required'});
             return next();
         }
 
         let notification;
         try {
-            notification = JSON.parse(req.params.notification);
+            notification = JSON.parse(req.p.notification);
         } catch (err) {
-            logger.error("notification parse json error ", req.params.notification, err);
+            logger.error("notification parse json error ", req.p.notification, err);
             res.statusCode = 400;
-            res.send({code: "error", message: 'notification format error ' + err + " " + req.params.notification});
+            res.json({code: "error", message: 'notification format error ' + err + " " + req.p.notification});
             return next();
         }
-
 
         if (!notification.android) {
             notification.android = {};
@@ -148,70 +130,69 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
             delete notification.apn.payload;
         }
 
-        logger.info("handleNotification %j", req.params);
+        const pushIds = parseArrayParam(req.p.pushId);
+        const uids = parseArrayParam(req.p.uid);
 
-        const pushIds = parseArrayParam(req.params.pushId);
-        const uids = parseArrayParam(req.params.uid);
-
-        if (req.params.pushAll == 'true') {
-            logger.info('handleNotification pushAll ', req.params);
+        if (req.p.pushAll == 'true') {
+            logger.info('handleNotification pushAll ', req.p);
         }
 
-        if (!req.params.tag && !req.params.pushId && !req.params.uid && req.params.pushAll != 'true') {
+        if (!req.p.tag && !req.p.pushId && !req.p.uid && req.p.pushAll != 'true') {
             res.statusCode = 400;
-            res.send({code: "error", message: "pushId / uid / tag is required"});
+            res.json({code: "error", message: "pushId / uid / tag is required"});
             return next();
         }
-        apiRouter.notification(notification, req.params.pushAll == 'true', pushIds, uids, req.params.tag, parseInt(req.params.timeToLive));
-        res.send({code: "success"});
+
+        apiRouter.notification(notification, req.p.pushAll == 'true', pushIds, uids, req.p.tag, parseInt(req.p.timeToLive));
+        res.json({code: "success"});
         return next();
     };
 
     const heapdump = function (req, res, next) {
         var file = process.cwd() + "/" + Date.now() + '.heapsnapshot';
         require('heapdump').writeSnapshot(file);
-        res.send({code: "success", file: file});
+        res.json({code: "success", file: file});
         return next();
     };
 
     const handleStatsBase = function (req, res, next) {
         stats.getSessionCount(function (count) {
-            res.send(count);
+            res.json(count);
+            return next();
         });
-        return next();
     };
 
     const handleChartStats = function (req, res, next) {
-        const key = req.params.key;
+        const key = req.p.key;
         stats.find(key, function (result) {
-            res.send(result);
+            res.json(result);
+            return next();
         });
-        return next();
     };
 
     const handleAddPushIdToUid = function (req, res, next) {
-        uidStore.bindUid(req.params.pushId, req.params.uid, parseInt(req.params.timeToLive), req.params.platform, parseInt(req.params.platformLimit));
-        res.send({code: "success"});
+        uidStore.bindUid(req.p.pushId, req.p.uid, parseInt(req.p.timeToLive), req.p.platform, parseInt(req.p.platformLimit));
+        res.json({code: "success"});
         return next();
     };
 
     const removeRemoveUid = function (req, res, next) {
-        const pushIds = parseArrayParam(req.params.pushId);
-        const uids = parseArrayParam(req.params.uid);
+        const pushIds = parseArrayParam(req.p.pushId);
+        const uids = parseArrayParam(req.p.uid);
         if (pushIds) {
             pushIds.forEach(function (pushId) {
                 uidStore.removePushId(pushId, true);
             });
-            res.send({code: "success"});
+            res.json({code: "success"});
         } else if (uids) {
             uids.forEach(function (uid) {
                 uidStore.removeUid(uid);
             });
-            res.send({code: "success"});
+            res.json({code: "success"});
         } else {
             res.statusCode = 400;
-            res.send({code: "error", message: "pushId or uid is required"});
-            res.send({code: "success"});
+            res.json({code: "error", message: "pushId or uid is required"});
+            res.json({code: "success"});
         }
         return next();
     };
@@ -219,97 +200,100 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     const handleQueryDataKeys = function (req, res, next) {
         stats.getQueryDataKeys(function (result) {
             logger.debug("getQueryDataKeys result: " + result)
-            res.send({"result": result});
+            res.json({"result": result});
+            return next();
         });
-        return next();
     };
 
     const handleApn = function (req, res, next) {
-        apnService.callLocal(JSON.parse(req.params.notification), req.params.bundleId, parseArrayParam(req.params.tokens), req.params.pattern);
-        res.send({code: "success"});
+        apnService.callLocal(JSON.parse(req.p.notification), req.p.bundleId, parseArrayParam(req.p.tokens), req.p.pattern);
+        res.json({code: "success"});
         return next();
     };
 
-    server.get('/api/heapdump', heapdump);
-    server.post('/api/heapdump', heapdump);
-    server.get('/api/apn', handleApn);
-    server.post('/api/apn', handleApn);
-    server.get('/api/stats/base', handleStatsBase);
-    server.get('/api/stats/chart', handleChartStats);
-    server.get('/api/push', handlePush);
-    server.post('/api/push', handlePush);
-    server.get('/api/notification', handleNotification);
-    server.post('/api/notification', handleNotification);
-    server.get('/api/uid/bind', handleAddPushIdToUid);
-    server.post('/api/uid/bind', handleAddPushIdToUid);
-    server.get('/api/uid/remove', removeRemoveUid);
-    server.post('/api/uid/remove', removeRemoveUid);
-    server.get('api/state/getQueryDataKeys', handleQueryDataKeys)
+    const router = express.Router();
+    app.use("/api", router);
 
-    server.get('/api/topicOnline', function (req, res, next) {
-        const topic = req.params.topic;
+    router.get('/heapdump', heapdump);
+    router.post('/heapdump', heapdump);
+    router.get('/apn', handleApn);
+    router.post('/apn', handleApn);
+    router.get('/stats/base', handleStatsBase);
+    router.get('/stats/chart', handleChartStats);
+    router.get('/push', handlePush);
+    router.post('/push', handlePush);
+    router.get('/notification', handleNotification);
+    router.post('/notification', handleNotification);
+    router.get('/uid/bind', handleAddPushIdToUid);
+    router.post('/uid/bind', handleAddPushIdToUid);
+    router.get('/uid/remove', removeRemoveUid);
+    router.post('/uid/remove', removeRemoveUid);
+    router.get('/stats/getQueryDataKeys', handleQueryDataKeys)
+
+    router.get('/topicOnline', function (req, res, next) {
+        const topic = req.p.topic;
         if (!topic) {
             res.statusCode = 400;
-            res.send({code: 'error', message: 'topic is required'})
+            res.json({code: 'error', message: 'topic is required'})
             return next();
         }
         topicOnline.getTopicOnline(topic, function (result) {
-            res.send({count: result, topic: req.params.topic});
+            res.json({count: result, topic: req.p.topic});
         });
         return next();
     });
 
-    server.get('/api/status', function (req, res, next) {
-        res.send(redis.status());
+    router.get('/status', function (req, res, next) {
+        res.json(redis.status());
         return next();
     });
 
-    server.get('/api/redis/del', function (req, res, next) {
-        redis.del(req.params.key);
-        res.send({code: "success", key: req.params.key});
+    router.get('/redis/del', function (req, res, next) {
+        redis.del(req.p.key);
+        res.json({code: "success", key: req.p.key});
         return next();
     });
 
-    server.get('/api/redis/get', function (req, res, next) {
-        redis.get(req.params.key, function (err, result) {
-            res.send({key: req.params.key, value: result});
+    router.get('/redis/get', function (req, res, next) {
+        redis.get(req.p.key, function (err, result) {
+            res.json({key: req.p.key, value: result});
         });
         return next();
     });
 
-    server.get('/api/redis/hash', function (req, res, next) {
-        redis.hash(req.params.key, function (result) {
-            res.send(result);
+    router.get('/redis/hash', function (req, res, next) {
+        redis.hash(req.p.key, function (result) {
+            res.json(result);
         });
         return next();
     });
 
 
-    server.get('/api/admin/command', function (req, res, next) {
-        redis.publish("adminCommand", req.params.command);
-        res.send({code: "success"});
+    router.get('/admin/command', function (req, res, next) {
+        redis.publish("adminCommand", req.p.command);
+        res.json({code: "success"});
         return next();
     });
 
-    server.get('/api/redis/hgetall', function (req, res, next) {
-        redis.hgetall(req.params.key, function (err, result) {
-            res.send({key: req.params.key, count: result.length, result: result});
+    router.get('/redis/hgetall', function (req, res, next) {
+        redis.hgetall(req.p.key, function (err, result) {
+            res.json({key: req.p.key, count: result.length, result: result});
         });
         return next();
     });
 
-    server.get('/api/redis/hkeys', function (req, res, next) {
-        redis.hkeys(req.params.key, function (err, result) {
+    router.get('/redis/hkeys', function (req, res, next) {
+        redis.hkeys(req.p.key, function (err, result) {
             const strs = [];
             result.forEach(function (token) {
                 strs.push(token.toString('ascii'));
             });
-            res.send({key: req.params.key, count: strs.length, result: strs});
+            res.json({key: req.p.key, count: strs.length, result: strs});
         });
         return next();
     });
 
-    server.get('/api/nginx', function (req, res, next) {
+    router.get('/nginx', function (req, res, next) {
         stats.getSessionCount(function (count) {
             res.writeHead(200, {
                 'Content-Type': 'text/plain'
@@ -322,12 +306,12 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         return next();
     });
 
-    server.get('/api/config', function (req, res, next) {
-        res.send(config);
+    router.get('/config', function (req, res, next) {
+        res.json(config);
         return next();
     });
 
-    server.get('/api/ip', function (req, res, next) {
+    router.get('/ip', function (req, res, next) {
         let ip = req.connection.remoteAddress;
         ip = ip.substr(ip.lastIndexOf(':') + 1, ip.length);
         res.writeHead(200, {
@@ -340,16 +324,12 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     });
 
     const handleEcho = function (req, res, next) {
-        res.send(req.params);
+        res.json(req.p);
         return next();
     };
 
-    server.get('/api/echo', handleEcho);
-    server.post('/api/echo', handleEcho);
-
-    server.listen(config.port, function () {
-        logger.debug('%s listening at %s', server.name, server.url);
-    });
+    router.get('/echo', handleEcho);
+    router.post('/echo', handleEcho);
 
 }
 

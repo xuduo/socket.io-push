@@ -73,7 +73,7 @@ describe('api auth', () => {
         var apiCheckIp = function (path, req, logger) {
             var ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
             logger.debug("%s caller ip %s", path, ip);
-            if (req.params.pushAll == 'true') {
+            if (req.p.pushAll == 'true') {
                 return ipList.indexOf(ip) != -1;
             } else {
                 return true;

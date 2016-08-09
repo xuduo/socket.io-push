@@ -33,6 +33,7 @@
     </style>
     <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>-->
     <script src="/js/jquery-1.8.0.min.js"></script>
+    <script src="/js/jquery.cookie.js"></script>
 </head>
 <body>
 <script type="text/javascript">
@@ -196,7 +197,7 @@
 
         $.ajax({
             type: 'GET',
-            url: '/api/push',
+            url: $.cookie("api_url") + '/api/push',
             data: data,
             success: function (data) {
                 document.getElementById("result").innerHTML = JSON.stringify(data);
