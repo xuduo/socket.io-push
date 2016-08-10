@@ -13,14 +13,14 @@ function readableFormatter(args) {
         + (undefined !== args.message ? args.message : '');
 }
 
-function createFileRotateTransport(dir, level, timestamp = localTimeString, formatter = readableFormatter){
+function createFileRotateTransport(dir, level, timestamp = localTimeString, formatter = readableFormatter) {
     fs.mkdir(dir, err => {
-       if(err && err.code != 'EEXIST'){
-           console.log('mkdir dir error, %s', dir);
-       }
+        if (err && err.code != 'EEXIST') {
+            console.log('mkdir dir error, %s', dir);
+        }
     });
     let opt = {
-        name: 'rotate-file-'+level,
+        name: 'rotate-file-' + level,
         json: false,
         level: level,
         showLevel: false,
@@ -32,14 +32,14 @@ function createFileRotateTransport(dir, level, timestamp = localTimeString, form
     return new rotatefile(opt);
 }
 
-function createFileTransport(file, level, timestamp = localTimeString, formatter = readableFormatter){
+function createFileTransport(file, level, timestamp = localTimeString, formatter = readableFormatter) {
     fs.mkdir(path.dirname(file), err => {
-        if(err && err.code != 'EEXIST'){
+        if (err && err.code != 'EEXIST') {
             console.log('mkdir dir error, %s', path.dirname(file));
         }
     });
     let opt = {
-        name: 'file-'+level,
+        name: 'file-' + level,
         json: false,
         level: level,
         showLevel: false,
@@ -49,7 +49,7 @@ function createFileTransport(file, level, timestamp = localTimeString, formatter
     };
     return new winston.transports.File(opt);
 }
-function createConsoleTransport(level, timestamp = localTimeString, formatter = readableFormatter){
+function createConsoleTransport(level, timestamp = localTimeString, formatter = readableFormatter) {
     let opt = {
         name: 'console',
         json: false,
@@ -65,11 +65,11 @@ function createConsoleTransport(level, timestamp = localTimeString, formatter = 
 
 function createLogger(opts) {
     let transports = [];
-    if(opts.dir){
+    if (opts.dir) {
         transports.push(createFileRotateTransport(opts.dir, opts.level));
         transports.push(createFileRotateTransport(opts.dir, "error"));
     }
-    if(opts.filename){
+    if (opts.filename) {
         transports.push(createFileTransport(opts.filename, opts.level, opts.timestamp, opts.formatter))
     }
     if (opts.foreground) {
@@ -83,17 +83,16 @@ function createLogger(opts) {
 let logger;
 let workId;
 
-function LogProxy(label) {
-    this.module = label;
+function LogProxy(moduleName) {
+    this.module = moduleName;
     this.logger = logger;
 }
 
 ['debug', 'info', 'error'].forEach(function (command) {
     LogProxy.prototype[command] = function (key, arg, callback) {
         if (this.logger) {
-            arguments[0] = this.module + ' ' + arguments[0];
             const mainArguments = Array.prototype.slice.call(arguments);
-            mainArguments.push({id: uuid.v4()});
+            mainArguments.push({id: uuid.v4(), module: this.module});
             this.logger[command].apply(this, mainArguments);
         }
     }
@@ -143,12 +142,12 @@ function init() {
     }
 }
 
-const Logger = function (label) {
-    if (typeof label == 'string') {
+const Logger = function (moduleName) {
+    if (typeof moduleName == 'string') {
         if (!logger) {
             init();
         }
-        return new LogProxy(label);
+        return new LogProxy(moduleName);
     }
 };
 

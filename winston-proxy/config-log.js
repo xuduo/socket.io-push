@@ -4,19 +4,20 @@ config.debug = true;
 
 //简单日志文件配置
 config.filename = 'log/history.log';
-config.formatter = function(args){
+config.formatter = function (args) {
     let jsonObj = {};
     jsonObj.id = args.meta.id;
-    jsonObj.timestamp = args.timestamp;
-    jsonObj.service = "me-push";  //不同项目由service区分,一般修改这里就可以
+    jsonObj.timestamp = args.timestamp();
+    jsonObj.service = "me_push";  //不同项目由service区分,一般修改这里就可以
     jsonObj.pid = process.pid;
     jsonObj.ip = "##CTL_IP##";    //电信IP,对于没有电信IP的修改成其他
     jsonObj.logtype = "event";
     jsonObj.level = args.level;
+    jsonObj.module = args.meta.module;
     jsonObj.msg = args.message;
     return JSON.stringify(jsonObj);
 };
-config.timestamp = function() {
+config.timestamp = function () {
     return Date.now() / 1000 | 0; //取整
 };
 
