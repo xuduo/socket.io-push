@@ -4,16 +4,13 @@ const fs = require('fs');
 const path = require('path');
 const uuid = require('node-uuid');
 
-function localTimeString() {
-    return new Date().toLocaleString();
-}
 function readableFormatter(args) {
-    return args.timestamp() + " work:" + workId + " "
+    return new Date().toLocaleString() + " work:" + workId + " "
         + args.level.substring(0, 1).toUpperCase() + "/"
         + (undefined !== args.message ? args.message : '');
 }
 
-function createFileRotateTransport(dir, level, timestamp = localTimeString, formatter = readableFormatter) {
+function createFileRotateTransport(dir, level, formatter = readableFormatter) {
     fs.mkdir(dir, err => {
         if (err && err.code != 'EEXIST') {
             console.log('mkdir dir error, %s', dir);
@@ -26,13 +23,12 @@ function createFileRotateTransport(dir, level, timestamp = localTimeString, form
         showLevel: false,
         datePattern: 'yyyy-MM-dd.log',
         filename: dir + '/' + level + '_',
-        timestamp: timestamp,
         formatter: formatter
     };
     return new rotatefile(opt);
 }
 
-function createFileTransport(file, level, timestamp = localTimeString, formatter = readableFormatter) {
+function createFileTransport(file, level, formatter = readableFormatter) {
     fs.mkdir(path.dirname(file), err => {
         if (err && err.code != 'EEXIST') {
             console.log('mkdir dir error, %s', path.dirname(file));
@@ -44,18 +40,16 @@ function createFileTransport(file, level, timestamp = localTimeString, formatter
         level: level,
         showLevel: false,
         filename: file,
-        timestamp: timestamp,
         formatter: formatter
     };
     return new winston.transports.File(opt);
 }
-function createConsoleTransport(level, timestamp = localTimeString, formatter = readableFormatter) {
+function createConsoleTransport(level, formatter = readableFormatter) {
     let opt = {
         name: 'console',
         json: false,
         level: level,
         showLevel: false,
-        timestamp: timestamp,
         formatter: formatter,
         colorize: 'all',
         align: true
@@ -65,14 +59,14 @@ function createConsoleTransport(level, timestamp = localTimeString, formatter = 
 
 function createLogger(opts) {
     let transports = [];
-    if (opts.dir) {
-        transports.push(createFileRotateTransport(opts.dir, opts.level));
-        transports.push(createFileRotateTransport(opts.dir, "error"));
+    if (opts.rotate_dir) {
+        transports.push(createFileRotateTransport(opts.rotate_dir, opts.level, opts.formatter));
+        transports.push(createFileRotateTransport(opts.rotate_dir, "error", opts.formatter));
     }
     if (opts.filename) {
-        transports.push(createFileTransport(opts.filename, opts.level, opts.timestamp, opts.formatter))
+        transports.push(createFileTransport(opts.filename, opts.level, opts.formatter))
     }
-    if (opts.foreground) {
+    if (opts.console) {
         transports.push(createConsoleTransport('debug'));
     }
     return new winston.Logger({
@@ -88,7 +82,7 @@ function LogProxy(moduleName) {
     this.logger = logger;
 }
 
-['debug', 'info', 'error'].forEach(function (command) {
+['debug', 'info', 'warn', 'error'].forEach(function (command) {
     LogProxy.prototype[command] = function (key, arg, callback) {
         if (this.logger) {
             const mainArguments = Array.prototype.slice.call(arguments);
@@ -124,7 +118,7 @@ function init() {
         console.log(ex);
     }
 
-    opts.level = opts.debug ? 'debug' : 'info';
+    opts.level = opts.level ? 'debug' : 'info';
     logger = createLogger(opts);
     try {
         workId = require('cluster').workder.id;
@@ -134,10 +128,10 @@ function init() {
     }
     workId = workId < 10 ? '0' + workId : workId;
     const msPerDel = 24 * 60 * 60 * 1000;
-    if (workId == 1 && opts.dir) {
-        deleteOutdatedLog(opts.dir);
+    if (workId == 1 && opts.rotate_dir) {
+        deleteOutdatedLog(opts.rotate_dir);
         setInterval(() => {
-            deleteOutdatedLog(opts.dir);
+            deleteOutdatedLog(opts.rotate_dir);
         }, msPerDel);
     }
 }

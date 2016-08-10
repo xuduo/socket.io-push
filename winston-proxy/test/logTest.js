@@ -41,10 +41,12 @@ describe('rotate log test', () => {
     it('log test', done => {
         let logger = require('../index.js')('MochaTest');
         let errorMsg = '--- error msg, this should be logged and print';
+        let warnMsg = '--- warn msg, this should be logged and print';
         let infoMsg = '--- info msg, this should be logged and print.';
         let debugMsg = '--- debug msg, this should be logged and print';
         logger.info(infoMsg);
         logger.debug(debugMsg);
+        logger.warn(warnMsg);
         logger.error(errorMsg);
         fs.readdir('./log', (err, files) => {
             expect(err).to.not.be.ok;
@@ -52,6 +54,7 @@ describe('rotate log test', () => {
             let dateString = date.getFullYear() + '-' + (date.getMonth() < 9 ? '0' : '' ) + (date.getMonth() + 1) + '-' + (date.getDate() < 10 ? '0' : '') + date.getDate();
             errLogFile = './log/error_' + dateString + '.log';
             debugFile = './log/debug_' + dateString + '.log';
+            filename = './log/history.log';
             fs.readFile(errLogFile, (err, data) => {
                 expect(err).to.not.be.ok;
                 expect(data.toString()).to.string(errorMsg);
@@ -59,7 +62,14 @@ describe('rotate log test', () => {
                     expect(err).to.not.be.ok;
                     expect(data.toString()).to.string(debugMsg);
                     expect(data.toString()).to.string(infoMsg);
-                    done();
+                    expect(data.toString()).to.string(warnMsg);
+                    fs.readFile(filename, (err, data) => {
+                        expect(data.toString()).to.string(errorMsg);
+                        expect(data.toString()).to.string(debugMsg);
+                        expect(data.toString()).to.string(infoMsg);
+                        expect(data.toString()).to.string(warnMsg);
+                        done();
+                    });
                 });
             });
         });
