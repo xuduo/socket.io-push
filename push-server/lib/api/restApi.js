@@ -239,8 +239,8 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         }
         topicOnline.getTopicOnline(topic, function (result) {
             res.json({count: result, topic: req.p.topic});
+            return next();
         });
-        return next();
     });
 
     router.get('/status', function (req, res, next) {
@@ -257,17 +257,16 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     router.get('/redis/get', function (req, res, next) {
         redis.get(req.p.key, function (err, result) {
             res.json({key: req.p.key, value: result});
+            return next();
         });
-        return next();
     });
 
     router.get('/redis/hash', function (req, res, next) {
         redis.hash(req.p.key, function (result) {
             res.json(result);
+            return next();
         });
-        return next();
     });
-
 
     router.get('/admin/command', function (req, res, next) {
         redis.publish("adminCommand", req.p.command);
@@ -278,8 +277,8 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     router.get('/redis/hgetall', function (req, res, next) {
         redis.hgetall(req.p.key, function (err, result) {
             res.json({key: req.p.key, count: result.length, result: result});
+            return next();
         });
-        return next();
     });
 
     router.get('/redis/hkeys', function (req, res, next) {
@@ -289,8 +288,8 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
                 strs.push(token.toString('ascii'));
             });
             res.json({key: req.p.key, count: strs.length, result: strs});
+            return next();
         });
-        return next();
     });
 
     router.get('/nginx', function (req, res, next) {
@@ -302,8 +301,8 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
                 res.write("server " + process.id + ";\n");
             });
             res.end();
+            return next();
         });
-        return next();
     });
 
     router.get('/config', function (req, res, next) {
