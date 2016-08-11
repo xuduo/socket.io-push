@@ -15,7 +15,7 @@ $(function () {
     var $hostInput = $('#hostInput');
     $.ajax({
         type: 'GET',
-        url: '/api/config',
+        url: $.cookie("api_url") + '/api/config',
         success: function (data) {
             $hostInput.val(window.location.protocol + "//" + window.location.hostname + ":" + data.io_port);
         }
@@ -88,7 +88,7 @@ $(function () {
         var json = {message: message, nickName: username, type: "chat_message"};
         $.ajax({
             type: 'GET',
-            url: '/api/push',
+            url: $.cookie("api_url") + '/api/push',
             data: {
                 topic: "chatRoom",
                 timeToLive: 10000,
