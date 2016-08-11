@@ -55,7 +55,7 @@ HuaweiProvider.prototype.sendMany = function (notification, tokenDataList, timeT
                         logger.debug("sendOne result", error, body);
                         if (!error && response && response.statusCode == 200) {
                             self.stats.addPushSuccess(mapTokenData[package_name].length, self.type);
-                        }else {
+                        } else {
                             error = error || 'unknown error';
                         }
                         if (callback) {
@@ -79,11 +79,12 @@ HuaweiProvider.prototype.getPostData = function (push_type, notification, packag
             notification_title: notification.android.title,
             notification_content: notification.android.message,
             extras: [notification.id, notification.android],
-            doings: 1
+            doings: 2,
+            intent: "com.huawei.pushagent"
         })
     };
-    if(tokenDataList) {
-        postData.tokens = tokenDataList.map(function(tokenData){
+    if (tokenDataList) {
+        postData.tokens = tokenDataList.map(function (tokenData) {
             return tokenData.token;
         }).join();
     }

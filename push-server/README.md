@@ -26,111 +26,29 @@ mkdir push-server
 cd push-server
 ```
 
-* 新建config.js
+* proxy 进程配置,存在则启动proxy进程.
 
-```
-var config = {};
+[config-proxy.js](config-proxy.js)
 
-config.pingTimeout = 25000; //  心跳timeout
-config.pingInterval = 25000; // 心跳间隔
+* api 进程配置,存在则启动api进程.
 
-config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei timeToLive
+[config-api.js](config-api.js)
 
-//apns推送配置,可选
-config.apns = [
-    {
-        production: false,
-        maxConnections: 100,
-        bundleId: "com.xuduo.pushtest",
-        cert: process.cwd() + "/cert/com.xuduo.pushtest/cert.pem",
-        key: process.cwd() + "/cert/com.xuduo.pushtest/key.pem"
-    },
-    {
-        production: false,
-        maxConnections: 50,
-        bundleId: "com.xuduo.pushtest2",
-        cert: process.cwd() + "/cert/com.xuduo.pushtest2/cert.pem",
-        key: process.cwd() + "/cert/com.xuduo.pushtest2/key.pem"
-    }
-];
+* admin 进程配置,存在则启动admin进程.
 
-//华为推送配置,可选, 由于华为不支持多包名,需要像apn一样配置一个数组
-config.huawei = [{
-    package_name: "com.yy.misaka.demo",
-    client_id: 10513719,
-    client_secret: "9l7fwfxt0m37qt61a1rh3w0lg9hjza1l"
-}]
+[config-admin.js](config-admin.js)
 
-//小米推送配置,可选, 小米内建支持多包名, 一个配置就可以
-config.xiaomi = {
-    app_secret: "ynJJ6b+MkCLyw1cdrg/72w=="
-}
-
-//api调用鉴权,可选
-config.apiAuth = function (path, req, logger) {
-    var ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
-    logger.info("%s caller ip %s", path, ip);
-    return true;
-}
-
-/**
- * 数组表示hash切片,可以配置多个redis实例,分担流量/cpu负载
- * pubs 广播pub redis,二维数组 第一级表示redis分组 第二季表示hash切片
- * sub 订阅接收 redis
- * write 数据存储主库
- * read 数据读从库
- * event 客户端断线,连接事件pub的redis.功能可能以后会改,不推荐使用
- */
-config.redis = {
-    pubs: [
-        [
-            {host: "127.0.0.1", port: 6379}
-        ]
-    ],
-    sub: [
-        {host: "127.0.0.1", port: 6379}
-    ],
-    write: [
-        {host: "127.0.0.1", port: 6379}
-    ],
-    read: [
-        {host: "127.0.0.1", port: 6379}
-    ],
-    event: [
-        {
-            host: "127.0.0.1",
-            port: 6379
-        }
-    ]
-};
-
-config.io_port = 10001; //socket.io 长连接端口
-config.api_port = 11001; //api端口, 可选. 不配置,不提供api接口
-
-config.ttl_protocol_version = 2; //默认1, 推荐使用2,省流量
-
-module.exports = config;
-
-```
 
 #运行
-push-server -v -f
--f foreground
--d debug     
--c 起的进程数
-
-#后台地址
-http://yourip:10001/
-
-#websocket地址
-http://yourip:11001/
+push-server -f
+-f foreground启动,不指定会后台启动
 
 ##Nginx reverse proxy
 
 nginx.conf
 
 ```
-upstream ws_backend {
+upstream ws_proxy {
     ip_hash;
     server 127.0.0.1:11001;
     server 127.0.0.1:11002;
@@ -148,15 +66,17 @@ server
 {
     listen 80;
 
-    location / {
-        proxy_pass http://ws_backend;
+    #proxy代理
+    location /socket.io/ {
+        proxy_pass http://ws_proxy;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header Host $host;
         proxy_set_header Connection "upgrade";
     }
-    
+
+    #api代理
     location /api {
         proxy_pass http://ws_api;
     }
