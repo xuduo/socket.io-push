@@ -1,6 +1,6 @@
 {
   "name": "winston-proxy",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "a self defined log moudle based on winston, support multi process and module names",
   "main": "index.js",
   "directories": {
@@ -22,7 +22,8 @@
   "dependencies": {
     "winston": "2.2.0",
     "winston-daily-rotate-file": "1.1.5",
-    "node-uuid": "1.4.7"
+    "node-uuid": "1.4.7",
+    "mkdirp": "0.5.1"
   },
   "devDependencies": {
     "expect.js": "0.3.1",

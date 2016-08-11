@@ -2,16 +2,16 @@ const winston = require('winston');
 const rotatefile = require('winston-daily-rotate-file');
 const fs = require('fs');
 const path = require('path');
+const mkdirp = require('mkdirp');
 const uuid = require('node-uuid');
 
 function readableFormatter(args) {
     return new Date().toLocaleString() + " work:" + workId + " "
-        + args.level.substring(0, 1).toUpperCase() + "/"
-        + (undefined !== args.message ? args.message : '');
+        + args.level.substring(0, 1).toUpperCase() + "/" + args.meta.module + " " +(args.message ? args.message : '');
 }
 
 function createFileRotateTransport(dir, level, formatter = readableFormatter) {
-    fs.mkdir(dir, err => {
+    mkdirp(dir, err => {
         if (err && err.code != 'EEXIST') {
             console.log('mkdir dir error, %s', dir);
         }
@@ -29,7 +29,7 @@ function createFileRotateTransport(dir, level, formatter = readableFormatter) {
 }
 
 function createFileTransport(file, level, formatter = readableFormatter) {
-    fs.mkdir(path.dirname(file), err => {
+    mkdirp(path.dirname(file), err => {
         if (err && err.code != 'EEXIST') {
             console.log('mkdir dir error, %s', path.dirname(file));
         }
