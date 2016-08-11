@@ -7,7 +7,7 @@ const uuid = require('node-uuid');
 
 function readableFormatter(args) {
     return new Date().toLocaleString() + " work:" + workId + " "
-        + args.level.substring(0, 1).toUpperCase() + "/" + args.meta.module + " " +(args.message ? args.message : '');
+        + args.level.substring(0, 1).toUpperCase() + "/" + args.meta.module + " " + (args.message ? args.message : '');
 }
 
 function createFileRotateTransport(dir, level, formatter = readableFormatter) {
@@ -113,17 +113,15 @@ function init() {
     let opts = {};
     try {
         opts = require(process.cwd() + '/config-log');
-    }
-    catch (ex) {
+    } catch (ex) {
         console.log(ex);
     }
 
     opts.level = opts.level ? 'debug' : 'info';
     logger = createLogger(opts);
     try {
-        workId = require('cluster').workder.id;
-    }
-    catch (ex) {
+        workId = require('cluster').worker.id;
+    } catch (ex) {
         workId = 1;
     }
     workId = workId < 10 ? '0' + workId : workId;

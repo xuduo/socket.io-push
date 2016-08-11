@@ -3,7 +3,7 @@ let config = {};
 config.level = "debug";
 
 //可选 简单日志文件配置,配合formatter和timestamp可以接入ELK
-config.filename = '/data/yy/log/log_svc_elk/history.log';
+config.filename = 'log/history.log';
 
 //可选 轮转日志文件配置
 config.rotate_dir = 'log';

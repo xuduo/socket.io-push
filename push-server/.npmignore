@@ -5,4 +5,5 @@ config-admin.js
 log
 ip
 num_processes
+pid
 2idc_socket.io-push.png
