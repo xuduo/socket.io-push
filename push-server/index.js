@@ -1,39 +1,27 @@
-var program = require('commander');
-
-program
-    .version('0.0.3')
-    .usage('[options] <server>')
-    .option('-d', 'debug output')
-    .option('-f', 'foreground')
-    .option('-i', 'info')
-    .option('-c, --count <n>', 'process count to start', parseInt)
-    .parse(process.argv);
+let logger = require('winston-proxy')('Index');
 
 let proxy = {};
-
 try {
     proxy = require(process.cwd() + "/config-proxy");
 } catch (ex) {
-    console.log(ex);
+    logger.warn('config-proxy exeception: ' + ex);
 }
 proxy.instances = proxy.instances || 0;
 
 let api = {};
-
 try {
     api = require(process.cwd() + "/config-api");
 } catch (ex) {
-    console.log(ex);
+    logger.warn('config-api exeception: ' + ex);
 }
 api.instances = api.instances || 0;
 
 let admin = {instances: 0};
-
 try {
     admin = require(process.cwd() + "/config-admin");
     admin.instances = 1;
 } catch (ex) {
-    console.log(ex);
+    logger.warn('config-admin exeception: ' + ex);
 }
 
 var cluster = require('cluster');
@@ -43,21 +31,13 @@ if (cluster.isMaster) {
     for (var i = 0; i < totalFork; i++) {
         cluster.fork();
     }
-    require('fs').writeFile('./num_processes', totalFork + 1, (err) => {
+    require('fs').writeFile(process.cwd() + '/num_processes', totalFork + 1, (err) => {
         if (err) {
-            console.log("fail to write num of processes");
+            logger.error("fail to write num of processes");
         }
     });
-    console.log("cluster master totalFork ", totalFork);
+    logger.info("cluster master totalFork " + totalFork);
 } else {
-    require('winston-proxy')({
-        workId: cluster.worker.id,
-        dir: 'log',
-        foreground: program.F,
-        debug: program.D,
-        info: program.I,
-        count: program.count
-    });
     if (cluster.worker.id <= proxy.instances) {
         proxy.instance = cluster.worker.id;
         require('./lib/proxy')(proxy);

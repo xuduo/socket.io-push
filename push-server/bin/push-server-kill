@@ -1,0 +1,13 @@
+#!/bin/sh
+
+if [ -f "pid" ]
+then
+    kill `cat pid`
+    echo "killing `cat pid`"
+    while [[ $? == 0 ]]        # Repeat until the process has terminated.
+    do
+        sleep 0.1              # Wait a bit before testing.
+        ps -p `cat pid` >/dev/null  # Check if the process has terminated.
+    done
+    rm -rf pid
+fi
