@@ -1,6 +1,6 @@
 {
   "name": "winston-proxy",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "a self defined log moudle based on winston, support multi process and module names",
   "main": "index.js",
   "directories": {
@@ -31,5 +31,4 @@
     "mocha": "*",
     "chai": "^3.5.0"
   }
-
 }
