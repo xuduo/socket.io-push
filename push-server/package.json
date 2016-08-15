@@ -1,10 +1,10 @@
 {
   "name": "socket.io-push",
-  "version": "0.0.205",
+  "version": "0.0.207",
   "description": "socket.io-push server by xuduo",
   "main": "index.js",
   "bin": {
-    "push-server": "./bin/push-server",
+    "push-server": "./binpush-server",
     "node-push-server": "./bin/node-push-server"
   },
   "repository": {

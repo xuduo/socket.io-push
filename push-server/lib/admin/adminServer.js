@@ -8,7 +8,8 @@ class AdminServer {
     constructor(config) {
         const app = express();
         app.listen(config.port);
-        app.use(express.static(__dirname + '/static', {
+        console.log("serving static ", __dirname);
+        app.use(express.static(__dirname + '/../../static', {
             setHeaders: (res) => {
                 res.set('Set-Cookie', `api_url = ${config.api_url}`);
             }

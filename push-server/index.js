@@ -31,7 +31,7 @@ if (cluster.isMaster) {
     for (var i = 0; i < totalFork; i++) {
         cluster.fork();
     }
-    require('fs').writeFile(process.cwd() + '/num_processes', totalFork + 1, (err) => {
+    require('fs').writeFile(process.cwd() + '/num_processes', totalFork, (err) => {
         if (err) {
             logger.error("fail to write num of processes");
         }

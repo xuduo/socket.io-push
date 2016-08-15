@@ -79,8 +79,7 @@ HuaweiProvider.prototype.getPostData = function (push_type, notification, packag
             notification_title: notification.android.title,
             notification_content: notification.android.message,
             extras: [notification.id, notification.android],
-            doings: 2,
-            intent: "com.huawei.pushagent"
+            doings: 1
         })
     };
     if (tokenDataList) {
