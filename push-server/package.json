@@ -4,7 +4,7 @@
   "description": "socket.io-push server by xuduo",
   "main": "index.js",
   "bin": {
-    "push-server": "./binpush-server",
+    "push-server": "./bin/push-server",
     "node-push-server": "./bin/node-push-server"
   },
   "repository": {
