@@ -25,6 +25,13 @@ function createFileRotateTransport(dir, level, formatter = readableFormatter) {
         filename: dir + '/' + level + '_',
         formatter: formatter
     };
+    const msPerDel = 24 * 60 * 60 * 1000;
+    if (workId == 1 ) {
+        deleteOutdatedLog(dir);
+        setInterval(() => {
+            deleteOutdatedLog(dir);
+        }, msPerDel);
+    }
     return new rotatefile(opt);
 }
 
@@ -42,6 +49,14 @@ function createFileTransport(file, level, formatter = readableFormatter) {
         filename: file,
         formatter: formatter
     };
+
+    fs.watchFile(file, {persistent: false, interval: 30000}, (curr, prev) => {
+        if(curr.ino !== prev.ino){
+            console.log('ino %d -> %d', prev.ino, curr.ino);
+            logger.remove(opt.name);
+            logger.add(winston.transports.File, opt);
+        }
+    });
     return new winston.transports.File(opt);
 }
 function createConsoleTransport(level, formatter = readableFormatter) {
@@ -92,7 +107,7 @@ function LogProxy(moduleName) {
     }
 });
 
-deleteOutdatedLog = function (dir, days = 7) {
+const deleteOutdatedLog = function (dir, days = 7) {
     const msPerDay = 24 * 60 * 60 * 1000;
     fs.readdir(dir, (err, files) => {
         if (err) {
@@ -116,22 +131,14 @@ function init() {
     } catch (ex) {
         console.log(ex);
     }
-
     opts.level = opts.level ? 'debug' : 'info';
-    logger = createLogger(opts);
     try {
         workId = require('cluster').worker.id;
     } catch (ex) {
         workId = 1;
     }
     workId = workId < 10 ? '0' + workId : workId;
-    const msPerDel = 24 * 60 * 60 * 1000;
-    if (workId == 1 && opts.rotate_dir) {
-        deleteOutdatedLog(opts.rotate_dir);
-        setInterval(() => {
-            deleteOutdatedLog(opts.rotate_dir);
-        }, msPerDel);
-    }
+    logger = createLogger(opts);
 }
 
 const Logger = function (moduleName) {
