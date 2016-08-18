@@ -29,14 +29,16 @@ ApiRouter.prototype.notification = function (notification, pushAll, pushIds, uid
         });
     } else if (tag) {
         let batch = [];
-        this.tagService.scanPushIdByTag(tag, this.maxPushIds, function (pushId) {
+        this.tagService.scanPushIdByTag(tag, this.maxPushIds, (pushId) => {
             batch.push(pushId);
             if (batch.length == self.maxPushIds) {
-                self.sendNotificationByPushIds(notification, batch, timeToLive);
+                self.callRemoteNotification(notification, batch, timeToLive);
                 batch = [];
             }
-        }, function () {
-            self.sendNotificationByPushIds(notification, batch, timeToLive);
+        }, () => {
+            if (batch.length != 0) {
+                self.callRemoteNotification(notification, batch, timeToLive);
+            }
         });
     }
 };
@@ -79,8 +81,6 @@ ApiRouter.prototype.sendNotificationByPushIds = function (notification, pushIds,
             }
         });
         this.callRemoteNotification(notification, batch, timeToLive);
-    } else if (pushIds.length == this.maxPushIds && this.remoteUrls.hasNext()) {
-        this.callRemoteNotification(notification, pushIds, timeToLive);
     } else {
         this.notificationService.sendByPushIds(pushIds, timeToLive, notification);
     }
