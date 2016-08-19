@@ -26,7 +26,7 @@ function createFileRotateTransport(dir, level, formatter = readableFormatter) {
         formatter: formatter
     };
     const msPerDel = 24 * 60 * 60 * 1000;
-    if (workId == 1 ) {
+    if (workId == 1) {
         deleteOutdatedLog(dir);
         setInterval(() => {
             deleteOutdatedLog(dir);
@@ -51,7 +51,7 @@ function createFileTransport(file, level, formatter = readableFormatter) {
     };
 
     fs.watchFile(file, {persistent: false, interval: 30000}, (curr, prev) => {
-        if(curr.ino !== prev.ino){
+        if (curr.ino !== prev.ino) {
             console.log('ino %d -> %d', prev.ino, curr.ino);
             logger.remove(opt.name);
             logger.add(winston.transports.File, opt);
@@ -131,7 +131,7 @@ function init() {
     } catch (ex) {
         console.log(ex);
     }
-    opts.level = opts.level ? 'debug' : 'info';
+    opts.level = opts.level || 'debug';
     try {
         workId = require('cluster').worker.id;
     } catch (ex) {
