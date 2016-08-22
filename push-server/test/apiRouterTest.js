@@ -45,7 +45,7 @@ describe('apiRouterTest', function () {
                     'Accept': 'application/json'
                 },
                 form: {
-                    pushId: JSON.stringify(["a", "b", "c", "x", "d", "e", pushClient.pushId]),
+                    pushId: JSON.stringify(["a", "b", "c", "d", "e", pushClient.pushId]),
                     notification: str
                 }
             }, (error, response, body) => {
