@@ -20,15 +20,18 @@ fi
 # A POSIX variable
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
 FOREGROUND=0
-while getopts "h?c:d?f?v?l:" opt; do
+NODE=''
+while getopts "f?n:" opt; do
     case "$opt" in
     f)  FOREGROUND=1
+        ;;
+    n)  NODE=$OPTARG
         ;;
     esac
 done
 
 BASEDIR=$(dirname $0)
-node_script="$BASEDIR/node-push-server"
+node_script="$NODE $BASEDIR/node-push-server"
 
 if [ $FOREGROUND = 1 ];
 then
