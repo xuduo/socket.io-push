@@ -10,12 +10,17 @@ class Proxy {
 
         const cluster = require('socket.io-push-redis/cluster')(config.redis);
 
-        this.io = require('socket.io')({
+        const srv = require('http').Server(function(req, res){
+            res.writeHead(200);
+            res.end();
+        });
+        srv.listen(this.port);
+
+        this.io = require('socket.io')(srv,{
             pingTimeout: config.pingTimeout,
             pingInterval: config.pingInterval,
             transports: ['websocket', 'polling']
         });
-        this.io.listen(this.port);
 
         console.log(`start proxy on port  ${this.port} #${instance}`);
 
@@ -26,6 +31,7 @@ class Proxy {
             subClient: cluster,
             key: 'io'
         }, null, this.stats);
+
         this.io.adapter(socketIoRedis);
         let packetService;
         if (config.redis.event) {
