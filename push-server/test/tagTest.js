@@ -85,7 +85,7 @@ describe('tag', function () {
     });
 
     it('notification no remote', function (done) {
-        apiServer.apiRouter.remoteUrls = null;
+        apiServer.apiRouter.remoteUrls.array = [];
         var title = 'hello 2',
             message = 'hello world 2';
         var data = {

@@ -32,12 +32,12 @@ ApiRouter.prototype.notification = function (notification, pushAll, pushIds, uid
         this.tagService.scanPushIdByTag(tag, this.maxPushIds, (pushId) => {
             batch.push(pushId);
             if (batch.length == self.maxPushIds) {
-                self.callRemoteNotification(notification, batch, timeToLive);
+                self.sendNotificationByPushIds(notification, batch, timeToLive);
                 batch = [];
             }
         }, () => {
             if (batch.length != 0) {
-                self.callRemoteNotification(notification, batch, timeToLive);
+                self.sendNotificationByPushIds(notification, batch, timeToLive);
             }
         });
     }
@@ -69,7 +69,7 @@ ApiRouter.prototype.sendNotificationByPushIds = function (notification, pushIds,
     if (pushIds.length == 0) {
         return;
     }
-    if (pushIds.length > this.maxPushIds && this.remoteUrls.hasNext()) {
+    if (pushIds.length >= this.maxPushIds && this.remoteUrls.hasNext()) {
         logger.info("sendNotification to remote api ", this.maxPushIds, pushIds.length);
         let batch = [];
         const self = this;
@@ -80,16 +80,15 @@ ApiRouter.prototype.sendNotificationByPushIds = function (notification, pushIds,
                 batch = [];
             }
         });
-        this.callRemoteNotification(notification, batch, timeToLive);
     } else {
-        this.notificationService.sendByPushIds(pushIds, timeToLive, notification);
+        this.notificationLocal(notification, pushIds, timeToLive);
     }
 };
 
 ApiRouter.prototype.callRemoteNotification = function (notification, pushIds, timeToLive, errorCount = 0) {
     const apiUrl = this.remoteUrls.next();
     request({
-            url: apiUrl + "/api/notification",
+            url: apiUrl + "/api/routeNotification",
             method: "post",
             form: {
                 pushId: JSON.stringify(pushIds),
@@ -103,4 +102,8 @@ ApiRouter.prototype.callRemoteNotification = function (notification, pushIds, ti
             }
         }
     );
+};
+
+ApiRouter.prototype.notificationLocal = function (notification, pushIds, timeToLive) {
+    this.notificationService.sendByPushIds(pushIds, timeToLive, notification);
 };

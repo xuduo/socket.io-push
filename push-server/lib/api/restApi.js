@@ -147,6 +147,14 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         res.json({code: "success"});
         return next();
     };
+    const handleRouteNotification = function(req, res, next){
+        const notification = JSON.parse(req.p.notification);
+        const pushIds = JSON.parse(req.p.pushId);
+        const timeToLive = parseInt(req.p.timeToLive);
+        apiRouter.notificationLocal(notification, pushIds, timeToLive);
+        res.json({code: "success"});
+        return next();
+    };
 
     const heapdump = function (req, res, next) {
         var file = process.cwd() + "/" + Date.now() + '.heapsnapshot';
@@ -224,6 +232,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     router.post('/push', handlePush);
     router.get('/notification', handleNotification);
     router.post('/notification', handleNotification);
+    router.post('/routeNotification', handleRouteNotification);
     router.get('/uid/bind', handleAddPushIdToUid);
     router.post('/uid/bind', handleAddPushIdToUid);
     router.get('/uid/remove', removeRemoveUid);
