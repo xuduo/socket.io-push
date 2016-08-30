@@ -16,7 +16,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     app.use("/api",bodyParser.urlencoded({     // to support URL-encoded bodies
         extended: true
     }));
-
+    app.use("/api",bodyParser.json());
     app.use("/api", (req, res, next) => {
         req.p = {};
         for (const param in req.body) {
