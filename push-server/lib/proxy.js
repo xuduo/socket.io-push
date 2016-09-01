@@ -10,13 +10,13 @@ class Proxy {
 
         const cluster = require('socket.io-push-redis/cluster')(config.redis);
 
-        const srv = require('http').Server(function(req, res){
+        const srv = require('http').Server(function (req, res) {
             res.writeHead(200);
             res.end();
         });
         srv.listen(this.port);
 
-        this.io = require('socket.io')(srv,{
+        this.io = require('socket.io')(srv, {
             pingTimeout: config.pingTimeout,
             pingInterval: config.pingInterval,
             transports: ['websocket', 'polling']
