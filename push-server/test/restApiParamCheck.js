@@ -32,6 +32,91 @@ describe('api param check', function () {
 
     });
 
+    it('push target should be single', function (done) {
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
+                pushId: 'www',
+                data: 'test',
+                topic: 'qqq'
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("error");
+            done();
+        });
+
+    });
+
+    it('push target should be single2', function (done) {
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
+                uid: 'www',
+                data: 'test',
+                topic: 'qqq'
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("error");
+            done();
+        });
+
+    });
+
+    it('push target should be single3', function (done) {
+
+        request({
+            url: apiUrl + '/api/push',
+            method: "post",
+            form: {
+                pushId: 'www',
+                data: 'test',
+                uid: 'qqq'
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("error");
+            done();
+        });
+
+    });
+
+    it('notification target should be single', function (done) {
+
+        request({
+            url: apiUrl + '/api/notification',
+            method: "post",
+            form: {
+                pushId: 'www',
+                data: 'test',
+                uid: 'qqq'
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("error");
+            done();
+        });
+
+    });
+
+    it('notification target should be single2', function (done) {
+
+        request({
+            url: apiUrl + '/api/notification',
+            method: "post",
+            form: {
+                pushId: 'www',
+                data: 'test',
+                pushAll: 'true'
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("error");
+            done();
+        });
+
+    });
+
     it('data is required', function (done) {
 
         request({

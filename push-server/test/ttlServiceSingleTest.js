@@ -5,7 +5,7 @@ var expect = chai.expect;
 var logger = require('winston-proxy')('TTLServiceTest');
 var defSetting = require('./defaultSetting');
 
-describe('push test', function () {
+describe('ttlServiceSingleTest.js', function () {
 
     before(function () {
         global.proxyServer = defSetting.getDefaultProxyServer();
@@ -30,7 +30,6 @@ describe('push test', function () {
                 method: "post",
                 form: {
                     pushId: pushClient.pushId,
-                    topic: 'message',
                     json: JSON.stringify({message: 2}),
                     timeToLive: 10000
                 }
@@ -41,7 +40,6 @@ describe('push test', function () {
                     method: "post",
                     form: {
                         pushId: pushClient.pushId,
-                        topic: 'message',
                         json: JSON.stringify({message: 3}),
                         timeToLive: 10000
                     }
@@ -58,7 +56,6 @@ describe('push test', function () {
                                     method: "post",
                                     form: {
                                         pushId: pushClient.pushId,
-                                        topic: 'message',
                                         json: JSON.stringify({message: 4}),
                                         timeToLive: 10000
                                     }
@@ -91,7 +88,6 @@ describe('push test', function () {
                 method: "post",
                 form: {
                     pushId: pushClient.pushId,
-                    topic: 'message',
                     json: JSON.stringify({message: 1}),
                     timeToLive: 10000
                 }

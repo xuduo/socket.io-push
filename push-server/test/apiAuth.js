@@ -3,7 +3,7 @@ var chai = require('chai');
 var expect = chai.expect;
 var defSetting = require('./defaultSetting');
 
-describe('api auth', () => {
+describe('apiAuth.js', () => {
 
     before(() => {
         global.apiServer = defSetting.getDefaultApiServer();
@@ -88,7 +88,6 @@ describe('api auth', () => {
             form: {
                 pushId: '',
                 pushAll: 'true',
-                topic: 'message',
                 data: 'test'
             }
         }, (error, response, body) => {
@@ -100,7 +99,6 @@ describe('api auth', () => {
             method: "post",
             form: {
                 pushId: 'test',
-                topic: 'message',
                 data: 'test'
             }
         }, (error, response, body) => {
@@ -116,7 +114,6 @@ describe('api auth', () => {
             },
             form: {
                 pushId: '',
-                pushAll: 'true',
                 topic: 'message',
                 data: 'test'
             }

@@ -3,7 +3,7 @@ var chai = require('chai');
 var expect = chai.expect;
 var defSetting = require('./defaultSetting');
 
-describe('push test', function () {
+describe('pushTest.js', function () {
 
     before(function () {
         global.proxyServer = defSetting.getDefaultProxyServer();
@@ -61,7 +61,6 @@ describe('push test', function () {
             method: "post",
             form: {
                 pushId: pushClient.pushId,
-                topic: 'message',
                 json: json
             }
         }, (error, response, body) => {
@@ -108,7 +107,6 @@ describe('push test', function () {
             method: "post",
             form: {
                 pushId: pushClient.pushId,
-                topic: 'message',
                 json: json
             }
         }, (error, response, body) => {
@@ -131,7 +129,6 @@ describe('push test', function () {
             method: "post",
             form: {
                 pushId: pushClient.pushId,
-                topic: 'message',
                 json: json
             }
         }, (error, response, body) => {
@@ -305,7 +302,7 @@ describe('push test', function () {
             url: apiUrl + '/api/push',
             method: "post",
             form: {
-                pushAll: "true",
+                pushId : "",
                 topic: 'message',
                 json: json
             }

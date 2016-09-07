@@ -13,10 +13,10 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
 
     const app = express();
     var bodyParser = require('body-parser');
-    app.use("/api",bodyParser.urlencoded({     // to support URL-encoded bodies
+    app.use("/api", bodyParser.urlencoded({     // to support URL-encoded bodies
         extended: true
     }));
-    app.use("/api",bodyParser.json());
+    app.use("/api", bodyParser.json());
     app.use("/api", (req, res, next) => {
         req.p = {};
         for (const param in req.body) {
@@ -71,7 +71,13 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
 
         if (!pushIds && !uids && !req.p.topic) {
             res.statusCode = 400;
-            res.json({code: "error", message: "pushId or uid is required"});
+            res.json({code: "error", message: "pushId or uid or topic is required"});
+            return next();
+        }
+
+        if (moreThanOneTrue(pushIds, uids, req.p.topic)) {
+            res.statusCode = 400;
+            res.json({code: "error", message: "pushId or uid or topic can't be present at the same time"});
             return next();
         }
 
@@ -137,9 +143,15 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
             logger.info('handleNotification pushAll ', req.p);
         }
 
-        if (!req.p.tag && !req.p.pushId && !req.p.uid && req.p.pushAll != 'true') {
+        if (!req.p.tag && !pushIds && !uids && req.p.pushAll != 'true') {
             res.statusCode = 400;
             res.json({code: "error", message: "pushId / uid / tag is required"});
+            return next();
+        }
+
+        if (moreThanOneTrue(req.p.tag, pushIds, uids, req.p.pushAll == 'true')) {
+            res.statusCode = 400;
+            res.json({code: "error", message: "tag / pushId / pushAll can't be present at the same time"});
             return next();
         }
 
@@ -147,7 +159,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         res.json({code: "success"});
         return next();
     };
-    const handleRouteNotification = function(req, res, next){
+    const handleRouteNotification = function (req, res, next) {
         const notification = JSON.parse(req.p.notification);
         const pushIds = JSON.parse(req.p.pushId);
         const timeToLive = parseInt(req.p.timeToLive);
@@ -345,18 +357,27 @@ RestApi.prototype.close = function () {
     this.server.close();
 };
 
+function moreThanOneTrue() {
+    let count = 0;
+    for (const item of arguments) {
+        if (item) {
+            count++;
+        }
+    }
+    return count > 1;
+}
+
 function parseArrayParam(param) {
     let arr;
     if (typeof param === 'string') {
         if (param.startsWith('[')) {
             arr = JSON.parse(param);
-        } else {
+        } else if (param) {
             arr = [param];
         }
     } else if (typeof param === 'number') {
         arr = [param];
-    }
-    else {
+    } else {
         arr = param;
     }
     return arr;
