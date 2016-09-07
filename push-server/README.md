@@ -89,9 +89,9 @@ string[]类型,表示http协议中list类型参数，如 get?uid=123&uid=456 ,�
 
 ### /api/push 应用内透传
 
-//推送给abc,def两个客户端.透传数据为字符串hello world (base64 aGVsbG8gd29ybGQ),到topic=/topic/test
+//推送给abc,def两个客户端.透传数据为字符串hello(hello),到topic=/topic/test
 
-http://yourip:11001/api/push?pushAll=true&data=aGVsbG8gd29ybGQ&topic=/topic/test
+http://yourip:11001/api/push?pushAll=true&json=hello&topic=/topic/test
 
 --- 以下参数3选一,指定推送对象
 
