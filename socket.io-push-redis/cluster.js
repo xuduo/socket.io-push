@@ -159,13 +159,46 @@ commands.list.forEach(function (command) {
 SimpleRedisHashCluster.prototype.hscanStream = function (key, opts) {
     const client = util.getByHash(this.read, key);
     return client.hscanStream(key, opts || {});
-}
+};
 
 SimpleRedisHashCluster.prototype.call = function (command, key) {
     const client = util.getByHash(this.write, key);
     return client.call.apply(client, arguments);
-}
+};
 
+
+SimpleRedisHashCluster.prototype["HHSET"] =
+    SimpleRedisHashCluster.prototype["hhset"] = function (key, field, value, callback) {
+        const client = util.getByHash(this.write, field);
+        return client.call.apply(client, ["hset"].concat(toArray(arguments)));
+    };
+
+SimpleRedisHashCluster.prototype["HHGET"] =
+    SimpleRedisHashCluster.prototype["hhget"] = function (key, field, callback) {
+        const client = util.getByHash(this.read, field);
+        return client.call.apply(client, ["hget"].concat(toArray(arguments)));
+    };
+
+SimpleRedisHashCluster.prototype["HHDEL"] =
+    SimpleRedisHashCluster.prototype["hhdel"] = function(key, field, callback) {
+        const client = util.getByHash(this.write, field);
+        return client.call.apply(client, ["hdel"].concat(toArray(arguments)));
+    };
+
+SimpleRedisHashCluster.prototype["HHINCRBY"] = 
+    SimpleRedisHashCluster.prototype["hhincrby"] = function (key, field, value, callback) {
+        const client = util.getByHash(this.write, field);
+        return client.call.apply(client, ["hincrby"].concat(toArray(arguments)));
+    };
+
+SimpleRedisHashCluster.prototype.hhscanStream = function (key, opts) {
+    let hhstream = [];
+    this.read.forEach(function (client) {
+        let stream = client.hscanStream(key, opts || {});
+        hhstream.push(stream);
+    });
+    return util.scanHelper(hhstream);
+};
 
 function handleCommand(command, callArguments, client) {
     if (!client) {

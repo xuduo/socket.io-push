@@ -23,6 +23,7 @@ function Stats(redis, port, commitThreshHold) {
     if (port > 0) {
         setInterval(function () {
             self.writeStatsToRedis();
+            self.writeReachRateToRedis();
         }, 10000);
     }
 }
@@ -324,4 +325,72 @@ Stats.prototype.find = function (key, callback) {
 
     recursive(null, -1);
 
-}
+};
+
+Stats.prototype.userLogin = function (pushId, timestamp) {
+    const loginfo = {"in": timestamp, "out": 0};
+    logger.debug("user login, pushId: ", pushId, "timestamp: ", timestamp);
+    this.redis.hhset("connInfo", pushId, JSON.stringify(loginfo));
+};
+
+Stats.prototype.userLogout = function (pushId, timestamp) {
+    const loginfo = {};
+    logger.debug("user logout, pushId: ", pushId, "timestamp: ", timestamp);
+    this.redis.hhget("connInfo", pushId, (err, result) => {
+        if (!result) {
+            loginfo["in"] = 0;
+        } else {
+            const temp = JSON.parse(result);
+            loginfo["in"] = temp["in"];
+        }
+        loginfo["out"] = timestamp;
+        this.redis.hhset("connInfo", pushId, JSON.stringify(loginfo));
+    })
+};
+
+Stats.prototype.getUserOnlineCount = function (start, end, callback) {
+    const stream = this.redis.hhscanStream("connInfo");
+    let result = 0;
+    stream.on('data', function (resultKeys) {
+        for (let i = 0; i < resultKeys.length; i++) {
+            if (i % 2 == 1) {
+                const timestamp = JSON.parse(resultKeys[i]);
+                if (timestamp["in"] < end && (timestamp["out"] == 0 || timestamp["out"] > start )) {
+                    result++;
+                }
+            }
+        }
+    });
+    stream.on('end', function () {
+        callback(result);
+    });
+};
+
+Stats.prototype.addReachSuccess = function(packetId, count) {
+    if(count > 0){
+        const key = "stats#reach";
+        this.redis.hhincrby(key, packetId, count);
+    }
+};
+
+Stats.prototype.writeReachRateToRedis = function(){
+    this.redis.lrange("stats#reachList", 0, -1, (err, list) => {
+        if(list && list.length > 0){
+            let now = Date.now();
+            list.forEach((packet) => {
+                let jpacket = JSON.parse(packet);
+                if(now - jpacket.timestampValid > 60000){
+                    this.getUserOnlineCount(jpacket.timestampStart, jpacket.timestampValid, (count) => {
+                        this.redis.hhget("stats#reach", jpacket.id, (err, reachCount) => {
+                            jpacket.reachCount = reachCount || 0;
+                            jpacket.target = count ;
+                            logger.debug("packet reach rate calculate, id: ", jpacket.id, "target: ", count, "reach: ", reachCount || 0);
+                            this.redis.hhset("stats#reachRate", jpacket.id, JSON.stringify(jpacket));
+                        })
+                    });
+                    this.redis.lrem("stats#reachList", 0, packet);
+                }
+            })
+        }
+    })
+};

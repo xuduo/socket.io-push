@@ -91,6 +91,31 @@ describe('unsubscribe test', function () {
         }, 500);
     });
 
+    it('UserOnline test', function (done) {
+        stats.userLogin(1, 100, () => {
+            stats.userLogin(2, 100, () => {
+                stats.userLogin(3, 300, () => {
+                    stats.userLogin(4, 300, () => {
+                        stats.userLogout(2, 350, () => {
+                            stats.userLogout(4, 350, () => {
+                                stats.userLogout(5, 100, () => {
+                                    stats.userLogin(6, 450, () => {
+                                        stats.getUserOnlineCount(200, 400, (count) => {
+                                            if (count == 4) {
+                                                done();
+                                            }
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        });
+
+    });
+
 });
 
 function push() {
