@@ -6,7 +6,7 @@ config.port = 10001; //socket.io 长连接端口
 config.instances = 1;
 
 config.pingTimeout = 25000; //  心跳timeout
-config.pingInterval = 25000; // 心跳间隔
+config.pingInterval = 90000; // 心跳间隔
 
 config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei timeToLive
 

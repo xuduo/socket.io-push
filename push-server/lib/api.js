@@ -37,8 +37,8 @@ class Api {
             providerFactory.addProvider(this.xiaomiProvider);
         }
         this.apiRouter = require('./service/apiRouter')(this.uidStore, this.notificationService, this.ttlService, this.tagService, config.routerMaxPushIds, config.routerApiUrls);
-        this.restApi = require('./api/restApi')(this.apiRouter, topicOnline, this.stats, config, cluster, apiThreshold, this.apnService, config.apiAuth, this.uidStore);
         this.onlineStats = require('./stats/onlineStats')(this.stats, this.port);
+        this.restApi = require('./api/restApi')(this.apiRouter, topicOnline, this.stats, config, cluster, apiThreshold, this.apnService, config.apiAuth, this.uidStore, this.onlineStats);
     }
 
     close() {

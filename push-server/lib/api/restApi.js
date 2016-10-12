@@ -2,9 +2,9 @@ module.exports = RestApi;
 var express = require('express');
 const logger = require('winston-proxy')('RestApi');
 
-function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore) {
+function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats) {
 
-    if (!(this instanceof RestApi)) return new RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore);
+    if (!(this instanceof RestApi)) return new RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats);
 
     const self = this;
 
@@ -231,6 +231,12 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         return next();
     };
 
+    const handleStatsOnlineJob = function (req, res, next) {
+        onlineStats.write(parseInt(req.p.interval));
+        res.json({code: "success"});
+        return next();
+    };
+
     const router = express.Router();
     app.use("/api", router);
 
@@ -239,6 +245,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     router.get('/apn', handleApn);
     router.post('/apn', handleApn);
     router.get('/stats/base', handleStatsBase);
+    router.post('/stats/onlineJob', handleStatsOnlineJob);
     router.get('/stats/chart', handleChartStats);
     router.get('/push', handlePush);
     router.post('/push', handlePush);
@@ -249,7 +256,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     router.post('/uid/bind', handleAddPushIdToUid);
     router.get('/uid/remove', removeRemoveUid);
     router.post('/uid/remove', removeRemoveUid);
-    router.get('/stats/getQueryDataKeys', handleQueryDataKeys)
+    router.get('/stats/getQueryDataKeys', handleQueryDataKeys);
 
     router.get('/topicOnline', function (req, res, next) {
         const topic = req.p.topic;
