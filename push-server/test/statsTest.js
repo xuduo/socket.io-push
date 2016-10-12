@@ -3,7 +3,7 @@ var request = require('request');
 var expect = chai.expect;
 var defSetting = require('./defaultSetting');
 
-describe('unsubscribe test', function () {
+describe('statsTest', function () {
 
     before(function () {
         global.proxyServer = defSetting.getDefaultProxyServer();
