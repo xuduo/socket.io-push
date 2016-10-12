@@ -2,7 +2,7 @@ var util = require('../util.js');
 
 var chai = require('chai');
 var expect = chai.expect;
-
+var IoRedis = require('ioredis');
 
 describe('util', function () {
 
@@ -27,5 +27,24 @@ describe('util', function () {
         done();
     });
 
+    it('scanHelper', function (done){
+        var streamArr = [];
+        let redis = new IoRedis(6379);
+        [6379,6380,6381].forEach(function(port){
+            let redis = new IoRedis(port);
+            redis.hset('scanHelperTest', ''+port, "");
+            streamArr.push(redis.hscanStream('scanHelperTest', {}));
+        });
+        var stream = util.scanHelper(streamArr);
+        var fields = [];
+        stream.on('data', function(result){
+            fields.push(result[0]);
+            if(fields.length == 3){
+                done();
+            }
+        });
+        stream.on('end', function(){
+        })
+    });
 
 });
