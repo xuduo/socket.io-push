@@ -3,11 +3,12 @@ module.exports = TTLService;
 var logger = require('winston-proxy')('TTLService');
 var randomstring = require("randomstring");
 
-function TTLService(io, redis, protocolVersion) {
+function TTLService(io, redis, protocolVersion, stats) {
     if (!(this instanceof TTLService)) return new TTLService(io, redis, protocolVersion);
     this.redis = redis;
     this.io = io;
     this.protocolVersion = protocolVersion || 1;
+    this.stats = stats;
 }
 
 TTLService.prototype.onPushId = function (socket, lastPacketId) {
@@ -40,6 +41,11 @@ TTLService.prototype.addTTL = function (topic, event, timeToLive, packet, unicas
                 redis.pexpire(listKey, timeToLive);
             }
         });
+        if(topic == 'noti'){
+            logger.debug("noti reach rate stats, id: ", packet.id);
+            data.timestampStart = Date.now();
+            redis.rpush("stats#reachList", JSON.stringify(data));
+        }
     }
 };
 
