@@ -4,7 +4,7 @@ var logger = require('winston-proxy')('TTLService');
 var randomstring = require("randomstring");
 
 function TTLService(io, redis, protocolVersion, stats) {
-    if (!(this instanceof TTLService)) return new TTLService(io, redis, protocolVersion);
+    if (!(this instanceof TTLService)) return new TTLService(io, redis, protocolVersion, stats);
     this.redis = redis;
     this.io = io;
     this.protocolVersion = protocolVersion || 1;
@@ -41,10 +41,16 @@ TTLService.prototype.addTTL = function (topic, event, timeToLive, packet, unicas
                 redis.pexpire(listKey, timeToLive);
             }
         });
-        if(topic == 'noti'){
-            logger.debug("noti reach rate stats, id: ", packet.id);
-            data.timestampStart = Date.now();
-            redis.rpush("stats#reachList", JSON.stringify(data));
+        if (topic == 'noti') {
+            logger.debug("noti reach rate stats, id: ", data.id);
+            let statsPacket = {};
+            statsPacket.id = data.id;
+            statsPacket.title = data.android.title;
+            statsPacket.message = data.android.message;
+            statsPacket.timeStart = new Date().toLocaleString();
+            statsPacket.timeValid = new Date(data.timestampValid).toLocaleString();
+            statsPacket.ttl = timeToLive;
+            this.stats.addPacketToReachRate(statsPacket, Date.now(), timeToLive);
         }
     }
 };

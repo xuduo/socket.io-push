@@ -19,7 +19,6 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                 if(socket.platform == "android"){
                     stats.userLogout(socket.pushId, Date.now());
                 }
-                stats.userLogout(socket.pushId, Date.now());
             }
         });
 
@@ -40,7 +39,6 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                     if(socket.platform == 'android'){
                         stats.userLogin(data.id, Date.now());
                     }
-                    stats.userLogin(data.id, Date.now());
                 }
                 stats.addPlatformSession(socket.platform);
                 const topics = data.topics;

@@ -38,7 +38,7 @@ class Proxy {
             packetService = require('./service/packetService')(cluster, cluster);
         }
         this.uidStore = require('./redis/uidStore')(cluster);
-        this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version);
+        this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version, this.stats);
         const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
         this.httpProxyService = require('./service/httpProxyService')(config.http_remove_headers);
         this.tokenService = require('./service/tokenService')(cluster, tokenTTL);

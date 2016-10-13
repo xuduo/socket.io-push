@@ -190,6 +190,13 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         });
     };
 
+    const handleReachRate = function (req, res, next) {
+        stats.getReachRateStatus((result) => {
+           res.json(result);
+            return next();
+        });
+    };
+
     const handleAddPushIdToUid = function (req, res, next) {
         uidStore.bindUid(req.p.pushId, req.p.uid, parseInt(req.p.timeToLive), req.p.platform, parseInt(req.p.platformLimit));
         res.json({code: "success"});
@@ -247,6 +254,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
     router.get('/stats/base', handleStatsBase);
     router.post('/stats/onlineJob', handleStatsOnlineJob);
     router.get('/stats/chart', handleChartStats);
+    router.get('/stats/reachrate', handleReachRate);
     router.get('/push', handlePush);
     router.post('/push', handlePush);
     router.get('/notification', handleNotification);

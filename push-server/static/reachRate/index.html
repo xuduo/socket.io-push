@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8">
+<head>
+    <title>Packets reach status</title>
+</head>
+<body>
+<div>各包的到达率情况:</div>
+<br/>
+<div><span id="reachRate">--</span></div>
+<script src="/js/jquery-1.8.0.min.js"></script>
+<script src="/js/jquery.cookie.js"></script>
+<script>
+    window.onload = function () {
+        $.ajax({
+            type: 'GET',
+            url: $.cookie("api_url") + '/api/stats/reachrate',
+            dataType: 'json',
+            success: function (data){
+                $("#reachRate").text(data);
+            }
+        });
+    };
+</script>
+</body>
+</html>

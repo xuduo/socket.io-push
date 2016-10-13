@@ -23,7 +23,6 @@ function Stats(redis, port, commitThreshHold) {
     if (port > 0) {
         setInterval(function () {
             self.writeStatsToRedis();
-            self.writeReachRateToRedis();
         }, 10000);
     }
 }
@@ -366,31 +365,49 @@ Stats.prototype.getUserOnlineCount = function (start, end, callback) {
     });
 };
 
-Stats.prototype.addReachSuccess = function(packetId, count) {
-    if(count > 0){
-        const key = "stats#reach";
-        this.redis.hhincrby(key, packetId, count);
+Stats.prototype.addReachSuccess = function (packetId, count) {
+    if (count > 0) {
+        const key = "stats#reach#" + packetId;
+        this.redisIncrBuffer.incrby(key, count);
     }
 };
 
-Stats.prototype.writeReachRateToRedis = function(){
-    this.redis.lrange("stats#reachList", 0, -1, (err, list) => {
-        if(list && list.length > 0){
-            let now = Date.now();
-            list.forEach((packet) => {
-                let jpacket = JSON.parse(packet);
-                if(now - jpacket.timestampValid > 60000){
-                    this.getUserOnlineCount(jpacket.timestampStart, jpacket.timestampValid, (count) => {
-                        this.redis.hhget("stats#reach", jpacket.id, (err, reachCount) => {
-                            jpacket.reachCount = reachCount || 0;
-                            jpacket.target = count ;
-                            logger.debug("packet reach rate calculate, id: ", jpacket.id, "target: ", count, "reach: ", reachCount || 0);
-                            this.redis.hhset("stats#reachRate", jpacket.id, JSON.stringify(jpacket));
-                        })
-                    });
-                    this.redis.lrem("stats#reachList", 0, packet);
-                }
+Stats.prototype.addPacketToReachRate = function (packet, start, ttl) {
+    packet.reachCount = 0;
+    packet.targetBefore = 0;
+    packet.targetEnd = 0;
+    this.getUserOnlineCount(start, start, (targetNow) => {
+        packet.targetBefore = targetNow;
+        this.writeReachRateToRedis(packet);
+        setTimeout(() => {
+            logger.debug("calculate packet reach rate, id: ", packet.id);
+            this.redis.get("stats#reach#" + packet.id, (err, count) => {
+                this.getUserOnlineCount(start, start + ttl, (target) => {
+                    packet.reachCount = count || 0;
+                    packet.targetEnd = target || 0;
+                    this.writeReachRateToRedis(packet);
+                });
             })
-        }
-    })
+        }, ttl + 60000);
+    });
 };
+
+Stats.prototype.writeReachRateToRedis = function (packet) {
+    this.redis.hset("stats#reachStats", packet.id, JSON.stringify(packet));
+};
+
+Stats.prototype.getReachRateStatus = function (callback) {
+    const stream = this.redis.hscanStream("stats#reachStats");
+    let result = {};
+    stream.on('data', (resultKeys) => {
+        for (let i = 0; i < resultKeys.length; i++) {
+            if (i % 2 == 1) {
+                result[resultKeys[i - 1]] = JSON.parse(resultKeys[i]);
+            }
+        }
+    });
+    stream.on('end', function () {
+        callback(result);
+    });
+};
+
