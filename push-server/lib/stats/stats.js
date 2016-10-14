@@ -2,6 +2,7 @@ module.exports = Stats;
 
 const logger = require('winston-proxy')('Stats');
 const randomstring = require("randomstring");
+const async = require('async');
 
 function Stats(redis, port, commitThreshHold) {
     if (!(this instanceof Stats)) return new Stats(redis, port, commitThreshHold);
@@ -406,8 +407,19 @@ Stats.prototype.getReachRateStatus = function (callback) {
             }
         }
     });
-    stream.on('end', function () {
-        callback(result);
+    stream.on('end', () => {
+        async.each(Object.keys(result), (id, asynccb) => {
+            if(result[id].reachCount == 0){
+                this.redis.get("stats#reach#" + id, (err, count) => {
+                    result[id].reachCount = count || 0;
+                    asynccb();
+                })
+            }else{
+                asynccb();
+            }
+        }, (err) => {
+            callback(result);
+        });
     });
 };
 

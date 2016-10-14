@@ -17,7 +17,7 @@
             url: $.cookie("api_url") + '/api/stats/reachrate',
             dataType: 'json',
             success: function (data){
-                $("#reachRate").text(data);
+                $("#reachRate").text(JSON.stringify(data));
             }
         });
     };

@@ -44,7 +44,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
 
                 if (data.platform) {
                     socket.platform = data.platform.toLowerCase();
-                    if(socket.platform == 'android' && topics && topics.contains("noti")){
+                    if(socket.platform == 'android' && topics && -1 != topics.indexOf("noti")){
                         stats.userLogin(data.id, Date.now());
                     }
                 }
