@@ -1,6 +1,6 @@
 module.exports = RedisIncrBuffer;
 
-const expire = 7 * 24 * 60 * 60;
+const expire = 30 * 24 * 60 * 60;
 
 function RedisIncrBuffer(redis, commitThreshHold) {
     if (!(this instanceof RedisIncrBuffer)) return new RedisIncrBuffer(redis, commitThreshHold);
