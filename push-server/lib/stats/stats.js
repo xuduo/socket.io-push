@@ -349,7 +349,7 @@ Stats.prototype.userLogout = function (pushId, timestamp) {
 Stats.prototype.getUserOnlineCount = function (start, end, callback) {
     const stream = this.redis.hhscanStream("connInfo");
     let result = 0;
-    stream.on('data', function (resultKeys) {
+    stream.on('data', (resultKeys) => {
         for (let i = 0; i < resultKeys.length; i++) {
             if (i % 2 == 1) {
                 const timestamp = JSON.parse(resultKeys[i]);
@@ -362,7 +362,7 @@ Stats.prototype.getUserOnlineCount = function (start, end, callback) {
             }
         }
     });
-    stream.on('end', function () {
+    stream.on('end', () => {
         callback(result);
     });
 };
@@ -412,7 +412,14 @@ Stats.prototype.getReachRateStatus = function (callback) {
                 asynccb();
             })
         }, (err) => {
-            callback(result);
+            let stats = [];
+            for(let i in result){
+                stats.push(result[i]);
+            }
+            stats.sort((stat1, stat2) => {
+                return new Date(stat2.timeStart) - new Date(stat1.timeStart);
+            });
+            callback(stats);
         });
     });
 };
