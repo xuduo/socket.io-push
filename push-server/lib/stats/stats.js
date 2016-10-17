@@ -338,13 +338,11 @@ Stats.prototype.userLogout = function (pushId, timestamp) {
     logger.debug("user logout, pushId: ", pushId, "timestamp: ", timestamp);
     this.redis.hhget("connInfo", pushId, (err, result) => {
         if (!result) {
-            loginfo["in"] = 0;
-        } else {
             const temp = JSON.parse(result);
             loginfo["in"] = temp["in"];
+            loginfo["out"] = timestamp;
+            this.redis.hhset("connInfo", pushId, JSON.stringify(loginfo));
         }
-        loginfo["out"] = timestamp;
-        this.redis.hhset("connInfo", pushId, JSON.stringify(loginfo));
     })
 };
 
@@ -357,6 +355,9 @@ Stats.prototype.getUserOnlineCount = function (start, end, callback) {
                 const timestamp = JSON.parse(resultKeys[i]);
                 if (timestamp["in"] < end && (timestamp["out"] == 0 || timestamp["out"] > start )) {
                     result++;
+                }
+                if (timestamp["out"] != 0 && timestamp["out"] < Date.now() - 3 * 24 * 3600 * 1000) {
+                    this.redis.hhdel("connInfo", resultKeys[i - 1]);
                 }
             }
         }
@@ -381,14 +382,11 @@ Stats.prototype.addPacketToReachRate = function (packet, start, ttl) {
         packet.targetBefore = targetNow;
         this.writeReachRateToRedis(packet);
         setTimeout(() => {
-            logger.debug("calculate packet reach rate, id: ", packet.id);
-            this.redis.get("stats#reach#" + packet.id, (err, count) => {
-                this.getUserOnlineCount(start, start + ttl, (target) => {
-                    packet.reachCount = count || 0;
-                    packet.targetEnd = target || 0;
-                    this.writeReachRateToRedis(packet);
-                });
-            })
+        logger.debug("calculate packet reach rate, id: ", packet.id);
+            this.getUserOnlineCount(start, start + ttl, (target) => {
+                packet.targetEnd = target || 0;
+                this.writeReachRateToRedis(packet);
+            });
         }, ttl + 60000);
     });
 };
@@ -409,14 +407,10 @@ Stats.prototype.getReachRateStatus = function (callback) {
     });
     stream.on('end', () => {
         async.each(Object.keys(result), (id, asynccb) => {
-            if(result[id].reachCount == 0){
-                this.redis.get("stats#reach#" + id, (err, count) => {
-                    result[id].reachCount = count || 0;
-                    asynccb();
-                })
-            }else{
+            this.redis.get("stats#reach#" + id, (err, count) => {
+                result[id].reachCount = count || 0;
                 asynccb();
-            }
+            })
         }, (err) => {
             callback(result);
         });
