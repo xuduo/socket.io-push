@@ -1,56 +1,61 @@
-module.exports = ApiThreshold;
+module.exports = function (redis, topicThreshold) {
+    return new ApiThreshold(redis, topicThreshold);
+
+};
 const logger = require('winston-proxy')('ApiThreshold');
 
-function ApiThreshold(redis,topicThreshold) {
-    if (!(this instanceof ApiThreshold)) return new ApiThreshold(redis,topicThreshold);
-    this.watchedTopics = [];
-    this.redis = redis;
-    for(let topic in topicThreshold ){
-        this.setThreshold(topic,topicThreshold[topic]);
-    }
-}
+class ApiThreshold {
 
-ApiThreshold.prototype.checkPushDrop = function (topic, callback) {
-    let call = true;
-    const threshold = this.watchedTopics[topic];
-    if (threshold) {
-        const redis = this.redis;
-        redis.lindex("apiThreshold#callTimestamp#" + topic, -1, function (err, result) {
-            if (result && result > (Date.now() - 10 * 1000)) {
-                logger.info("too many call dropping %s", topic);
-                call = false;
-            }
-            doPush(redis, topic, call, threshold, callback);
-        });
-    } else {
-        doPush(this.redis, topic, call, threshold, callback);
-    }
-}
-
-ApiThreshold.prototype.setThreshold = function (topic, threshold) {
-    if (threshold == 0) {
-        delete this.watchedTopics[topic];
-        logger.info("remove ApiThreshold %s %s", topic, threshold);
-    } else {
-        const fakeValues = [];
-        const fakeTime = Date.now() - 20 * 1000;
-        for (let i = 0; i < threshold; i++) {
-            fakeValues.push(fakeTime);
+    constructor(redis, topicThreshold) {
+        this.watchedTopics = [];
+        this.redis = redis;
+        for (let topic in topicThreshold) {
+            this.setThreshold(topic, topicThreshold[topic]);
         }
-        const key = "apiThreshold#callTimestamp#" + topic;
-        this.redis.lpush(key, fakeValues);
-        this.redis.ltrim(key, 0, threshold - 1);
-        this.watchedTopics[topic] = threshold;
-        logger.info("set ApiThreshold %s %s", topic, threshold);
     }
-}
 
-
-function doPush(redis, topic, call, threshold, callback) {
-    if (call && threshold) {
-        const key = "apiThreshold#callTimestamp#" + topic;
-        redis.lpush(key, Date.now());
-        redis.ltrim(key, 0, threshold - 1);
+    checkPushDrop(topic, callback) {
+        let call = true;
+        const threshold = this.watchedTopics[topic];
+        if (threshold) {
+            const redis = this.redis;
+            redis.lindex("apiThreshold#callTimestamp#" + topic, -1, function (err, result) {
+                if (result && result > (Date.now() - 10 * 1000)) {
+                    logger.info("too many call dropping %s", topic);
+                    call = false;
+                }
+                this.doPush(redis, topic, call, threshold, callback);
+            });
+        } else {
+            this.doPush(this.redis, topic, call, threshold, callback);
+        }
     }
-    callback(call);
+
+    setThreshold(topic, threshold) {
+        if (threshold == 0) {
+            delete this.watchedTopics[topic];
+            logger.info("remove ApiThreshold %s %s", topic, threshold);
+        } else {
+            const fakeValues = [];
+            const fakeTime = Date.now() - 20 * 1000;
+            for (let i = 0; i < threshold; i++) {
+                fakeValues.push(fakeTime);
+            }
+            const key = "apiThreshold#callTimestamp#" + topic;
+            this.redis.lpush(key, fakeValues);
+            this.redis.ltrim(key, 0, threshold - 1);
+            this.watchedTopics[topic] = threshold;
+            logger.info("set ApiThreshold %s %s", topic, threshold);
+        }
+    }
+
+    doPush(redis, topic, call, threshold, callback) {
+        if (call && threshold) {
+            const key = "apiThreshold#callTimestamp#" + topic;
+            redis.lpush(key, Date.now());
+            redis.ltrim(key, 0, threshold - 1);
+        }
+        callback(call);
+    }
+
 }

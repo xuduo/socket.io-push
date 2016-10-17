@@ -1,6 +1,6 @@
 module.exports = function (config) {
     return new AdminServer(config);
-}
+};
 const logger = require('winston-proxy')('AdminServer');
 const express = require("express");
 const request = require('request');
