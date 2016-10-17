@@ -33,7 +33,9 @@ class AdminServer {
             url: `${this.config.api_url}/api/stats/onlineJob`,
             form: {interval: this.interval}
         }, (error, response, body) => {
-            logger.info("onlineStatsJob ", error, body);
+            if (error) {
+                logger.error("onlineStatsJob ", error, body);
+            }
         });
     }
 

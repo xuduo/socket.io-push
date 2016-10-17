@@ -192,7 +192,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
 
     const handleReachRate = function (req, res, next) {
         stats.getReachRateStatus((result) => {
-           res.json(result);
+            res.json(result);
             return next();
         });
     };
@@ -275,6 +275,19 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         }
         topicOnline.getTopicOnline(topic, function (result) {
             res.json({count: result, topic: req.p.topic});
+            return next();
+        });
+    });
+
+    router.get('/topicDevices', function (req, res, next) {
+        const topic = req.p.topic;
+        if (!topic) {
+            res.statusCode = 400;
+            res.json({code: 'error', message: 'topic is required'})
+            return next();
+        }
+        topicOnline.getTopicDevices(topic, function (result) {
+            res.json({devices: result, topic: req.p.topic});
             return next();
         });
     });

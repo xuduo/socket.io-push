@@ -34,7 +34,14 @@ function TopicOnline(redis, io, id, filterTopics) {
 TopicOnline.prototype.writeTopicOnline = function (data) {
     for (const key in data) {
         if (data[key].length > 0 && filterTopic(key, this.filters)) {
-            const json = {length: data[key].length, time: Date.now()};
+            const devices = [];
+            for (const socketId in data[key].sockets) {
+                const socket = this.io.sockets.connected[socketId];
+                if (socket) {
+                    devices.push({pushId: socket.pushId, uid: socket.uid});
+                }
+            }
+            const json = {length: data[key].length, devices: devices, time: Date.now(),};
             const redisKey = "stats#topicOnline#" + key;
             this.redis.hset(redisKey, this.id, JSON.stringify(json));
             this.redis.expire(redisKey, this.expire);
@@ -61,5 +68,27 @@ TopicOnline.prototype.getTopicOnline = function (topic, callback) {
             }
         }
         callback(count);
+    });
+}
+
+TopicOnline.prototype.getTopicDevices = function (topic, callback) {
+    const self = this;
+    const devices = [];
+    this.redis.hgetall("stats#topicOnline#" + topic, function (err, result) {
+        if (result) {
+            const delKey = [];
+            for (const key in result) {
+                const data = JSON.parse(result[key]);
+                if ((data.time + self.timeValidWithIn) < Date.now()) {
+                    delKey.push(key);
+                } else {
+                    Array.prototype.push.apply(devices, data.devices);
+                }
+            }
+            if (delKey.length > 0) {
+                self.redis.hdel("stats#topicOnline#" + topic, delKey);
+            }
+        }
+        callback(devices);
     });
 }

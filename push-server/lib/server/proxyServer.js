@@ -16,7 +16,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
                 if (packetService) {
                     packetService.publishDisconnect(socket);
                 }
-                if(socket.platform == "android"){
+                if (socket.platform == "android") {
                     stats.userLogout(socket.pushId, Date.now());
                 }
             }
@@ -33,7 +33,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
 
         socket.on('pushId', function (data) {
             if (data.id && data.id.length >= 10) {
-                logger.debug("on pushId %j", data);
+                logger.debug("on pushId %j socketId", data, socket.id);
 
                 const topics = data.topics;
                 if (topics && topics.length > 0) {
@@ -44,7 +44,7 @@ function ProxyServer(io, stats, packetService, notificationService, uidStore, tt
 
                 if (data.platform) {
                     socket.platform = data.platform.toLowerCase();
-                    if(socket.platform == 'android' && topics && -1 != topics.indexOf("noti")){
+                    if (socket.platform == 'android' && topics && -1 != topics.indexOf("noti")) {
                         stats.userLogin(data.id, Date.now());
                     }
                 }
