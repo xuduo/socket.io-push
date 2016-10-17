@@ -14,13 +14,13 @@ class Api {
         this.io = require('socket.io-push-redis/emitter')(cluster);
 
         this.tagService = require('./service/tagService')(cluster);
-        this.stats = require('./stats/stats')(cluster, 0, config.statsCommitThreshold);
+        this.stats = require('./stats/stats')(cluster, 0, config.statsCommitThreshold, config.packetDropThreshold);
         this.uidStore = require('./redis/uidStore')(cluster);
         this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version, this.stats);
         const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
         this.notificationService = require('./service/notificationService')(config.apns, cluster, this.ttlService, tokenTTL);
 
-        const apiThreshold = require('./api/apiThreshold')(cluster);
+        const apiThreshold = require('./api/apiThreshold')(cluster, config.topicThreshold);
         const topicOnline = require('./stats/topicOnline')(cluster);
         const providerFactory = require('./service/notificationProviderFactory')();
         this.notificationService.providerFactory = providerFactory;

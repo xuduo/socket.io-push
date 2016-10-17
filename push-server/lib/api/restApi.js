@@ -304,12 +304,6 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         });
     });
 
-    router.get('/admin/command', function (req, res, next) {
-        redis.publish("adminCommand", req.p.command);
-        res.json({code: "success"});
-        return next();
-    });
-
     router.get('/redis/hgetall', function (req, res, next) {
         redis.hgetall(req.p.key, function (err, result) {
             res.json({key: req.p.key, count: result.length, result: result});

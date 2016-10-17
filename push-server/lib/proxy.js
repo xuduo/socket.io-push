@@ -25,7 +25,7 @@ class Proxy {
         console.log(`start proxy on port  ${this.port} #${instance}`);
 
         this.tagService = require('./service/tagService')(cluster);
-        this.stats = require('./stats/stats')(cluster, this.port, config.statsCommitThreshold);
+        this.stats = require('./stats/stats')(cluster, this.port, config.statsCommitThreshold, config.packetDropThreshold);
         const socketIoRedis = require('socket.io-push-redis/adapter')({
             pubClient: cluster,
             subClient: cluster,

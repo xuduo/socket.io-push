@@ -4,13 +4,13 @@ const logger = require('winston-proxy')('Stats');
 const randomstring = require("randomstring");
 const async = require('async');
 
-function Stats(redis, port, commitThreshHold) {
-    if (!(this instanceof Stats)) return new Stats(redis, port, commitThreshHold);
+function Stats(redis, port, commitThreshHold,packetDropThreshold) {
+    if (!(this instanceof Stats)) return new Stats(redis, port, commitThreshHold, packetDropThreshold);
     this.redis = redis;
     this.sessionCount = {total: 0};
     this.redisIncrBuffer = require('./redisIncrBuffer.js')(redis, commitThreshHold);
     this.packetDrop = 0;
-    this.packetDropThreshold = 0;
+    this.packetDropThreshold = packetDropThreshold;
     this.ms = new (require('./moving-sum.js'))();
     const ipPath = process.cwd() + "/ip";
     const fs = require('fs');
