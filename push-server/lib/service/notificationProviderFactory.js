@@ -1,38 +1,42 @@
-module.exports = NotificationProviderFactory;
+module.exports = function () {
+    return new NotificationProviderFactory();
+};
 
 const logger = require('winston-proxy')('NotificationProviderFactory');
 
-function NotificationProviderFactory() {
-    if (!(this instanceof NotificationProviderFactory)) return new NotificationProviderFactory();
-    this.providers = {};
-}
+class NotificationProviderFactory {
 
-NotificationProviderFactory.prototype.addProvider = function (provider) {
-    this.providers[provider.type] = provider;
-};
-
-NotificationProviderFactory.prototype.addToken = function (data) {
-    const provider = this.providers[data.type || "apn"];
-    logger.debug("addToken %j", data);
-    if (provider) {
-        provider.addToken(data);
+    constructor() {
+        this.providers = {};
     }
-};
 
-NotificationProviderFactory.prototype.sendMany = function(notification, mapTypeToTokenList, timeToLive){
-    for(const type in mapTypeToTokenList){
-        const provider = this.providers[type || "apn"];
-        logger.debug("sendMany %s", type);
-        if(provider){
-            provider.sendMany(notification, mapTypeToTokenList[type], timeToLive);
+    addProvider(provider) {
+        this.providers[provider.type] = provider;
+    }
+
+    addToken(data) {
+        const provider = this.providers[data.type || "apn"];
+        logger.debug("addToken %j", data);
+        if (provider) {
+            provider.addToken(data);
         }
     }
 
-};
-
-NotificationProviderFactory.prototype.sendAll = function (notification, timeToLive) {
-    for (const key in this.providers) {
-        const provider = this.providers[key];
-        provider.sendAll(notification, timeToLive);
+    sendMany(notification, mapTypeToTokenList, timeToLive) {
+        for (const type in mapTypeToTokenList) {
+            const provider = this.providers[type || "apn"];
+            logger.debug("sendMany %s", type);
+            if (provider) {
+                provider.sendMany(notification, mapTypeToTokenList[type], timeToLive);
+            }
+        }
     }
-};
+
+    sendAll(notification, timeToLive) {
+        for (const key in this.providers) {
+            const provider = this.providers[key];
+            provider.sendAll(notification, timeToLive);
+        }
+    }
+
+}
