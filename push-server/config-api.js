@@ -10,8 +10,6 @@ config.statsCommitThreshold = 0;//ms,统计缓存commit间隔, 生产环境建�
 
 config.topicThreshold = {};
 
-config.packetDropThreshold = 0;
-
 //apns推送配置,可选
 config.apns = [
     {

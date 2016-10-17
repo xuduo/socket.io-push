@@ -4,7 +4,7 @@ const logger = require('winston-proxy')('Stats');
 const randomstring = require("randomstring");
 const async = require('async');
 
-function Stats(redis, port, commitThreshHold,packetDropThreshold) {
+function Stats(redis, port, commitThreshHold, packetDropThreshold = 0) {
     if (!(this instanceof Stats)) return new Stats(redis, port, commitThreshHold, packetDropThreshold);
     this.redis = redis;
     this.sessionCount = {total: 0};
@@ -382,7 +382,7 @@ Stats.prototype.addPacketToReachRate = function (packet, start, ttl) {
         packet.targetBefore = targetNow;
         this.writeReachRateToRedis(packet);
         setTimeout(() => {
-        logger.debug("calculate packet reach rate, id: ", packet.id);
+            logger.debug("calculate packet reach rate, id: ", packet.id);
             this.getUserOnlineCount(start, start + ttl, (target) => {
                 packet.targetEnd = target || 0;
                 this.writeReachRateToRedis(packet);
