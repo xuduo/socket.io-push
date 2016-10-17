@@ -159,6 +159,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
         res.json({code: "success"});
         return next();
     };
+
     const handleRouteNotification = function (req, res, next) {
         const notification = JSON.parse(req.p.notification);
         const pushIds = JSON.parse(req.p.pushId);
@@ -287,7 +288,7 @@ function RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apn
             return next();
         }
         topicOnline.getTopicDevices(topic, function (result) {
-            res.json({devices: result, topic: req.p.topic});
+            res.json({devices: result, topic: req.p.topic, count: result.length});
             return next();
         });
     });
