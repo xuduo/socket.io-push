@@ -1,10 +1,13 @@
 module.exports = ApiThreshold;
 const logger = require('winston-proxy')('ApiThreshold');
 
-function ApiThreshold(redis) {
-    if (!(this instanceof ApiThreshold)) return new ApiThreshold(redis);
+function ApiThreshold(redis,topicThreshold) {
+    if (!(this instanceof ApiThreshold)) return new ApiThreshold(redis,topicThreshold);
     this.watchedTopics = [];
     this.redis = redis;
+    for(let topic in topicThreshold ){
+        this.setThreshold(topic,topicThreshold[topic]);
+    }
 }
 
 ApiThreshold.prototype.checkPushDrop = function (topic, callback) {

@@ -13,6 +13,9 @@ config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei timeToLive
 config.statsCommitThreshold = 0;//ms,统计缓存commit间隔, 生产环境建议10秒以上
 
 config.topicOnlineFilter = ['chatRoom'];//在线统计功能, 以chatRoom开头的topic会进行统计在线, 并提供查询接口
+
+config.packetDropThreshold = 0;
+
 /**
  * 数组表示hash切片,可以配置多个redis实例,分担流量/cpu负载
  * pubs 广播pub redis,二维数组 第一级表示redis分组 第二季表示hash切片
