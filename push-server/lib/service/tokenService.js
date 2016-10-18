@@ -1,4 +1,4 @@
-module.exports = function (redis, tokenTTL) {
+module.exports = (redis, tokenTTL) => {
     return new TokenService(redis, tokenTTL);
 };
 
@@ -18,19 +18,18 @@ class TokenService {
             delete data.pushId;
             const tokenData = JSON.stringify(data);
             const token = data.token;
-            const self = this;
             const tokenToPushIdKey = "tokenToPushId#" + data.type + "#" + token;
-            this.redis.get(tokenToPushIdKey, function (err, oldPushId) {
+            this.redis.get(tokenToPushIdKey, (err, oldPushId) => {
                 logger.debug("oldPushId %s", oldPushId);
                 if (oldPushId && oldPushId != pushId) {
-                    self.redis.del("pushIdToToken#" + oldPushId);
+                    this.redis.del("pushIdToToken#" + oldPushId);
                     logger.debug("remove old pushId to token %s %s", oldPushId, tokenData);
                 }
-                self.redis.set(tokenToPushIdKey, pushId);
+                this.redis.set(tokenToPushIdKey, pushId);
                 const pushIdToTokenKey = "pushIdToToken#" + pushId;
-                self.redis.set(pushIdToTokenKey, tokenData);
-                self.redis.pexpire(pushIdToTokenKey, self.tokenTTL);
-                self.redis.pexpire(tokenToPushIdKey, self.tokenTTL);
+                this.redis.set(pushIdToTokenKey, tokenData);
+                this.redis.pexpire(pushIdToTokenKey, this.tokenTTL);
+                this.redis.pexpire(tokenToPushIdKey, this.tokenTTL);
             });
             if (data.type == "apn" && data.bundleId && data.token) {
                 logger.debug("addToken %j", data);

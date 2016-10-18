@@ -1,4 +1,4 @@
-module.exports = function (redis) {
+module.exports = (redis) => {
     return new PacketService(redis);
 };
 const logger = require('winston-proxy')('PacketService');
@@ -24,25 +24,23 @@ class PacketService {
     }
 
     publishDisconnect(socket) {
-        const self = this;
-        this.redis.get("pushIdSocketId#" + socket.pushId, function (err, lastSocketId) {
+        this.redis.get("pushIdSocketId#" + socket.pushId, (err, lastSocketId) => {
             // reply is null when the key is missing
             logger.debug("pushIdSocketId redis %s %s %s", socket.id, lastSocketId, socket.pushId);
             if (lastSocketId == socket.id) {
                 logger.debug("publishDisconnect current socket disconnect %s", socket.id);
-                self.redis.del("pushIdSocketId#" + socket.pushId);
+                this.redis.del("pushIdSocketId#" + socket.pushId);
                 const data = {pushId: socket.pushId, path: "/socketDisconnect"};
                 if (socket.uid) {
                     data.uid = socket.uid;
                 }
-                self.publishPacket(data);
+                this.publishPacket(data);
             }
         });
     }
 
     publishConnect(socket) {
-        const self = this;
-        this.redis.get("pushIdSocketId#" + socket.pushId, function (err, lastSocketId) {
+        this.redis.get("pushIdSocketId#" + socket.pushId, (err, lastSocketId) => {
             // reply is null when the key is missing
             if (lastSocketId) {
                 logger.debug("reconnect do not publish", lastSocketId);
@@ -52,10 +50,10 @@ class PacketService {
                 if (socket.uid) {
                     data.uid = socket.uid;
                 }
-                self.publishPacket(data);
+                this.publishPacket(data);
             }
-            self.redis.set("pushIdSocketId#" + socket.pushId, socket.id);
-            self.redis.expire("pushIdSocketId#" + socket.pushId, 3600 * 24 * 7);
+            this.redis.set("pushIdSocketId#" + socket.pushId, socket.id);
+            this.redis.expire("pushIdSocketId#" + socket.pushId, 3600 * 24 * 7);
         });
     }
 

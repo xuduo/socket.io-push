@@ -1,4 +1,4 @@
-module.exports = function (providerFactory, redis, ttlService, tokenTTL) {
+module.exports = (providerFactory, redis, ttlService, tokenTTL) => {
     return new NotificationService(providerFactory, redis, ttlService, tokenTTL);
 };
 
@@ -16,7 +16,7 @@ class NotificationService {
     }
 
     getTokenDataByPushId(pushId, callback) {
-        this.redis.get("pushIdToToken#" + pushId, function (err, reply) {
+        this.redis.get("pushIdToToken#" + pushId, (err, reply) => {
             let token;
             if (reply) {
                 token = JSON.parse(reply);
@@ -26,14 +26,13 @@ class NotificationService {
     }
 
     sendByPushIds(pushIds, timeToLive, notification) {
-        const self = this;
         this.addIdAndTimestamp(notification);
 
         const mapTypeToToken = {};
-        async.each(pushIds, function (pushId, callback) {
+        async.each(pushIds, (pushId, callback) => {
             //集合元素并发执行,如果全部未出错,则最后callback中err为undefined;
             // 否则如果中途出错,直接调用callback,其他未执行完的任务继续(只执行一次callback..)
-            self.getTokenDataByPushId(pushId, function (token) {
+            this.getTokenDataByPushId(pushId, (token) => {
                 logger.debug('pushId: %s to token: %j', pushId, token);
                 if (token) {  //小米&华为&苹果之外的终端没有对应的token
                     const tokenList = mapTypeToToken[token.type] || [];
@@ -42,14 +41,14 @@ class NotificationService {
                 } else {
                     logger.debug("send notification in socket.io, connection %s", pushId);
                     if (notification.android.title) {
-                        self.ttlService.addTTL(pushId, 'noti', timeToLive, notification, true);
-                        self.ttlService.emitPacket(pushId, 'noti', notification);
+                        this.ttlService.addTTL(pushId, 'noti', timeToLive, notification, true);
+                        this.ttlService.emitPacket(pushId, 'noti', notification);
                     }
                 }
                 callback();
             });
-        }, function () {
-            self.providerFactory.sendMany(notification, mapTypeToToken, timeToLive);
+        }, () => {
+            this.providerFactory.sendMany(notification, mapTypeToToken, timeToLive);
         });
     }
 

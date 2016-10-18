@@ -1,4 +1,4 @@
-module.exports = function (redis) {
+module.exports = (redis) => {
     return new UidStore(redis);
 };
 const logger = require('winston-proxy')('UidStore');
@@ -11,9 +11,8 @@ class UidStore {
 
     bindUid(pushId, uid, timeToLive = 3600 * 1000 * 24 * 14, platform = 0, platformLimit) {
         logger.debug("bindUid pushId %s %s", uid, pushId, platformLimit);
-        const self = this;
-        self.removePushId(pushId, false, function () {
-            self.redis.hgetall("uidToPushId#" + uid, function (err, reply) {
+        this.removePushId(pushId, false, () => {
+            this.redis.hgetall("uidToPushId#" + uid, (err, reply) => {
                 const toDelete = [];
                 const oldPlatformPushIds = [];
                 if (reply) {
@@ -30,7 +29,7 @@ class UidStore {
                     }
                 }
                 if (oldPlatformPushIds.length > 0 && oldPlatformPushIds.length > platformLimit - 1) {
-                    oldPlatformPushIds.sort(function (a, b) {
+                    oldPlatformPushIds.sort((a, b) => {
                         return b[1] - a[1];
                     });
                     for (let i = platformLimit - 1; i < oldPlatformPushIds.length; i++) {
@@ -38,10 +37,10 @@ class UidStore {
                     }
                 }
                 if (toDelete.length > 0) {
-                    self.redis.hdel("uidToPushId#" + uid, toDelete);
+                    this.redis.hdel("uidToPushId#" + uid, toDelete);
                 }
-                self.redis.hset("uidToPushId#" + uid, pushId, platform + "," + Date.now() + "," + timeToLive);
-                self.redis.set("pushIdToUid#" + pushId, uid);
+                this.redis.hset("uidToPushId#" + uid, pushId, platform + "," + Date.now() + "," + timeToLive);
+                this.redis.set("pushIdToUid#" + pushId, uid);
             });
         });
     }
@@ -49,12 +48,11 @@ class UidStore {
     removePushId(pushId, removePushIdToUid, callback) {
         logger.debug("removePushId pushId  %s", pushId);
         const key = "pushIdToUid#" + pushId;
-        const self = this;
-        this.redis.get(key, function (err, oldUid) {
+        this.redis.get(key, (err, oldUid) => {
             if (oldUid) {
-                self.redis.hdel("uidToPushId#" + oldUid, pushId, function () {
+                this.redis.hdel("uidToPushId#" + oldUid, pushId, () => {
                     if (removePushIdToUid) {
-                        self.redis.del(key, callback);
+                        this.redis.del(key, callback);
                     }
                     if (callback) {
                         callback();
@@ -70,29 +68,28 @@ class UidStore {
 
     removeUid(uid) {
         logger.debug("removePushId pushId  %s", uid);
-        const self = this;
-        this.getPushIdByUid(uid, function (pushIds) {
+        this.getPushIdByUid(uid, (pushIds) => {
             if (pushIds) {
-                pushIds.forEach(function (pushId) {
-                    self.redis.del("pushIdToUid#" + pushId);
+                pushIds.forEach((pushId) => {
+                    this.redis.del("pushIdToUid#" + pushId);
                 });
             }
-            self.redis.del("uidToPushId#" + uid);
+            this.redis.del("uidToPushId#" + uid);
         });
     }
 
     getUidByPushId(pushId, callback) {
-        this.redis.get("pushIdToUid#" + pushId, function (err, uid) {
+        this.redis.get("pushIdToUid#" + pushId, (err, uid) => {
             logger.debug("getUidByPushId %s %s", pushId, uid);
             callback(uid);
         });
     }
 
     getPushIdByUid(uid, callback) {
-        this.redis.hkeys("uidToPushId#" + uid, function (err, reply) {
+        this.redis.hkeys("uidToPushId#" + uid, (err, reply) => {
             if (reply) {
                 const pushIds = [];
-                reply.forEach(function (val) {
+                reply.forEach((val)=> {
                     pushIds.push(val);
                 });
                 callback(pushIds);

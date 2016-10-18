@@ -1,4 +1,4 @@
-module.exports = function (config, stats) {
+module.exports = (config, stats) => {
     return new XiaomiProvider(config, stats);
 };
 
@@ -23,17 +23,16 @@ class XiaomiProvider {
 
     sendMany(notification, tokenDataList, timeToLive, callback) {
         if (notification.android.title) {
-            const self = this;
-            self.stats.addPushTotal(1, self.type);
+            this.stats.addPushTotal(1, this.type);
             request.post({
                 url: sendOneUrl,
                 form: this.getPostData(notification, tokenDataList, timeToLive),
                 headers: this.headers,
                 timeout: timeout
-            }, function (error, response, body) {
+            }, (error, response, body) => {
                 logger.debug("sendOne result", error, response && response.statusCode, body);
-                if (self.success(error, response, body, callback)) {
-                    self.stats.addPushSuccess(1, self.type);
+                if (this.success(error, response, body, callback)) {
+                    this.stats.addPushSuccess(1, this.type);
                     return;
                 }
                 logger.error("sendOne error", error, response && response.statusCode, body);
@@ -51,7 +50,7 @@ class XiaomiProvider {
             payload: JSON.stringify({android: notification.android, id: notification.id})
         };
         if (tokenDataList) {
-            postData.registration_id = tokenDataList.map(function (tokenData) {
+            postData.registration_id = tokenDataList.map((tokenData) => {
                 return tokenData.token;
             }).join();
         }
@@ -65,18 +64,17 @@ class XiaomiProvider {
 
     sendAll(notification, timeToLive, callback) {
         if (notification.android.title) {
-            const self = this;
-            self.stats.addPushTotal(1, self.type + "All");
+            this.stats.addPushTotal(1, this.type + "All");
             logger.debug("addPushTotal");
             request.post({
                 url: sendAllUrl,
                 form: this.getPostData(notification, 0, timeToLive),
                 headers: this.headers,
                 timeout: timeout
-            }, function (error, response, body) {
+            }, (error, response, body) => {
                 logger.info("sendAll result", error, response && response.statusCode, body);
-                if (self.success(error, response, body, callback)) {
-                    self.stats.addPushSuccess(1, self.type + "All");
+                if (this.success(error, response, body, callback)) {
+                    this.stats.addPushSuccess(1, this.type + "All");
                     return;
                 }
                 logger.error("sendAll error", error, response && response.statusCode, body);

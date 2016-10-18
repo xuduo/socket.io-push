@@ -1,4 +1,4 @@
-module.exports = function (redis, topicThreshold) {
+module.exports = (redis, topicThreshold) => {
     return new ApiThreshold(redis, topicThreshold);
 
 };
@@ -18,13 +18,12 @@ class ApiThreshold {
         let call = true;
         const threshold = this.watchedTopics[topic];
         if (threshold) {
-            const redis = this.redis;
-            redis.lindex("apiThreshold#callTimestamp#" + topic, -1, function (err, result) {
+            this.redis.lindex("apiThreshold#callTimestamp#" + topic, -1, (err, result) => {
                 if (result && result > (Date.now() - 10 * 1000)) {
                     logger.info("too many call dropping %s", topic);
                     call = false;
                 }
-                this.doPush(redis, topic, call, threshold, callback);
+                this.doPush(this.redis, topic, call, threshold, callback);
             });
         } else {
             this.doPush(this.redis, topic, call, threshold, callback);

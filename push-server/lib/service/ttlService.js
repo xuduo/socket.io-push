@@ -1,4 +1,4 @@
-module.exports = function (io, redis, protocolVersion, stats) {
+module.exports = (io, redis, protocolVersion, stats) => {
     return new TTLService(io, redis, protocolVersion, stats);
 };
 
@@ -31,17 +31,16 @@ class TTLService {
                 packet.unicast = 1;
             }
             var data = JSON.parse(JSON.stringify(packet));
-            var redis = this.redis;
             data.timestampValid = Date.now() + timeToLive;
             data.event = event;
             var listKey = "ttl#packet#" + topic;
             if (timeToLive != 0) {
-                redis.pttl(listKey, function (err, oldTtl) {
+                this.redis.pttl(listKey, (err, oldTtl) => {
                     logger.debug("addPacket key %s ,id %s, %d , %d", listKey, packet.id, oldTtl, timeToLive);
-                    redis.rpush(listKey, JSON.stringify(data));
-                    redis.ltrim(listKey, maxTllPacketPerTopic, -1);
+                    this.redis.rpush(listKey, JSON.stringify(data));
+                    this.redis.ltrim(listKey, maxTllPacketPerTopic, -1);
                     if (timeToLive > oldTtl) {
-                        redis.pexpire(listKey, timeToLive);
+                        this.redis.pexpire(listKey, timeToLive);
                     }
                 });
             }
@@ -63,13 +62,12 @@ class TTLService {
     getPackets(topic, lastId, socket, unicast) {
         if (lastId) {
             var listKey = "ttl#packet#" + topic;
-            var self = this;
-            self.redis.lrange(listKey, 0, -1, function (err, list) {
+            this.redis.lrange(listKey, 0, -1, (err, list) => {
                 if (list && list.length > 0) {
                     var lastFound = false;
                     var now = Date.now();
 
-                    list.forEach(function (packet) {
+                    list.forEach((packet) => {
                         var jsonPacket = JSON.parse(packet);
                         var now = Date.now();
                         if (jsonPacket.id == lastId) {
@@ -77,20 +75,20 @@ class TTLService {
                             logger.debug("lastFound %s %s", topic, lastId);
                         } else if (lastFound == true && jsonPacket.timestampValid > now) {
                             logger.debug("call emitPacket %s %s", jsonPacket.id, lastId);
-                            self.emitToSocket(socket, jsonPacket.event, jsonPacket);
+                            this.emitToSocket(socket, jsonPacket.event, jsonPacket);
                         }
                     });
 
                     if (unicast) {
-                        self.redis.del("ttl#packet#" + topic);
+                        this.redis.del("ttl#packet#" + topic);
                     }
 
                     if (!lastFound) {
                         logger.debug('topic %s lastId %s not found send all packets', topic, lastId);
-                        list.forEach(function (packet) {
+                        list.forEach((packet) => {
                             var jsonPacket = JSON.parse(packet);
                             if (jsonPacket.timestampValid > now) {
-                                self.emitToSocket(socket, jsonPacket.event, jsonPacket)
+                                this.emitToSocket(socket, jsonPacket.event, jsonPacket)
                             }
                         });
                     }

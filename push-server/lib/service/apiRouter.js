@@ -1,4 +1,4 @@
-module.exports = function (uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls) {
+module.exports = (uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls) => {
     return new ApiRouter(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls);
 };
 
@@ -18,53 +18,50 @@ class ApiRouter {
     }
 
     notification(notification, pushAll, pushIds, uids, tag, timeToLive) {
-        const self = this;
-
         if (pushAll) {
             this.notificationService.sendAll(notification, timeToLive);
         } else if (pushIds) {
             this.sendNotificationByPushIds(notification, pushIds, timeToLive);
         } else if (uids) {
-            uids.forEach(function (uid) {
-                self.uidStore.getPushIdByUid(uid, function (pushIds) {
-                    self.sendNotificationByPushIds(notification, pushIds, timeToLive);
+            uids.forEach((uid) => {
+                this.uidStore.getPushIdByUid(uid, (pushIds) => {
+                    this.sendNotificationByPushIds(notification, pushIds, timeToLive);
                 });
             });
         } else if (tag) {
             let batch = [];
             this.tagService.scanPushIdByTag(tag, this.maxPushIds, (pushId) => {
                 batch.push(pushId);
-                if (batch.length == self.maxPushIds) {
-                    self.sendNotificationByPushIds(notification, batch, timeToLive);
+                if (batch.length == this.maxPushIds) {
+                    this.sendNotificationByPushIds(notification, batch, timeToLive);
                     batch = [];
                 }
             }, () => {
                 if (batch.length != 0) {
-                    self.sendNotificationByPushIds(notification, batch, timeToLive);
+                    this.sendNotificationByPushIds(notification, batch, timeToLive);
                 }
             });
         }
     }
 
     push(pushData, topic, pushIds, uids, timeToLive) {
-        const self = this;
         if (pushIds) {
-            pushIds.forEach(function (id) {
-                self.ttlService.addTTL(id, pushEvent, timeToLive, pushData, true);
-                self.ttlService.emitPacket(id, pushEvent, pushData);
+            pushIds.forEach((id) => {
+                this.ttlService.addTTL(id, pushEvent, timeToLive, pushData, true);
+                this.ttlService.emitPacket(id, pushEvent, pushData);
             });
         } else if (uids) {
-            uids.forEach(function (id) {
-                self.uidStore.getPushIdByUid(id, function (pushIds) {
-                    pushIds.forEach(function (id) {
-                        self.ttlService.addTTL(id, pushEvent, timeToLive, pushData, true);
-                        self.ttlService.emitPacket(id, pushEvent, pushData);
+            uids.forEach((id) => {
+                this.uidStore.getPushIdByUid(id, (pushIds)=> {
+                    pushIds.forEach((id) => {
+                        this.ttlService.addTTL(id, pushEvent, timeToLive, pushData, true);
+                        this.ttlService.emitPacket(id, pushEvent, pushData);
                     });
                 });
             });
         } else if (topic) {
-            self.ttlService.addTTL(topic, pushEvent, timeToLive, pushData, false);
-            self.ttlService.emitPacket(topic, pushEvent, pushData);
+            this.ttlService.addTTL(topic, pushEvent, timeToLive, pushData, false);
+            this.ttlService.emitPacket(topic, pushEvent, pushData);
         }
     }
 
@@ -75,11 +72,10 @@ class ApiRouter {
         if (pushIds.length >= this.maxPushIds && this.remoteUrls.hasNext()) {
             logger.info("sendNotification to remote api ", this.maxPushIds, pushIds.length);
             let batch = [];
-            const self = this;
-            pushIds.forEach(function (pushId, index) {
+            pushIds.forEach((pushId, index) => {
                 batch.push(pushId);
-                if (batch.length == self.maxPushIds || index == pushIds.length - 1) {
-                    self.callRemoteNotification(notification, batch, timeToLive);
+                if (batch.length == this.maxPushIds || index == pushIds.length - 1) {
+                    this.callRemoteNotification(notification, batch, timeToLive);
                     batch = [];
                 }
             });

@@ -1,4 +1,4 @@
-module.exports = function (redis) {
+module.exports = (redis) => {
     return new TagService(redis);
 };
 
@@ -10,11 +10,10 @@ class TagService {
     }
 
     addTag(pushId, tag) {
-        const self = this;
-        self.redis.hkeys("pushIdTag#" + pushId, function (err, tags) {
-            if ((!tags || tags.length == 0) || (tags.length < self.maxTags && tags.indexOf(tag) == -1)) {
-                self.redis.hset("tagPushId#" + tag, pushId, "");
-                self.redis.hset("pushIdTag#" + pushId, tag, "");
+        this.redis.hkeys("pushIdTag#" + pushId, (err, tags) => {
+            if ((!tags || tags.length == 0) || (tags.length < this.maxTags && tags.indexOf(tag) == -1)) {
+                this.redis.hset("tagPushId#" + tag, pushId, "");
+                this.redis.hset("pushIdTag#" + pushId, tag, "");
             }
         });
     }
@@ -25,7 +24,7 @@ class TagService {
     }
 
     getPushIdsByTag(tag, callback) {
-        this.redis.hkeys("tagPushId#" + tag, function (err, pushIds) {
+        this.redis.hkeys("tagPushId#" + tag, (err, pushIds) => {
             if (pushIds) {
                 callback(pushIds);
             }
@@ -33,7 +32,7 @@ class TagService {
     }
 
     getTagsByPushId(pushId, callback) {
-        this.redis.hkeys("pushIdTag#" + pushId, function (err, tags) {
+        this.redis.hkeys("pushIdTag#" + pushId, (err, tags) => {
             if (tags) {
                 callback(tags);
             }
@@ -43,14 +42,14 @@ class TagService {
     scanPushIdByTag(tag, count, callback, endCallback) {
         const stream = this.redis.hscanStream("tagPushId#" + tag, {count: count});
 
-        stream.on('data', function (resultKeys) {
+        stream.on('data', (resultKeys) => {
             for (let i = 0; i < resultKeys.length; i++) {
                 if (i % 2 == 0) {
                     callback(resultKeys[i]);
                 }
             }
         });
-        stream.on('end', function () {
+        stream.on('end', () => {
             endCallback();
         });
     }

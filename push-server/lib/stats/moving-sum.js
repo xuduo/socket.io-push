@@ -1,7 +1,6 @@
-module.exports = function () {
+module.exports = () => {
     return new MovingSum();
 };
-
 class MovingSum {
 
     constructor() {
@@ -15,14 +14,14 @@ class MovingSum {
     sum(timespans) {
         const starts = [];
         const current = Date.now();
-        timespans.forEach(function (span) {
+        timespans.forEach((span) => {
             starts.push(current - span);
         });
         const sum_ret = [];
         let spliceIndex = 0;
         const totalLength = this.stamps.length;
-        this.stamps.forEach(function (stamp, stampIndex) {
-            starts.forEach(function (start, sumIndex) {
+        this.stamps.forEach((stamp, stampIndex) => {
+            starts.forEach((start, sumIndex) => {
                 if (stamp >= start && !sum_ret[sumIndex]) {
                     sum_ret[sumIndex] = totalLength - stampIndex;
                     if (spliceIndex == 0) {

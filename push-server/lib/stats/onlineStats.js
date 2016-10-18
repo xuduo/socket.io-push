@@ -1,4 +1,4 @@
-module.exports = function (stats) {
+module.exports = (stats) => {
     return new OnlineStats(stats);
 };
 const logger = require('winston-proxy')('OnlineStats');

@@ -1,4 +1,4 @@
-module.exports = function (redis, commitThreshHold) {
+module.exports = (redis, commitThreshHold) => {
     return new RedisIncrBuffer(redis, commitThreshHold);
 };
 

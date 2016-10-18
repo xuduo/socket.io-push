@@ -1,5 +1,3 @@
-var MS = require('../lib/stats/moving-sum.js');
-
 var chai = require('chai')
     , spies = require('chai-spies');
 chai.use(spies);
@@ -10,7 +8,7 @@ describe('test moving-sum', function () {
 
 
     it('base test', function (done) {
-        var ms = new MS();
+        var ms = require('../lib/stats/moving-sum.js')();
         ms.push(Date.now());
         ms.push(Date.now());
         ms.push(Date.now());
@@ -22,7 +20,7 @@ describe('test moving-sum', function () {
 
 
     it('less test', function (done) {
-        var ms = new MS();
+        var ms = require('../lib/stats/moving-sum.js')();
         ms.push(Date.now() - 1000);
         ms.push(Date.now());
         ms.push(Date.now());
@@ -33,7 +31,7 @@ describe('test moving-sum', function () {
     });
 
     it('double test', function (done) {
-        var ms = new MS();
+        var ms = require('../lib/stats/moving-sum.js')();
         ms.push(Date.now() - 10000);
         ms.push(Date.now() - 5000);
         ms.push(Date.now() - 4000);
@@ -48,7 +46,7 @@ describe('test moving-sum', function () {
     });
 
     it('reverse test', function (done) {
-        var ms = new MS();
+        var ms = require('../lib/stats/moving-sum.js')();
         ms.push(Date.now() - 10000);
         ms.push(Date.now() - 5000);
         ms.push(Date.now() - 4000);

@@ -1,4 +1,4 @@
-module.exports = function (config, stats) {
+module.exports = (config, stats) => {
     return new HuaweiProvider(config, stats);
 };
 
@@ -14,14 +14,13 @@ class HuaweiProvider {
         this.stats = stats;
         this.access_token = "";
         this.authInfo = {};
-        const self = this;
         this.default_package_name = undefined;
-        config.forEach(function (val) {
-            self.authInfo[val.package_name] = val;
+        config.forEach((val) => {
+            this.authInfo[val.package_name] = val;
             val.access_token_expire = 0;
-            if (!self.default_package_name) {
-                self.default_package_name = val.package_name;
-                logger.info('huawei default package name ', self.default_package_name);
+            if (!this.default_package_name) {
+                this.default_package_name = val.package_name;
+                logger.info('huawei default package name ', this.default_package_name);
             }
         });
         this.type = "huawei";
@@ -29,8 +28,7 @@ class HuaweiProvider {
 
     sendMany(notification, tokenDataList, timeToLive, callback) {
         if (notification.android.title) {
-            const self = this;
-            self.stats.addPushTotal(tokenDataList.length, self.type);
+            this.stats.addPushTotal(tokenDataList.length, this.type);
             const mapTokenData = {};
             for (const tokenData of tokenDataList) {
                 const package_name = tokenData.package_name || this.default_package_name;
@@ -44,18 +42,18 @@ class HuaweiProvider {
             }
 
             for (const package_name in mapTokenData) {
-                this.checkToken(package_name, function (tokenError) {
+                this.checkToken(package_name, (tokenError) => {
                     if (!tokenError) {
                         logger.debug("sendMany ", notification, timeToLive);
-                        const postData = self.getPostData(1, notification, package_name, mapTokenData[package_name], timeToLive);
+                        const postData = this.getPostData(1, notification, package_name, mapTokenData[package_name], timeToLive);
                         request.post({
                             url: apiUrl,
                             form: postData,
                             timeout: timeout
-                        }, function (error, response, body) {
+                        }, (error, response, body) => {
                             logger.debug("sendOne result", error, body);
                             if (!error && response && response.statusCode == 200) {
-                                self.stats.addPushSuccess(mapTokenData[package_name].length, self.type);
+                                this.stats.addPushSuccess(mapTokenData[package_name].length, this.type);
                             } else {
                                 error = error || 'unknown error';
                             }
@@ -84,7 +82,7 @@ class HuaweiProvider {
             })
         };
         if (tokenDataList) {
-            postData.tokens = tokenDataList.map(function (tokenData) {
+            postData.tokens = tokenDataList.map((tokenData) => {
                 return tokenData.token;
             }).join();
         }
@@ -98,21 +96,19 @@ class HuaweiProvider {
 
     sendAll(notification, timeToLive, callback) {
         if (notification.android.title) {
-            const self = this;
-
             for (const package_name in this.authInfo) {
-                self.stats.addPushTotal(1, self.type + "All");
-                this.checkToken(package_name, function (tokenError) {
+                this.stats.addPushTotal(1, this.type + "All");
+                this.checkToken(package_name, (tokenError) => {
                     if (!tokenError) {
                         logger.debug("sendAll ", notification, timeToLive);
-                        const postData = self.getPostData(2, notification, package_name, 0, timeToLive);
+                        const postData = this.getPostData(2, notification, package_name, 0, timeToLive);
                         request.post({
                             url: apiUrl,
                             form: postData
-                        }, function (error, response, body) {
+                        }, (error, response, body) => {
                             logger.info("sendAll result", error, response && response.statusCode, body);
                             if (!error && response && response.statusCode == 200) {
-                                self.stats.addPushSuccess(1, self.type + "All");
+                                this.stats.addPushSuccess(1, this.type + "All");
                             } else {
                                 error = error || "unknown error"
                             }
@@ -129,13 +125,11 @@ class HuaweiProvider {
     }
 
     checkToken(package_name, callback) {
-        const self = this;
-        const authInfo = self.authInfo[package_name];
+        const authInfo = this.authInfo[package_name];
         if (authInfo.access_token && Date.now() < authInfo.access_token_expire) {
             callback();
-            return;
         } else {
-            logger.info("request token ", package_name, self.authInfo[package_name]);
+            logger.info("request token ", package_name, this.authInfo[package_name]);
             request.post({
                 url: tokenUrl,
                 form: {
@@ -144,7 +138,7 @@ class HuaweiProvider {
                     client_secret: authInfo.client_secret
                 },
                 timeout: timeout
-            }, function (error, response, body) {
+            }, (error, response, body) => {
                 if (!error) {
                     const data = JSON.parse(body);
                     authInfo.access_token = data.access_token;
@@ -162,7 +156,7 @@ class HuaweiProvider {
     formatHuaweiDate(date) {
         const tzo = -date.getTimezoneOffset(),
             dif = tzo >= 0 ? '+' : '-',
-            pad = function (num) {
+            pad = (num) => {
                 const norm = Math.abs(Math.floor(num));
                 return (norm < 10 ? '0' : '') + norm;
             };

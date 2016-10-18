@@ -1,4 +1,4 @@
-module.exports = function (redis, io, id, filterTopics) {
+module.exports = (redis, io, id, filterTopics) => {
     return new TopicOnline(redis, io, id, filterTopics);
 };
 
