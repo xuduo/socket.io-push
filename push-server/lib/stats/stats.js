@@ -333,7 +333,7 @@ class Stats {
         const loginfo = {};
         logger.debug("user logout, pushId: ", pushId, "timestamp: ", timestamp);
         this.redis.hhget("connInfo", pushId, (err, result) => {
-            if (!result) {
+            if (result) {
                 const temp = JSON.parse(result);
                 loginfo["in"] = temp["in"];
                 loginfo["out"] = timestamp;

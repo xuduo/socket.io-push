@@ -17,10 +17,11 @@ class ProxyServer {
                 if (socket.pushId) {
                     logger.debug("publishDisconnect %s", socket.pushId);
                     if (packetService) {
-                        packetService.publishDisconnect(socket);
-                    }
-                    if (socket.platform == "android") {
-                        stats.userLogout(socket.pushId, Date.now());
+                        packetService.publishDisconnect(socket, (reallyDisconnect) => {
+                            if(reallyDisconnect && socket.platform == "android"){
+                                stats.userLogout(socket.pushId, Date.now());
+                            }
+                        });
                     }
                 }
             });

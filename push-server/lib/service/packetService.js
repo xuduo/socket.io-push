@@ -23,7 +23,7 @@ class PacketService {
         }
     }
 
-    publishDisconnect(socket) {
+    publishDisconnect(socket, callback) {
         this.redis.get("pushIdSocketId#" + socket.pushId, (err, lastSocketId) => {
             // reply is null when the key is missing
             logger.debug("pushIdSocketId redis %s %s %s", socket.id, lastSocketId, socket.pushId);
@@ -35,6 +35,9 @@ class PacketService {
                     data.uid = socket.uid;
                 }
                 this.publishPacket(data);
+                callback(true);
+            } else {
+                callback(false);
             }
         });
     }
