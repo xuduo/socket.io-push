@@ -83,7 +83,7 @@ server
 }
 ```
 
-##HTTP API
+##推送 API
 
 string[]类型,表示http协议中list类型参数，如 get?uid=123&uid=456 ,表示一个uid数组 ["123", "456"]. get?uid=123 表示单个uid数组 [123]
 
@@ -200,3 +200,33 @@ pushId -> string[], 如 ["abc","def"] 解绑该pushId对应的uid
 uid -> string[],如 ["123","456"] 解绑该uid的所有设备
 
         或 string, 如 "123"
+
+##topic在线 API
+
+### /api/topicOnline topic在线数查询
+
+--- 参数
+
+topic -> 查询的topic
+
+### /api/topicDevices topic在线数查询, 包括每台设备的pushId, uid(如果有绑定)
+
+--- 参数
+
+topic -> 查询的topic
+
+##其它 API
+
+### /api/stats/base 服务器实时状态
+
+返回当前各个端(ios/android/browser)实时在线, 细分到每个proxy实例的在线
+
+### /api/redis/get /api/redis/del /redis/hkey /redis/hash(查询对应key hash到的redis实例)
+
+--- 参数
+
+key -> redis key
+
+### /api/nginx 服务器实时状态
+
+返回自动生成的nginx前端代理配置
