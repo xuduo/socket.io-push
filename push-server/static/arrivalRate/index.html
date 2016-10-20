@@ -2,22 +2,22 @@
 <html>
 <meta charset="UTF-8">
 <head>
-    <title>Packets reach status</title>
+    <title>Packets arrival status</title>
 </head>
 <body>
 <div>各包的到达率情况:</div>
 <br/>
-<div><span id="reachRate">--</span></div>
+<div><span id="arrivalRate">--</span></div>
 <script src="/js/jquery-1.8.0.min.js"></script>
 <script src="/js/jquery.cookie.js"></script>
 <script>
     window.onload = function () {
         $.ajax({
             type: 'GET',
-            url: $.cookie("api_url") + '/api/stats/reachrate',
+            url: $.cookie("api_url") + '/api/stats/arrivalRate',
             dataType: 'json',
             success: function (data){
-                $("#reachRate").text(JSON.stringify(data));
+                $("#arrivalRate").text(JSON.stringify(data));
             }
         });
     };

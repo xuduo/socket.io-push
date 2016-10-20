@@ -54,7 +54,7 @@ class TTLService {
                 statsPacket.timeStart = new Date().toLocaleString();
                 statsPacket.timeValid = new Date(data.timestampValid).toLocaleString();
                 statsPacket.ttl = timeToLive;
-                this.stats.addPacketToReachRate(statsPacket, Date.now(), timeToLive);
+                this.stats.addPacketToArrivalRate(statsPacket, Date.now(), timeToLive);
             }
         }
     }

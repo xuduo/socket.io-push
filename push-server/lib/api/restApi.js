@@ -190,8 +190,8 @@ class RestApi {
             });
         };
 
-        const handleReachRate = (req, res, next) => {
-            stats.getReachRateStatus((result) => {
+        const handleArrivalRate = (req, res, next) => {
+            stats.getArrivalRateStatus((result) => {
                 res.json(result);
                 return next();
             });
@@ -254,7 +254,7 @@ class RestApi {
         router.get('/stats/base', handleStatsBase);
         router.post('/stats/onlineJob', handleStatsOnlineJob);
         router.get('/stats/chart', handleChartStats);
-        router.get('/stats/reachrate', handleReachRate);
+        router.get('/stats/arrivalRate', handleArrivalRate);
         router.get('/push', handlePush);
         router.post('/push', handlePush);
         router.get('/notification', handleNotification);

@@ -324,20 +324,18 @@ class Stats {
     }
 
     userLogin(pushId, timestamp) {
-        const loginfo = {"in": timestamp, "out": 0};
+        const loginfo = timestamp.toString() + ",0";
         logger.debug("user login, pushId: ", pushId, "timestamp: ", timestamp);
-        this.redis.hhset("connInfo", pushId, JSON.stringify(loginfo));
+        this.redis.hhset("connInfo", pushId, loginfo);
     }
 
     userLogout(pushId, timestamp) {
-        const loginfo = {};
         logger.debug("user logout, pushId: ", pushId, "timestamp: ", timestamp);
         this.redis.hhget("connInfo", pushId, (err, result) => {
             if (result) {
-                const temp = JSON.parse(result);
-                loginfo["in"] = temp["in"];
-                loginfo["out"] = timestamp;
-                this.redis.hhset("connInfo", pushId, JSON.stringify(loginfo));
+                let loginfo = result.toString().split(',');
+                loginfo[1] = (timestamp - parseInt(loginfo[0])).toString();
+                this.redis.hhset("connInfo", pushId, loginfo[0] + ',' + loginfo[1]);
             }
         })
     }
@@ -348,11 +346,13 @@ class Stats {
         stream.on('data', (resultKeys) => {
             for (let i = 0; i < resultKeys.length; i++) {
                 if (i % 2 == 1) {
-                    const timestamp = JSON.parse(resultKeys[i]);
-                    if (timestamp["in"] < end && (timestamp["out"] == 0 || timestamp["out"] > start )) {
+                    const loginfo = resultKeys[i].toString().split(',');
+                    const con = parseInt(loginfo[0]);
+                    const discon = parseInt(loginfo[1]);
+                    if (con < end && (discon == 0 || discon + con > start )) {
                         result++;
                     }
-                    if (timestamp["out"] != 0 && timestamp["out"] < Date.now() - 3 * 24 * 3600 * 1000) {
+                    if (discon != 0 && discon + con < Date.now() - 3 * 24 * 3600 * 1000) {
                         this.redis.hhdel("connInfo", resultKeys[i - 1]);
                     }
                 }
@@ -363,36 +363,36 @@ class Stats {
         });
     }
 
-    addReachSuccess(packetId, count) {
+    addArrivalSuccess(packetId, count) {
         if (count > 0) {
-            const key = "stats#reach#" + packetId;
+            const key = "stats#arrival#" + packetId;
             this.redisIncrBuffer.incrby(key, count);
         }
     }
 
-    addPacketToReachRate(packet, start, ttl) {
+    addPacketToArrivalRate(packet, start, ttl) {
         packet.reachCount = 0;
         packet.targetBefore = 0;
         packet.targetEnd = 0;
         this.getUserOnlineCount(start, start, (targetNow) => {
             packet.targetBefore = targetNow;
-            this.writeReachRateToRedis(packet);
+            this.writeArrivalRateToRedis(packet);
             setTimeout(() => {
                 logger.debug("calculate packet reach rate, id: ", packet.id);
                 this.getUserOnlineCount(start, start + ttl, (target) => {
                     packet.targetEnd = target || 0;
-                    this.writeReachRateToRedis(packet);
+                    this.writeArrivalRateToRedis(packet);
                 });
             }, ttl + 60000);
         });
     }
 
-    writeReachRateToRedis(packet) {
-        this.redis.hset("stats#reachStats", packet.id, JSON.stringify(packet));
+    writeArrivalRateToRedis(packet) {
+        this.redis.hset("stats#arrivalStats", packet.id, JSON.stringify(packet));
     }
 
-    getReachRateStatus(callback) {
-        const stream = this.redis.hscanStream("stats#reachStats");
+    getArrivalRateStatus(callback) {
+        const stream = this.redis.hscanStream("stats#arrivalStats");
         let result = {};
         stream.on('data', (resultKeys) => {
             for (let i = 0; i < resultKeys.length; i++) {
@@ -403,7 +403,7 @@ class Stats {
         });
         stream.on('end', () => {
             async.each(Object.keys(result), (id, asynccb) => {
-                this.redis.get("stats#reach#" + id, (err, count) => {
+                this.redis.get("stats#arrival#" + id, (err, count) => {
                     result[id].reachCount = count || 0;
                     asynccb();
                 })
