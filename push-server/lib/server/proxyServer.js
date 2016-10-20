@@ -152,7 +152,7 @@ class ProxyServer {
 
             socket.on('notificationReply', (data) => {
                 stats.onNotificationReply(data.timestamp);
-                stats.addReachSuccess(data.id, 1);
+                stats.addArrivalSuccess(data.id, 1);
             });
 
             stats.addSession(socket);
