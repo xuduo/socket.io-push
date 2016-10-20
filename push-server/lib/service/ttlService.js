@@ -1,5 +1,5 @@
-module.exports = (io, redis, protocolVersion, stats) => {
-    return new TTLService(io, redis, protocolVersion, stats);
+module.exports = (io, redis, protocolVersion, stats, arrivalStats) => {
+    return new TTLService(io, redis, protocolVersion, stats, arrivalStats);
 };
 
 const logger = require('winston-proxy')('TTLService');
@@ -8,11 +8,12 @@ const maxTllPacketPerTopic = -50;
 
 class TTLService {
 
-    constructor(io, redis, protocolVersion, stats) {
+    constructor(io, redis, protocolVersion, stats, arrivalStats) {
         this.redis = redis;
         this.io = io;
         this.protocolVersion = protocolVersion || 1;
         this.stats = stats;
+        this.arrivalStats = arrivalStats;
     }
 
     onPushId(socket, lastPacketId) {
@@ -47,14 +48,7 @@ class TTLService {
 
             if (topic == 'noti') {
                 logger.debug("noti reach rate stats, id: ", data.id);
-                let statsPacket = {};
-                statsPacket.id = data.id;
-                statsPacket.title = data.android.title;
-                statsPacket.message = data.android.message;
-                statsPacket.timeStart = new Date().toLocaleString();
-                statsPacket.timeValid = new Date(data.timestampValid).toLocaleString();
-                statsPacket.ttl = timeToLive;
-                this.stats.addPacketToArrivalRate(statsPacket, Date.now(), timeToLive);
+                this.arrivalStats.addPacketToArrivalRate(data, Date.now(), timeToLive);
             }
         }
     }

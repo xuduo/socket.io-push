@@ -14,9 +14,11 @@ class Api {
         this.io = require('socket.io-push-redis/emitter')(cluster);
 
         this.tagService = require('./service/tagService')(cluster);
+        this.connectService = require('./service/connectService')(cluster);
         this.stats = require('./stats/stats')(cluster, 0, config.statsCommitThreshold);
+        this.arrivalStats = require('./stats/arrivalStats')(cluster, this.connectService);
         this.uidStore = require('./redis/uidStore')(cluster);
-        this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version, this.stats);
+        this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version, this.stats, this.arrivalStats);
         const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
         this.notificationService = require('./service/notificationService')(config.apns, cluster, this.ttlService, tokenTTL);
 

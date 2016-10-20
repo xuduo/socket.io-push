@@ -1,12 +1,12 @@
-module.exports = (io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService) => {
-    return new ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService);
+module.exports = (io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService, arrivalStats) => {
+    return new ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService, arrivalStats);
 };
 const logger = require('winston-proxy')('ProxyServer');
 const http = require('http');
 
 class ProxyServer {
 
-    constructor(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService) {
+    constructor(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService, arrivalStats) {
         this.io = io;
 
         io.on('connection', (socket) => {
@@ -17,12 +17,9 @@ class ProxyServer {
                 if (socket.pushId) {
                     logger.debug("publishDisconnect %s", socket.pushId);
                     if (packetService) {
-                        packetService.publishDisconnect(socket, (reallyDisconnect) => {
-                            if(reallyDisconnect && socket.platform == "android"){
-                                stats.userLogout(socket.pushId, Date.now());
-                            }
-                        });
+                        packetService.publishDisconnect(socket);
                     }
+                    arrivalStats.userLogout(socket);
                 }
             });
 
@@ -38,20 +35,18 @@ class ProxyServer {
             socket.on('pushId', (data) => {
                 if (data.id && data.id.length >= 10) {
                     logger.debug("on pushId %j socketId", data, socket.id);
-
+                    socket.pushId = data.id;
                     const topics = data.topics;
                     if (topics && topics.length > 0) {
                         topics.forEach((topic) => {
                             socket.join(topic);
                         });
                     }
-
+                    socket.topics = data.topics;
                     if (data.platform) {
                         socket.platform = data.platform.toLowerCase();
-                        if (socket.platform == 'android' && topics && -1 != topics.indexOf("noti")) {
-                            stats.userLogin(data.id, Date.now());
-                        }
                     }
+                    arrivalStats.userLogin(socket);
                     stats.addPlatformSession(socket.platform);
 
                     socket.join(data.id, (err) => {
@@ -69,7 +64,6 @@ class ProxyServer {
                                     reply.uid = uid;
                                     socket.uid = uid;
                                 }
-                                socket.pushId = data.id;
                                 if (packetService) {
                                     packetService.publishConnect(socket);
                                 }
@@ -152,7 +146,7 @@ class ProxyServer {
 
             socket.on('notificationReply', (data) => {
                 stats.onNotificationReply(data.timestamp);
-                stats.addArrivalSuccess(data.id, 1);
+                arrivalStats.addArrivalSuccess(data.id, 1);
             });
 
             stats.addSession(socket);

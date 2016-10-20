@@ -25,7 +25,9 @@ class Proxy {
         console.log(`start proxy on port  ${this.port} #${instance}`);
 
         this.tagService = require('./service/tagService')(cluster);
+        this.connectService = require('./service/connectService')(cluster);
         this.stats = require('./stats/stats')(cluster, this.port, config.statsCommitThreshold, config.packetDropThreshold);
+        this.arrivalStats = require('./stats/arrivalStats')(cluster, this.connectService);
         const socketIoRedis = require('socket.io-push-redis/adapter')({
             pubClient: cluster,
             subClient: cluster,
@@ -35,15 +37,16 @@ class Proxy {
         this.io.adapter(socketIoRedis);
         let packetService;
         if (config.redis.event) {
-            packetService = require('./service/packetService')(cluster, cluster);
+            packetService = require('./service/packetService')(cluster, this.connectService);
         }
         this.uidStore = require('./redis/uidStore')(cluster);
-        this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version, this.stats);
+        this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version, this.stats, this.arrivalStats);
         const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
         this.httpProxyService = require('./service/httpProxyService')(config.http_remove_headers);
         this.tokenService = require('./service/tokenService')(cluster, tokenTTL);
 
-        this.proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.tokenService, this.uidStore, this.ttlService, this.httpProxyService, this.tagService);
+        this.proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.tokenService, this.uidStore,
+            this.ttlService, this.httpProxyService, this.tagService, this.arrivalStats);
         if (config.topicOnlineFilter) {
             this.topicOnline = require('./stats/topicOnline')(cluster, this.io, this.stats.id, config.topicOnlineFilter);
         }
