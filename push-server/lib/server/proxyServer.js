@@ -1,12 +1,12 @@
-module.exports = (io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService, arrivalStats) => {
-    return new ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService, arrivalStats);
+module.exports = (io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService, connectService, arrivalStats) => {
+    return new ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService, connectService, arrivalStats);
 };
 const logger = require('winston-proxy')('ProxyServer');
 const http = require('http');
 
 class ProxyServer {
 
-    constructor(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService, arrivalStats) {
+    constructor(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService, connectService, arrivalStats) {
         this.io = io;
 
         io.on('connection', (socket) => {
@@ -15,11 +15,15 @@ class ProxyServer {
                 stats.removeSession();
                 stats.removePlatformSession(socket.platform);
                 if (socket.pushId) {
-                    logger.debug("publishDisconnect %s", socket.pushId);
-                    if (packetService) {
-                        packetService.publishDisconnect(socket);
-                    }
-                    arrivalStats.userLogout(socket);
+                    connectService.disconnect(socket, (ret) => {
+                        if(ret){
+                            if(packetService){
+                                logger.debug("publishDisconnect pushId:%s, socketId:%s", socket.pushId, socket.id);
+                                packetService.publishDisconnect(socket);
+                            }
+                            arrivalStats.userLogout(socket);
+                        }
+                    })
                 }
             });
 
@@ -64,9 +68,11 @@ class ProxyServer {
                                     reply.uid = uid;
                                     socket.uid = uid;
                                 }
-                                if (packetService) {
-                                    packetService.publishConnect(socket);
-                                }
+                                connectService.connect(socket, (ret) => {
+                                    if(ret && packetService){
+                                        packetService.publishConnect(socket);
+                                    }
+                                });
                                 socket.emit('pushId', reply);
                                 const lastPacketIds = data.lastPacketIds;
                                 if (lastPacketIds) {

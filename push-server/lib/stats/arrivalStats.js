@@ -1,14 +1,13 @@
-module.exports = (redis, connectService) => {
-    return new ArrivalStats(redis, connectService);
+module.exports = (redis) => {
+    return new ArrivalStats(redis);
 };
 
 const logger = require('winston-proxy')('ArrivalStats');
 const async = require('async');
 
 class ArrivalStats {
-    constructor(redis, connectService) {
+    constructor(redis) {
         this.redis = redis;
-        this.connectService = connectService;
     }
 
     userLogin(socket) {
@@ -20,18 +19,14 @@ class ArrivalStats {
     }
 
     userLogout(socket) {
-        this.connectService.isConnected(socket.pushId, (connectedOrNot, socketId) => {
-            if (connectedOrNot && socketId == socket.id) {
-                this.redis.hhget("connInfo", socket.pushId, (err, result) => {
-                    if (result) {
-                        logger.debug("user logout, pushId: ", socket.pushId, "loginfo: ", result);
-                        let loginfo = result.toString().split(',');
-                        loginfo[1] = (Date.now() - parseInt(loginfo[0])).toString();
-                        this.redis.hhset("connInfo", socket.pushId, loginfo[0] + ',' + loginfo[1]);
-                    }
-                })
+        this.redis.hhget("connInfo", socket.pushId, (err, result) => {
+            if (result) {
+                logger.debug("user logout, pushId: ", socket.pushId, "loginfo: ", result);
+                let loginfo = result.toString().split(',');
+                loginfo[1] = (Date.now() - parseInt(loginfo[0])).toString();
+                this.redis.hhset("connInfo", socket.pushId, loginfo[0] + ',' + loginfo[1]);
             }
-        });
+        })
     }
 
     getUserOnlineCount(start, end, callback) {

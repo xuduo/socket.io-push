@@ -27,7 +27,7 @@ class Proxy {
         this.tagService = require('./service/tagService')(cluster);
         this.connectService = require('./service/connectService')(cluster);
         this.stats = require('./stats/stats')(cluster, this.port, config.statsCommitThreshold, config.packetDropThreshold);
-        this.arrivalStats = require('./stats/arrivalStats')(cluster, this.connectService);
+        this.arrivalStats = require('./stats/arrivalStats')(cluster);
         const socketIoRedis = require('socket.io-push-redis/adapter')({
             pubClient: cluster,
             subClient: cluster,
@@ -37,7 +37,7 @@ class Proxy {
         this.io.adapter(socketIoRedis);
         let packetService;
         if (config.redis.event) {
-            packetService = require('./service/packetService')(cluster, this.connectService);
+            packetService = require('./service/packetService')(cluster);
         }
         this.uidStore = require('./redis/uidStore')(cluster);
         this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version, this.stats, this.arrivalStats);
@@ -46,7 +46,7 @@ class Proxy {
         this.tokenService = require('./service/tokenService')(cluster, tokenTTL);
 
         this.proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.tokenService, this.uidStore,
-            this.ttlService, this.httpProxyService, this.tagService, this.arrivalStats);
+            this.ttlService, this.httpProxyService, this.tagService, this.connectService, this.arrivalStats);
         if (config.topicOnlineFilter) {
             this.topicOnline = require('./stats/topicOnline')(cluster, this.io, this.stats.id, config.topicOnlineFilter);
         }
