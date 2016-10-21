@@ -10,15 +10,15 @@ class ArrivalStats {
         this.redis = redis;
     }
 
-    userLogin(socket) {
-        if (socket.platform == 'android' && socket.topics && ~socket.topics.indexOf("noti")) {
+    connect(socket) {
+        if (socket.platform == 'android') {
             const loginfo = Date.now().toString() + ",0";
             logger.debug("user login, pushId: ", socket.pushId, "loginfo ", loginfo);
             this.redis.hhset("connInfo", socket.pushId, loginfo);
         }
     }
 
-    userLogout(socket) {
+    disconnect(socket) {
         this.redis.hhget("connInfo", socket.pushId, (err, result) => {
             if (result) {
                 logger.debug("user logout, pushId: ", socket.pushId, "loginfo: ", result);

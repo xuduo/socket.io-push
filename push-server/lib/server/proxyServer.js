@@ -16,12 +16,12 @@ class ProxyServer {
                 stats.removePlatformSession(socket.platform);
                 if (socket.pushId) {
                     connectService.disconnect(socket, (ret) => {
-                        if(ret){
-                            if(packetService){
+                        if (ret) {
+                            if (packetService) {
                                 logger.debug("publishDisconnect pushId:%s, socketId:%s", socket.pushId, socket.id);
                                 packetService.publishDisconnect(socket);
                             }
-                            arrivalStats.userLogout(socket);
+                            arrivalStats.disconnect(socket);
                         }
                     })
                 }
@@ -46,11 +46,9 @@ class ProxyServer {
                             socket.join(topic);
                         });
                     }
-                    socket.topics = data.topics;
                     if (data.platform) {
                         socket.platform = data.platform.toLowerCase();
                     }
-                    arrivalStats.userLogin(socket);
                     stats.addPlatformSession(socket.platform);
 
                     socket.join(data.id, (err) => {
@@ -69,8 +67,13 @@ class ProxyServer {
                                     socket.uid = uid;
                                 }
                                 connectService.connect(socket, (ret) => {
-                                    if(ret && packetService){
-                                        packetService.publishConnect(socket);
+                                    if (ret) {
+                                        if (packetService) {
+                                            packetService.publishConnect(socket);
+                                        }
+                                        if (-1 != topics.indexOf('noti')) {
+                                            arrivalStats.connect(socket);
+                                        }
                                     }
                                 });
                                 socket.emit('pushId', reply);
