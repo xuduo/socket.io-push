@@ -71,7 +71,7 @@ class ProxyServer {
                                         if (packetService) {
                                             packetService.publishConnect(socket);
                                         }
-                                        if (-1 != topics.indexOf('noti')) {
+                                        if (topics && -1 != topics.indexOf('noti')) {
                                             arrivalStats.connect(socket);
                                         }
                                     }
