@@ -39,7 +39,7 @@ HttpProxyService.prototype.request = function (opts, callback) {
 
     const start = Date.now();
 
-    request(requestOpts, function (error, response, body) {
+    request(requestOpts, (error, response, body) => {
             logger.debug("request ", requestOpts.url, Date.now() - start);
             if (error || !response) {
                 callback([0, {}, error]);
