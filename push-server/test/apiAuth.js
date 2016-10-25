@@ -69,7 +69,7 @@ describe('apiAuth.js', () => {
     it('check ip', function (done) {
 
         var ipList = ['127.0.0.1', '127.0.0.2'];
-        var apiCheckIp = function (path, req, logger) {
+        var apiCheckIp = (path, req, logger) => {
             var ip = req.headers['x-real-ip'] || req.connection.remoteAddress;
             logger.debug("%s caller ip %s", path, ip);
             if (req.p.pushAll == 'true') {
