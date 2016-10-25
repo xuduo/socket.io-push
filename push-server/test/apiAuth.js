@@ -58,7 +58,7 @@ describe('apiAuth.js', () => {
                     topic: 'message',
                     data: 'test'
                 }
-            }, (error, response, body) => {
+            }, (error, response) => {
                 expect(JSON.parse(response.body).code).to.be.equal("error");
                 done();
             });
