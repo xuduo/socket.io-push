@@ -41,10 +41,10 @@ class TopicOnline {
                 for (const socketId in data[key].sockets) {
                     const socket = this.io.sockets.connected[socketId];
                     if (socket) {
-                        devices.push({pushId: socket.pushId, uid: socket.uid});
+                        devices.push({pushId: socket.pushId, uid: socket.uid, platform: socket.platform});
                     }
                 }
-                const json = {length: data[key].length, devices: devices, time: Date.now(),};
+                const json = {length: data[key].length, devices: devices, time: Date.now()};
                 const redisKey = "stats#topicOnline#" + key;
                 this.redis.hset(redisKey, this.id, JSON.stringify(json));
                 this.redis.expire(redisKey, this.expire);
@@ -76,6 +76,7 @@ class TopicOnline {
     getTopicDevices(topic, callback) {
         const devices = [];
         this.redis.hgetall("stats#topicOnline#" + topic, (err, result) => {
+            const json = {topic: topic};
             if (result) {
                 const delKey = [];
                 for (const key in result) {
@@ -83,14 +84,26 @@ class TopicOnline {
                     if ((data.time + this.timeValidWithIn) < Date.now()) {
                         delKey.push(key);
                     } else {
+                        for(const device of data.devices){
+                            if (device.platform) {
+                                let pCount = json[device.platform];
+                                if (!pCount) {
+                                    pCount = 0;
+                                }
+                                pCount = pCount + 1;
+                                json[device.platform] = pCount;
+                            }
+                        }
                         Array.prototype.push.apply(devices, data.devices);
                     }
                 }
+                json.total = devices.length;
+                json.devices = devices;
                 if (delKey.length > 0) {
                     this.redis.hdel("stats#topicOnline#" + topic, delKey);
                 }
             }
-            callback(devices);
+            callback(json);
         });
     }
 

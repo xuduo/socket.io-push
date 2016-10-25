@@ -287,7 +287,7 @@ class RestApi {
                 return next();
             }
             topicOnline.getTopicDevices(topic, (result) => {
-                res.json({devices: result, topic: req.p.topic, count: result.length});
+                res.json(result);
                 return next();
             });
         });
