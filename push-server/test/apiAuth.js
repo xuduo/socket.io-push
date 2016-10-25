@@ -30,8 +30,7 @@ describe('apiAuth.js', () => {
         });
     });
 
-
-    it('check should not pass', function (done) {
+    it('check should not pass', (done) => {
 
         const apiCheckDenyAll = ()=> {
             return false;
