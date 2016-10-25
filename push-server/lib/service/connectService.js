@@ -48,10 +48,10 @@ class ConnectService {
 
     connect(socket, callback){
         this.isConnected(socket.pushId, (connectedOrNot, socketId) => {
+            this.bindPushId(socket.pushId, socket.id);
             if(connectedOrNot){
                 callback(false);
             }else{
-                this.bindPushId(socket.pushId, socket.id);
                 callback(true);
             }
         })
