@@ -66,7 +66,7 @@ describe('apiAuth.js', () => {
     });
 
 
-    it('check ip', function (done) {
+    it('check ip', (done) => {
 
         var ipList = ['127.0.0.1', '127.0.0.2'];
         var apiCheckIp = (path, req, logger) => {
