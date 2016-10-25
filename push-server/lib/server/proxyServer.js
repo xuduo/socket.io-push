@@ -1,12 +1,12 @@
-module.exports = (io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService, connectService, arrivalStats) => {
-    return new ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService, connectService, arrivalStats);
+module.exports = (io, stats, packetService, notificationService, uidStore, ttlService, tagService, connectService, arrivalStats) => {
+    return new ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, tagService, connectService, arrivalStats);
 };
 const logger = require('winston-proxy')('ProxyServer');
 const http = require('http');
 
 class ProxyServer {
 
-    constructor(io, stats, packetService, notificationService, uidStore, ttlService, httpProxyService, tagService, connectService, arrivalStats) {
+    constructor(io, stats, packetService, notificationService, uidStore, ttlService, tagService, connectService, arrivalStats) {
         this.io = io;
 
         io.on('connection', (socket) => {
@@ -112,12 +112,6 @@ class ProxyServer {
                 logger.debug("on unsubscribeTopic %j", data);
                 const topic = data.topic;
                 socket.leave(topic);
-            });
-
-            socket.on('http', (data, callback) => {
-                httpProxyService.request(data, (result) => {
-                    callback(result);
-                });
             });
 
             const token = (data) => {
