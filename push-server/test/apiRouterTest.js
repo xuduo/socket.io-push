@@ -24,7 +24,7 @@ describe('apiRouterTest', function () {
         });
     });
 
-    it('send notification', function (done) {
+    it('send notification', (done) => {
 
         let pushIds = [];
         pushClients.forEach((client) => {
