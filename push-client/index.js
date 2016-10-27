@@ -69,6 +69,8 @@ function PushClient(url, opt) {
     }
     this.setItem("pushId", this.pushId);
 
+    this.platform = opt.platform || "browser" ;
+
     this.event = new EventEmitter();
     this.socket.on('connect', function () {
         self.sendPushIdAndTopic();
@@ -115,7 +117,7 @@ PushClient.prototype.sendPushIdAndTopic = function () {
     this.socket.emit('pushId', {
         id: this.pushId,
         version: 1,
-        platform: "browser",
+        platform: this.platform,
         topics: topics,
         lastUnicastId: this.getItem("lastUnicastId"),
         lastPacketIds: this.topicToLastPacketId
