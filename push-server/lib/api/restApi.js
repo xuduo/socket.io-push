@@ -1,12 +1,12 @@
-module.exports = (apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats) => {
-    return new RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats);
+module.exports = (apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, arrivalStats) => {
+    return new RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, arrivalStats);
 };
 const express = require('express');
 const logger = require('winston-proxy')('RestApi');
 
 class RestApi {
 
-    constructor(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats) {
+    constructor(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, arrivalStats) {
         this.apiAuth = apiAuth;
         this.apiRouter = apiRouter;
 
@@ -191,7 +191,7 @@ class RestApi {
         };
 
         const handleArrivalRate = (req, res, next) => {
-            stats.getArrivalRateStatus((result) => {
+            arrivalStats.getArrivalRateStatus((result) => {
                 res.json(result);
                 return next();
             });
