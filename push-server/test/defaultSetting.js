@@ -20,7 +20,17 @@ DefaultSetting.getDefaultApiServer = ()=> {
 
 DefaultSetting.getDefaultProxyServer = ()=> {
     return require('../lib/proxy')(require('../config-proxy'));
-}
+};
+
+DefaultSetting.getAndroidPushClient = (pushId) => {
+    let port = require("../config-proxy").port;
+    return require('socket.io-push-client')('http://localhost:' + port, {
+        pushId: pushId,
+        transports: ['websocket', 'polling'],
+        useNotification: true,
+        platform: 'android'
+    })
+};
 
 module.exports = DefaultSetting;
 

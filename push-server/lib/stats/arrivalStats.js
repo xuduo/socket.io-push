@@ -61,7 +61,7 @@ class ArrivalStats {
     }
 
     addPacketToArrivalRate(msg, start, ttl) {
-        msg = JSON.parse(msg.toString());
+        msg = JSON.parse(JSON.stringify(msg));
         let packet = {};
         packet.id = msg.id;
         packet.title = msg.android.title;
