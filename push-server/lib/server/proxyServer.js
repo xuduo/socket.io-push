@@ -1,12 +1,12 @@
-module.exports = (io, stats, packetService, notificationService, uidStore, ttlService, tagService, connectService, arrivalStats) => {
-    return new ProxyServer(io, stats, packetService, notificationService, uidStore, ttlService, tagService, connectService, arrivalStats);
+module.exports = (io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats) => {
+    return new ProxyServer(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats);
 };
 const logger = require('winston-proxy')('ProxyServer');
 const http = require('http');
 
 class ProxyServer {
 
-    constructor(io, stats, packetService, notificationService, uidStore, ttlService, tagService, connectService, arrivalStats) {
+    constructor(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats) {
         this.io = io;
 
         io.on('connection', (socket) => {
@@ -103,13 +103,14 @@ class ProxyServer {
             });
 
             socket.on('subscribeTopic', (data) => {
+                logger.debug("on subscribeTopic %j, pushId %s", data, socket.pushId);
                 const topic = data.topic;
                 ttlService.getPackets(topic, data.lastPacketId, socket);
                 socket.join(topic);
             });
 
             socket.on('unsubscribeTopic', (data) => {
-                logger.debug("on unsubscribeTopic %j", data);
+                logger.debug("on unsubscribeTopic %j, pushId %s", data, socket.pushId);
                 const topic = data.topic;
                 socket.leave(topic);
             });
@@ -126,7 +127,7 @@ class ProxyServer {
                     data.token = data.apnToken;
                     delete data.apnToken;
                 }
-                notificationService.setToken(data);
+                tokenService.setToken(data);
             };
             socket.on('apnToken', token);
             socket.on('token', token);

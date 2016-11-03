@@ -14,14 +14,6 @@ class NotificationProviderFactory {
         this.providers[provider.type] = provider;
     }
 
-    addToken(data) {
-        const provider = this.providers[data.type || "apn"];
-        logger.debug("addToken %j", data);
-        if (provider) {
-            provider.addToken(data);
-        }
-    }
-
     sendMany(notification, mapTypeToTokenList, timeToLive) {
         for (const type in mapTypeToTokenList) {
             const provider = this.providers[type || "apn"];
