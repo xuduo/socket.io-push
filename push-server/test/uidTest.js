@@ -3,29 +3,29 @@ var chai = require('chai');
 var expect = chai.expect;
 var defSetting = require('./defaultSetting');
 
-describe('push test', function () {
+describe('push test', () => {
 
-    before(function () {
+    before(() => {
         global.proxyServer = defSetting.getDefaultProxyServer();
         global.apiServer = defSetting.getDefaultApiServer();
         global.apiUrl = defSetting.getDefaultApiUrl();
         global.pushClient = defSetting.getDefaultPushClient();
     });
 
-    after(function () {
+    after(() => {
         global.proxyServer.close();
         global.apiServer.close();
         global.pushClient.disconnect();
     });
 
-    it('connect', function (done) {
-        pushClient.on('connect', function (data) {
+    it('connect', (done) => {
+        pushClient.on('connect', (data) => {
             expect(data.uid).to.be.undefined;
             done();
         });
     });
 
-    it('bind uid', function (done) {
+    it('bind uid', (done) => {
 
         request({
             url: apiUrl + '/api/uid/bind',
@@ -38,7 +38,7 @@ describe('push test', function () {
             expect(JSON.parse(body).code).to.be.equal("success");
             pushClient.disconnect();
             pushClient.connect();
-            pushClient.on('connect', function (data) {
+            pushClient.on('connect', (data) => {
                 expect(data.uid).to.equal("1");
                 request({
                     url: apiUrl + '/api/uid/bind',
@@ -51,11 +51,11 @@ describe('push test', function () {
                     expect(JSON.parse(body).code).to.be.equal("success");
                     pushClient.disconnect();
                     pushClient.connect();
-                    pushClient.on('connect', function (data) {
+                    pushClient.on('connect', (data) => {
                         expect(data.uid).to.equal("2");
-                        apiServer.uidStore.getPushIdByUid("1", function (pushIds) {
+                        apiServer.uidStore.getPushIdByUid("1", (pushIds) => {
                             expect(pushIds).to.not.contain(pushClient.pushId);
-                            apiServer.uidStore.getPushIdByUid("2", function (pushIds) {
+                            apiServer.uidStore.getPushIdByUid("2", (pushIds) => {
                                 expect(pushIds).to.contain(pushClient.pushId);
                                 done();
                             });
@@ -67,25 +67,80 @@ describe('push test', function () {
 
     });
 
-    it('unbind uid', function (done) {
+    it('unbind from client', (done) => {
         pushClient.unbindUid();
         pushClient.disconnect();
+        pushClient.connect();
+        pushClient.on('connect', (data) => {
+            expect(data.uid).to.be.undefined;
+            pushClient.connect();
+            done();
+        });
+    });
 
+    it('unbind uid by pushId', (done) => {
         request({
-            url: apiUrl + '/api/uid/remove',
+            url: apiUrl + '/api/uid/bind',
             method: "post",
             form: {
-                pushId: pushClient.pushId
+                pushId: pushClient.pushId,
+                uid: 1
             }
         }, (error, response, body) => {
-            pushClient.connect();
-            pushClient.on('connect', function (data) {
-                expect(data.uid).to.be.undefined;
+            request({
+                url: apiUrl + '/api/uid/remove',
+                method: "post",
+                form: {
+                    pushId: pushClient.pushId
+                }
+            }, (error, response, body) => {
+                pushClient.disconnect();
                 pushClient.connect();
-                done();
+                pushClient.on('connect', (data) => {
+                    expect(data.uid).to.be.undefined;
+                    pushClient.connect();
+                    done();
+                });
             });
         });
+    });
 
+    it('unbind uid by uid', (done) => {
+        request({
+            url: apiUrl + '/api/uid/bind',
+            method: "post",
+            form: {
+                pushId: pushClient.pushId,
+                uid: 1
+            }
+        }, (error, response, body) => {
+            request({
+                url: apiUrl + '/api/uid/remove',
+                method: "post",
+                form: {
+                    uid: 1
+                }
+            }, (error, response, body) => {
+                pushClient.disconnect();
+                pushClient.connect();
+                pushClient.on('connect', (data) => {
+                    expect(data.uid).to.be.undefined;
+                    pushClient.connect();
+                    done();
+                });
+            });
+        });
+    });
+
+    it('invalid param test', (done) => {
+        request({
+            url: apiUrl + '/api/uid/remove',
+            method: 'post',
+        }, (error, response, body) => {
+            let ret = JSON.parse(body);
+            expect(ret.code).to.be.equal('error');
+            done();
+        })
     });
 
 });

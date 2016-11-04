@@ -219,7 +219,6 @@ class RestApi {
             } else {
                 res.statusCode = 400;
                 res.json({code: "error", message: "pushId or uid is required"});
-                res.json({code: "success"});
             }
             return next();
         };
@@ -292,11 +291,6 @@ class RestApi {
             });
         });
 
-        router.get('/status', (req, res, next) => {
-            res.json(redis.status());
-            return next();
-        });
-
         router.get('/redis/del', (req, res, next) => {
             redis.del(req.p.key);
             res.json({code: "success", key: req.p.key});
@@ -319,7 +313,7 @@ class RestApi {
 
         router.get('/redis/hgetall', (req, res, next) => {
             redis.hgetall(req.p.key, (err, result) => {
-                res.json({key: req.p.key, count: result.length, result: result});
+                res.json({key: req.p.key, count: Object.keys(result).length, result: result});
                 return next();
             });
         });
@@ -335,43 +329,10 @@ class RestApi {
             });
         });
 
-        router.get('/nginx', (req, res, next) => {
-            stats.getSessionCount((count) => {
-                res.writeHead(200, {
-                    'Content-Type': 'text/plain'
-                });
-                count.processCount.forEach((process) => {
-                    res.write("server " + process.id + ";\n");
-                });
-                res.end();
-                return next();
-            });
-        });
-
         router.get('/config', (req, res, next) => {
             res.json(config);
             return next();
         });
-
-        router.get('/ip', (req, res, next) => {
-            let ip = req.connection.remoteAddress;
-            ip = ip.substr(ip.lastIndexOf(':') + 1, ip.length);
-            res.writeHead(200, {
-                'Content-Length': Buffer.byteLength(ip),
-                'Content-Type': 'text/plain'
-            });
-            res.write(ip);
-            res.end();
-            return next();
-        });
-
-        const handleEcho = (req, res, next) => {
-            res.json(req.p);
-            return next();
-        };
-
-        router.get('/echo', handleEcho);
-        router.post('/echo', handleEcho);
     }
 
     close() {
