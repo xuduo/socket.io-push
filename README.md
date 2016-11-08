@@ -7,10 +7,15 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 
 ###特点
 * 透明集成了小米,华为push
-* 单机广播速度可以达到[10w条/秒](bench-mark.md),
 * 同机房情况, 建立长连接->上报pushId->调用api->收到push, 只需要20多毫秒
-* uid-pushId绑定功能, 可以分平台，限制绑定数量，过期时间，适合各种帐号多登方案，非常容易
 * 支持浏览器推送
+
+###性能
+* 可以部署70台(实测)或者更多机器, 支持百万以上同时在线
+* 单机广播速度可以达到[10w条/秒](bench-mark.md)
+* 同机房, 全流程, 20毫秒, 成功率近100%
+* 跨机房, 全流程, 60毫秒, 成功率99.9%
+* 手机端统计推送延迟, 260毫秒
 
 ###文档
 * [服务器 push-server](push-server)
@@ -21,11 +26,11 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 ###名词
 * `push-server` 推送服务器, 提供客户端长连接, http api接口
 * `业务服务器` push-server api的调用方
-* `客户端` 业务app
+* `客户端` 业务app服务器
 * `长连接` 客户端到push-server之间的socket.io连接
 * `notification` 发送通知栏消息, ios走apns通道, 华为,小米走厂商通道(如配置开启), 浏览器/android手机走长连接
 * `push` 协议透传, 走长连接通道. app主进程存活的时候才能收到.主要应用场景如直播间聊天,送礼物,股价实时推送
-* `topic` 服务器push广播的对象,类似于频道的概念, 客户端进入某直播间(id=001)后(topic="room001"),业务服务器可以向此topic发聊天push,subscribe了这个topic的客户端即可收到push
+* `topic` 服务器push广播的对象,类似于直播间/频道的概念, 客户端进入某直播间(id=001)后(topic="room001"),业务服务器可以向此topic发聊天push,subscribe了这个topic的客户端即可收到push
 * `pushId` 某个设备的唯一标识, app安装后生成的随机字符串, 用于服务器单播
 * `uid` 业务服务器用于标识某个用户的id,字符串类型.可以通过push-server的接口进行绑定,通过客户端SDK解除绑定
 * `timeToLive` 过期时间
@@ -35,10 +40,10 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 
 优势:
 
-1. 第三方推送接口需要跨机房访问,与其它app共享服务通道,自己无法控制服务质量
-2. 可以很方便的部署一套测试环境
-3. 调试问题很容易, api有没有调用到,某个设备有没有连上来,都可以在debug级日志看到
-4. 支持apns多bundleId,开发,发布,马甲版,都可以自动匹配推送
+1. 同机房调用, 成功率100% vs 第三方 99.2%(我们调用小米接口成功率) 99.6%(我们调用华为接口成功率)
+2. 测试,正式环境,可以分开部署, 完全隔离
+3. 支持苹果推送多bundleId, 开发,发布,马甲版, 都可以自动匹配推送
+4. 苹果推送进程可以独立部署在香港/国外
 
 劣势
 
