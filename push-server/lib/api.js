@@ -8,7 +8,7 @@ class Api {
         const instance = config.instance || 1;
         this.port = config.port = config.port + instance - 1;
 
-        console.log(`start api on port  ${this.port} #${instance}`);
+        console.log(`start api on port  ${this.port} #${process.pid}`);
         const cluster = require('socket.io-push-redis/cluster')(config.redis);
 
         this.io = require('socket.io-push-redis/emitter')(cluster);
@@ -17,7 +17,7 @@ class Api {
         this.stats = require('./stats/stats')(cluster, 0, config.statsCommitThreshold);
         this.arrivalStats = require('./stats/arrivalStats')(cluster);
         this.uidStore = require('./redis/uidStore')(cluster);
-        this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version, this.stats, this.arrivalStats);
+        this.ttlService = require('./service/ttlService')(this.io, null, cluster, config.ttl_protocol_version, this.stats, this.arrivalStats);
         const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
         this.notificationService = require('./service/notificationService')(config.apns, cluster, this.ttlService, tokenTTL);
 

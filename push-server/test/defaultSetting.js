@@ -7,16 +7,26 @@ DefaultSetting.getDefaultPushClient = (pushId)=> {
         transports: ['websocket', 'polling'],
         useNotification: true
     });
-}
+};
+
+DefaultSetting.getDefaultPushHttpsClient = (pushId)=> {
+    let port = require("../config-proxy").https_port;
+    return require('socket.io-push-client')('https://www.push-test.com:' + port, {
+        pushId: pushId,
+        transports: ['websocket', 'polling'],
+        useNotification: true,
+        rejectUnauthorized: false
+    });
+};
 
 DefaultSetting.getDefaultApiUrl = ()=> {
     let port = require("../config-api").port;
     return 'http://localhost:' + port;
-}
+};
 
 DefaultSetting.getDefaultApiServer = ()=> {
     return require('../lib/api')(require('../config-api'));
-}
+};
 
 DefaultSetting.getDefaultProxyServer = ()=> {
     return require('../lib/proxy')(require('../config-proxy'));

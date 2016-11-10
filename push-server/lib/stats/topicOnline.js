@@ -1,10 +1,10 @@
-module.exports = (redis, io, id, filterTopics) => {
-    return new TopicOnline(redis, io, id, filterTopics);
+module.exports = (redis, io, https_io, id, filterTopics) => {
+    return new TopicOnline(redis, io, https_io, id, filterTopics);
 };
 
 class TopicOnline {
 
-    constructor(redis, io, id, filterTopics) {
+    constructor(redis, io, https_io, id, filterTopics) {
         this.redis = redis;
         this.id = id;
         this.filters = filterTopics;
@@ -16,7 +16,16 @@ class TopicOnline {
             setInterval(() => {
                 if (this.io.nsps) {
                     const result = this.io.nsps['/'].adapter.rooms;
-                    this.writeTopicOnline(result);
+                    this.writeTopicOnline(this.io, result);
+                }
+            }, this.interval);
+        }
+        if (https_io) {
+            this.https_io = https_io;
+            setInterval(() => {
+                if (this.https_io.nsps) {
+                    const result = this.https_io.nsps['/'].adapter.rooms;
+                    this.writeTopicOnline(this.https_io, result);
                 }
             }, this.interval);
         }
@@ -34,12 +43,12 @@ class TopicOnline {
         return false;
     }
 
-    writeTopicOnline(data) {
+    writeTopicOnline(io_type, data) {
         for (const key in data) {
             if (data[key].length > 0 && this.filterTopic(key, this.filters)) {
                 const devices = [];
                 for (const socketId in data[key].sockets) {
-                    const socket = this.io.sockets.connected[socketId];
+                    const socket = io_type.sockets.connected[socketId];
                     if (socket) {
                         devices.push({pushId: socket.pushId, uid: socket.uid, platform: socket.platform});
                     }

@@ -1,5 +1,5 @@
-module.exports = (redis, port, commitThreshHold, packetDropThreshold)=> {
-    return new Stats(redis, port, commitThreshHold, packetDropThreshold);
+module.exports = (redis, pid, commitThreshHold, packetDropThreshold)=> {
+    return new Stats(redis, pid, commitThreshHold, packetDropThreshold);
 };
 
 const logger = require('winston-proxy')('Stats');
@@ -9,7 +9,7 @@ const mSecPerHour = 60 * 60 * 1000;
 
 class Stats {
 
-    constructor(redis, port, commitThreshHold, packetDropThreshold = 0) {
+    constructor(redis, pid, commitThreshHold, packetDropThreshold = 0) {
         this.redis = redis;
         this.sessionCount = {total: 0};
         this.redisIncrBuffer = require('./redisIncrBuffer.js')(redis, commitThreshHold);
@@ -20,11 +20,11 @@ class Stats {
         const fs = require('fs');
         let ip;
         if (fs.existsSync(ipPath)) {
-            ip = fs.readFileSync(ipPath, "utf8").trim() + ":" + port;
+            ip = fs.readFileSync(ipPath, "utf8").trim() + ":" + pid;
         }
         logger.debug("ip file %s %s", ipPath, ip);
         this.id = ip || randomstring.generate(32);
-        if (port > 0) {
+        if (pid > 0) {
             setInterval(() => {
                 this.writeStatsToRedis();
             }, 10000);

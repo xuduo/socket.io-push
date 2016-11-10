@@ -1,5 +1,5 @@
-module.exports = (io, redis, protocolVersion, stats, arrivalStats) => {
-    return new TTLService(io, redis, protocolVersion, stats, arrivalStats);
+module.exports = (io, https_io, redis, protocolVersion, stats, arrivalStats) => {
+    return new TTLService(io, https_io, redis, protocolVersion, stats, arrivalStats);
 };
 
 const logger = require('winston-proxy')('TTLService');
@@ -8,9 +8,10 @@ const maxTllPacketPerTopic = -50;
 
 class TTLService {
 
-    constructor(io, redis, protocolVersion, stats, arrivalStats) {
+    constructor(io, https_io, redis, protocolVersion, stats, arrivalStats) {
         this.redis = redis;
         this.io = io;
+        this.https_io = https_io;
         this.protocolVersion = protocolVersion || 1;
         this.stats = stats;
         this.arrivalStats = arrivalStats;
@@ -93,6 +94,9 @@ class TTLService {
 
     emitPacket(topic, event, packet) {
         this.emitToSocket(this.io.to(topic), event, packet);
+        if (this.https_io) {
+            this.emitToSocket(this.https_io.to(topic), event, packet);
+        }
     }
 
     emitToSocket(socket, event, packet) {

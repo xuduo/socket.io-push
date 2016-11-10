@@ -31,18 +31,26 @@ if (cluster.isMaster) {
     for (var i = 0; i < totalFork; i++) {
         cluster.fork();
     }
-    require('fs').writeFile(process.cwd() + '/num_processes', totalFork, (err) => {
+    let fs = require('fs');
+    let path = process.cwd();
+    fs.writeFile(path + '/num_processes', totalFork, (err) => {
         if (err) {
             logger.error("fail to write num of processes");
+        }
+    });
+    let pid = process.pid;
+    fs.writeFile(path + '/server_master_pid', pid.toString(), (err) => {
+        if (err) {
+            logger.error("fail to write pid of server_master");
         }
     });
     logger.info("cluster master totalFork " + totalFork);
 } else {
     if (cluster.worker.id <= proxy.instances) {
-        proxy.instance = cluster.worker.id;
+        //proxy.instance = cluster.worker.id;
         require('./lib/proxy')(proxy);
     } else if (cluster.worker.id > proxy.instances && cluster.worker.id <= ( proxy.instances + api.instances)) {
-        api.instance = cluster.worker.id - proxy.instances;
+        //api.instance = cluster.worker.id - proxy.instances;
         require('./lib/api')(api);
     } else if (cluster.worker.id == (proxy.instances + api.instances + admin.instances)) {
         require('./lib/admin')(admin);

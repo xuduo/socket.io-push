@@ -69,13 +69,13 @@
 <form id="myDiv">
     <table cellspacing="10" cellpadding="0" width="400">
         <tr align=left>
-            <td width="100" align=right>Topic :</td>
-            <td width="300" colspan="3"><input id="title" name="id" type="text"></td>
+            <td width="100" align=right>topic :</td>
+            <td width="300" colspan="3"><input id="topic" name="topic" type="text"></td>
         </tr>
 
         <tr align=left>
             <td width="100" align=right>data</td>
-            <td width="300" colspan="3"><textarea id="content" name="content" cols="40" rows="4"
+            <td width="300" colspan="3"><textarea id="data" name="data" cols="40" rows="4"
                                                   placeholder="内容输入框" value=""></textarea></td>
         </tr>
 
@@ -165,14 +165,14 @@
                 }
             }
         }
-        var title = $("#title").val();
-        if (title == "") {
-            alert("title 不能为空");
-            return false;
-        }
-        var content = $("#content").val();
-        if (content == "") {
-            alert("content 不能为空");
+//        var topic = $("#topic").val();
+//        if (topic == "") {
+//            alert("topic 不能为空");
+//            return false;
+//        }
+        var data = $("#data").val();
+        if (data == "") {
+            alert("data 不能为空");
             return false
         }
 
@@ -186,19 +186,19 @@
 
         var uri = $('input[name=uri]:checked').val();
 
-        var data = {
+        var para = {
             pushId: pushIds,
             pushAll: pushAll,
-            topic : $("#title").val(),
+            topic: $("#topic").val(),
             uid: uids,
-            json: $("#content").val(),
+            json: $("#data").val(),
             timeToLive: $("#timeToLive").val()
         };
 
         $.ajax({
             type: 'GET',
             url: $.cookie("api_url") + '/api/push',
-            data: data,
+            data: para,
             success: function (data) {
                 document.getElementById("result").innerHTML = JSON.stringify(data);
                 $('#url').attr('href', this.url);
