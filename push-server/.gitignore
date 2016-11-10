@@ -12,4 +12,5 @@ logs
 ip
 localstorage/
 num_processes
+server_master_pid
 
