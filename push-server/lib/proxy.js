@@ -7,8 +7,6 @@ const urlCheck = require('./util/urlCheck');
 class Proxy {
 
     constructor(config) {
-        //const instance = config.instance || 1;
-        //this.port = config.port + instance - 1;
         this.port = config.port;
 
         const cluster = require('socket.io-push-redis/cluster')(config.redis);

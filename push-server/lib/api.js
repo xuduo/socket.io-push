@@ -1,6 +1,6 @@
 module.exports = function (config, server) {
     return new Api(config, server);
-}
+};
 
 class Api {
 

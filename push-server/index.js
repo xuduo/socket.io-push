@@ -47,10 +47,8 @@ if (cluster.isMaster) {
     logger.info("cluster master totalFork " + totalFork);
 } else {
     if (cluster.worker.id <= proxy.instances) {
-        //proxy.instance = cluster.worker.id;
         require('./lib/proxy')(proxy);
     } else if (cluster.worker.id > proxy.instances && cluster.worker.id <= ( proxy.instances + api.instances)) {
-        //api.instance = cluster.worker.id - proxy.instances;
         require('./lib/api')(api);
     } else if (cluster.worker.id == (proxy.instances + api.instances + admin.instances)) {
         require('./lib/admin')(admin);
