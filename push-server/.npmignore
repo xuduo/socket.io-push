@@ -7,3 +7,4 @@ ip
 num_processes
 pid
 2idc_socket.io-push.png
+server_master_pid
