@@ -43,46 +43,6 @@ cd push-server
 push-server -f
 -f foreground启动,不指定会后台启动
 
-##Nginx reverse proxy
-
-nginx.conf
-
-```
-upstream ws_proxy {
-    ip_hash;
-    server 127.0.0.1:11001;
-    server 127.0.0.1:11002;
-    server 127.0.0.1:11003;
-}
-
-upstream ws_api {
-    ip_hash;
-    server 127.0.0.1:12001;
-    server 127.0.0.1:12002;
-    server 127.0.0.1:12003;
-}
-
-server
-{
-    listen 80;
-
-    #proxy代理
-    location /socket.io/ {
-        proxy_pass http://ws_proxy;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Host $host;
-        proxy_set_header Connection "upgrade";
-    }
-
-    #api代理
-    location /api {
-        proxy_pass http://ws_api;
-    }
-}
-```
-
 ##推送 API
 
 string[]类型,表示http协议中list类型参数，如 get?uid=123&uid=456 ,表示一个uid数组 ["123", "456"]. get?uid=123 表示单个uid数组 [123]
@@ -226,7 +186,3 @@ topic -> 查询的topic
 --- 参数
 
 key -> redis key
-
-### /api/nginx 服务器实时状态
-
-返回自动生成的nginx前端代理配置
