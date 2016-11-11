@@ -1,9 +1,7 @@
 var config = {};
 
-
 config.port = 10001; //socket.io 长连接端口
 
-config.https_port = 10443; // https
 config.https_key = process.cwd() + "/cert/https/server.key.pem";
 config.https_crt = process.cwd() + "/cert/https/server.cer";
 

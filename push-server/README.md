@@ -2,7 +2,8 @@ Push-Server
 =======================
 部署图(两机房部署)
 ![image](2idc_socket.io-push-new.png)
-测试服务器 http://spush.yy.com/
+
+* 测试服务器 http://spush.yy.com/
 
 ##install & run
 
