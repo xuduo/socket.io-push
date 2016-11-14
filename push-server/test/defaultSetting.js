@@ -1,7 +1,7 @@
 var DefaultSetting = {};
 
 DefaultSetting.getDefaultPushClient = (pushId)=> {
-    let port = require("../config-proxy").port;
+    let port = require("../config-proxy").http_port;
     return require('socket.io-push-client')('http://localhost:' + port, {
         pushId: pushId,
         transports: ['websocket', 'polling'],
@@ -10,7 +10,7 @@ DefaultSetting.getDefaultPushClient = (pushId)=> {
 };
 
 DefaultSetting.getDefaultPushHttpsClient = (pushId)=> {
-    let port = require("../config-proxy").port;
+    let port = require("../config-proxy").https_port;
     return require('socket.io-push-client')('https://www.push-test.com:' + port, {
         pushId: pushId,
         transports: ['websocket', 'polling'],

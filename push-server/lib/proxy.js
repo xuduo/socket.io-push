@@ -4,27 +4,21 @@ module.exports = function (config) {
 
 const urlCheck = require('./util/urlCheck');
 const net = require('net');
+const ioServer = require('socket.io');
+const http = require('http');
+const https = require('https');
 
 class Proxy {
 
     constructor(config) {
-        this.tcp_port = config.port;
-        this.http_port = this.tcp_port + 1;
-        this.https_port = this.tcp_port + 2;
+        this.http_port = config.http_port;
+        this.https_port = config.https_port;
 
-        const cluster = require('socket.io-push-redis/cluster')(config.redis);
-
-        const srv = require('http').Server(function (req, res) {
+        this.http_srv = http.createServer((req, res) => {
             urlCheck.checkPathname(req, res);
         });
-        srv.listen(this.http_port);
-
-        this.io = require('socket.io')(srv, {
-            pingTimeout: config.pingTimeout,
-            pingInterval: config.pingInterval,
-            transports: ['websocket', 'polling']
-        });
-        console.log(`start proxy on port  ${this.http_port}`);
+        this.http_srv.listen(this.http_port);
+        console.log(`start http proxy on port:  ${this.http_port}`);
 
         if (this.https_port && config.https_key && config.https_crt) {
             let fs = require('fs');
@@ -33,18 +27,23 @@ class Proxy {
                 cert: fs.readFileSync(config.https_crt)
             };
 
-            this.https_srv = require('https').Server(options, function (req, res) {
+            this.https_srv = https.createServer(options, (req, res) => {
                 urlCheck.checkPathname(req, res);
             });
             this.https_srv.listen(this.https_port);
-            this.https_io = require('socket.io')(this.https_srv, {
-                pingTimeout: config.pingTimeout,
-                pingInterval: config.pingInterval,
-                transports: ['websocket', 'polling']
-            });
-            console.log(`start https proxy on port  ${this.https_port}`);
         }
+        console.log(`start https proxy on port:  ${this.https_port}`);
 
+        let opt = {
+            pingTimeout: config.pingTimeout,
+            pingInterval: config.pingInterval,
+            transports: ['websocket', 'polling']
+        };
+        this.io = new ioServer();
+        this.io.attach(this.http_srv, opt);
+        this.io.attach(this.https_srv, opt);
+
+        const cluster = require('socket.io-push-redis/cluster')(config.redis);
         this.tagService = require('./service/tagService')(cluster);
         this.connectService = require('./service/connectService')(cluster);
         this.stats = require('./stats/stats')(cluster, process.pid, config.statsCommitThreshold, config.packetDropThreshold);
@@ -56,40 +55,34 @@ class Proxy {
         }, null, this.stats);
 
         this.io.adapter(socketIoRedis);
-        this.https_io.adapter(socketIoRedis);
 
         let packetService;
         if (config.redis.event) {
             packetService = require('./service/packetService')(cluster);
         }
         this.uidStore = require('./redis/uidStore')(cluster);
-        this.ttlService = require('./service/ttlService')(this.io, this.https_io, cluster, config.ttl_protocol_version, this.stats, this.arrivalStats);
+        this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version, this.stats, this.arrivalStats);
         const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
         this.tokenService = require('./service/tokenService')(cluster, tokenTTL);
 
-        this.proxyServer = require('./server/proxyServer')(this.io, this.https_io, this.stats, packetService, this.tokenService, this.uidStore,
+        this.proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.tokenService, this.uidStore,
             this.ttlService, this.tagService, this.connectService, this.arrivalStats);
         if (config.topicOnlineFilter) {
             this.topicOnline = require('./stats/topicOnline')(cluster, this.io, this.https_io, this.stats.id, config.topicOnlineFilter);
         }
 
-        this.tcpServer = net.createServer((conn)=> {
-            conn.once('data', (buf) => {
-                // A TLS handshake record starts with byte 22.
-                let address = (buf[0] === 22) ? this.https_port : this.http_port;
-                let proxy = net.createConnection(address, () => {
-                    proxy.write(buf);
-                    conn.pipe(proxy).pipe(conn);
-                });
-            });
-        });
-        this.tcpServer.listen(this.tcp_port);
     }
 
     close() {
-        this.tcpServer.close();
-        this.io.close();
-        this.https_io.close();
+        if (this.io) {
+            this.io.close();
+        }
+        if (this.http_srv) {
+            this.http_srv.close();
+        }
+        if (this.https_srv) {
+            this.https_srv.close();
+        }
         if (this.restApi) {
             this.restApi.close();
         }

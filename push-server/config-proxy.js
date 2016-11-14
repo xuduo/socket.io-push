@@ -1,11 +1,13 @@
 var config = {};
 
-config.port = 10001; //socket.io 长连接端口
+//socket.io 长连接端口, http & https
+config.http_port = 10001;
+config.https_port = 10443;
 
 config.https_key = process.cwd() + "/cert/https/server.key.pem";
 config.https_crt = process.cwd() + "/cert/https/server.cer";
 
-config.instances = 1;
+config.instances = 4;
 
 config.pingTimeout = 25000; //  心跳timeout
 config.pingInterval = 90000; // 心跳间隔

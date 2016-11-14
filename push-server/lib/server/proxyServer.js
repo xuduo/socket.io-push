@@ -1,14 +1,13 @@
-module.exports = (io, https_io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats) => {
-    return new ProxyServer(io, https_io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats);
+module.exports = (io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats) => {
+    return new ProxyServer(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats);
 };
 const logger = require('winston-proxy')('ProxyServer');
 //const http = require('http');
 
 class ProxyServer {
 
-    constructor(io, https_io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats) {
+    constructor(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats) {
         this.io = io;
-        this.https_io = https_io;
 
         this.connection_cb = (socket) => {
             socket.on('disconnect', () => {
@@ -157,7 +156,6 @@ class ProxyServer {
         };
 
         this.io.on('connection', this.connection_cb);
-        this.https_io.on('connection', this.connection_cb);
     }
 
 }
