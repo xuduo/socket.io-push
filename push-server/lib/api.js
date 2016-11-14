@@ -14,6 +14,7 @@ class Api {
         this.io = require('socket.io-push-redis/emitter')(cluster);
 
         this.tagService = require('./service/tagService')(cluster);
+        this.connectService = require('./service/connectService')(cluster);
         this.stats = require('./stats/stats')(cluster, 0, config.statsCommitThreshold);
         this.arrivalStats = require('./stats/arrivalStats')(cluster);
         this.uidStore = require('./redis/uidStore')(cluster);
@@ -39,7 +40,7 @@ class Api {
         }
         this.apiRouter = require('./service/apiRouter')(this.uidStore, this.notificationService, this.ttlService, this.tagService, config.routerMaxPushIds, config.routerApiUrls);
         this.onlineStats = require('./stats/onlineStats')(this.stats, this.port);
-        this.restApi = require('./api/restApi')(this.apiRouter, topicOnline, this.stats, config, cluster, apiThreshold, this.apnService, config.apiAuth, this.uidStore, this.onlineStats, this.arrivalStats);
+        this.restApi = require('./api/restApi')(this.apiRouter, topicOnline, this.stats, config, cluster, apiThreshold, this.apnService, config.apiAuth, this.uidStore, this.onlineStats, this.connectService, this.arrivalStats);
     }
 
     close() {
