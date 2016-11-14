@@ -1,9 +1,11 @@
 var config = {};
 
-//socket.io 长连接端口, http & https
+//socket.io 长连接端口
+// http 端口,不配置不启用http
 config.http_port = 10001;
+// https端口,不配置不启用https
 config.https_port = 10443;
-
+// https 证书＆密钥位置,不配置或配置错误不启用https
 config.https_key = process.cwd() + "/cert/https/server.key.pem";
 config.https_crt = process.cwd() + "/cert/https/server.cer";
 
