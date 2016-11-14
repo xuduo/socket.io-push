@@ -1,12 +1,12 @@
-module.exports = (apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, arrivalStats) => {
-    return new RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, arrivalStats);
+module.exports = (apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats) => {
+    return new RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats);
 };
 const express = require('express');
 const logger = require('winston-proxy')('RestApi');
 
 class RestApi {
 
-    constructor(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, arrivalStats) {
+    constructor(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats) {
         this.apiAuth = apiAuth;
         this.apiRouter = apiRouter;
 
@@ -289,6 +289,19 @@ class RestApi {
                 res.json(result);
                 return next();
             });
+        });
+
+        router.get('/isConnected', (req, res, next) => {
+            const pushId = req.p.pushId;
+            if(!pushId) {
+                res.statusCode = 400;
+                res.json({code: 'error', message: 'pushId is required'});
+                return next();
+            }
+            connectService.isConnected(pushId, (connectOrNot) => {
+                res.json({pushId: pushId, connected: connectOrNot});
+                return next();
+            })
         });
 
         router.get('/redis/del', (req, res, next) => {

@@ -8,6 +8,7 @@
     "url": "git@github.com:xuduo/socket.io-push.git"
   },
   "dependencies": {
-    "socket.io-client": "1.4.8"
+    "socket.io-client": "1.4.8",
+    "wxapp-socket-io": "1.0.0"
   }
 }

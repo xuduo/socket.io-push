@@ -96,9 +96,9 @@ describe('notification', function () {
             url: apiUrl + '/api/notification',
             method: "post",
             form: {
-                pushId: '',
                 pushAll: 'true',
-                notification: str
+                notification: str,
+                timeToLive: 100
             }
         }, (error, response, body) => {
             expect(JSON.parse(body).code).to.be.equal("success");

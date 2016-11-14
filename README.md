@@ -8,7 +8,7 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 ###特点
 * 透明集成了小米,华为push
 * 同机房情况, 建立长连接->上报pushId->调用api->收到push, 只需要20多毫秒
-* 支持浏览器推送
+* 支持浏览器, 微信小程序
 
 ###性能
 * 可以部署70台(实测)或者更多机器, 支持百万以上同时在线
