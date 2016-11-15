@@ -26,6 +26,7 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 
 ### 高级功能文档
 * topic相关
+* 多机器/机房部署
 * 统计相关
 
 ###名词
