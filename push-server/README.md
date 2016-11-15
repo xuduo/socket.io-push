@@ -22,33 +22,29 @@ sudo npm install -g socket.io-push
 ```
 mkdir push-server    
 cd push-server
+generate-push-server-config
 ```
 
-* 自动生成默认配置
+* 配置
 
-generate-push-server-config
 
-* proxy 进程配置,存在则启动proxy进程.
+* [config-proxy.js](config-proxy.js), 存在则启动proxy进程.
 
-[config-proxy.js](config-proxy.js)
+* [config-api.js](config-api.js), 存在则启动api进程.
 
-* api 进程配置,存在则启动api进程.
-
-[config-api.js](config-api.js)
-
-* admin 进程配置,存在则启动admin进程.
-
-[config-admin.js](config-admin.js)
+* [config-admin.js](config-admin.js) 进程配置,存在则启动admin进程.
 
 
 #运行
+```
 push-server -f
 -f foreground启动,不指定会后台启动
+```
 
 * 管理后台 http://localhost:12001/
 
-* proxy http url : http://localhost:10001/
+* 客户端SDK连接HTTP地址 : http://localhost:10001/ 
 
-* proxy https url: http://localhost:10443/
+* 客户端SDK连接HTTPS地址: http://localhost:10443/ 
 
 * api url: http://localhost:11001/
