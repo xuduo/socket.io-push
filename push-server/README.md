@@ -2,7 +2,7 @@ push-server 5分钟搭建指南
 =======================
 一台普通配置的服务器, 如我们使用的16G内存 CPU Xeon E5-2620, 可以很轻松的支撑20万日活APP的推送任务.
 
-##install & run
+##install 
 
 * 安装nodejs环境, 推荐6.0以上, LTS版本
 
@@ -34,7 +34,7 @@ generate-push-server-config
 * [config-admin.js](config-admin.js) 进程配置,存在则启动admin进程.
 
 
-#运行
+#run
 ```
 push-server -f
 -f foreground启动,不指定会后台启动
