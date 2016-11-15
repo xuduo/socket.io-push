@@ -1,10 +1,10 @@
-module.exports = (redis, io, https_io, id, filterTopics) => {
-    return new TopicOnline(redis, io, https_io, id, filterTopics);
+module.exports = (redis, io, id, filterTopics) => {
+    return new TopicOnline(redis, io, id, filterTopics);
 };
 
 class TopicOnline {
 
-    constructor(redis, io, https_io, id, filterTopics) {
+    constructor(redis, io, id, filterTopics) {
         this.redis = redis;
         this.id = id;
         this.filters = filterTopics;
@@ -17,15 +17,6 @@ class TopicOnline {
                 if (this.io.nsps) {
                     const result = this.io.nsps['/'].adapter.rooms;
                     this.writeTopicOnline(this.io, result);
-                }
-            }, this.interval);
-        }
-        if (https_io) {
-            this.https_io = https_io;
-            setInterval(() => {
-                if (this.https_io.nsps) {
-                    const result = this.https_io.nsps['/'].adapter.rooms;
-                    this.writeTopicOnline(this.https_io, result);
                 }
             }, this.interval);
         }

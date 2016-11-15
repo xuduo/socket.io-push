@@ -27,13 +27,13 @@ class Proxy {
             console.log(`start http proxy on port:  ${config.http_port}`);
         }
 
-        if (config.https_port && config.https_key && config.https_crt) {
+        if (config.https_port) {
             let fs = require('fs');
             let https_key = null;
             let https_cert = null;
             try {
-                https_key = fs.readFileSync(config.https_key);
-                https_cert = fs.readFileSync(config.https_crt);
+                https_key = fs.readFileSync(__dirname + '/../cert/https/key.pem');
+                https_cert = fs.readFileSync(__dirname + '/../cert/https/cert.pem');
             } catch (err) {
                 console.log('read https config file err:', err);
             }
