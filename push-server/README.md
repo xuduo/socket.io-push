@@ -1,4 +1,4 @@
-Push-Server
+push-server 5分钟搭建指南
 =======================
 一台普通配置的服务器, 如我们使用的16G内存 CPU Xeon E5-2620, 可以很轻松的支撑20万日活APP的推送任务.
 
@@ -26,7 +26,6 @@ generate-push-server-config
 ```
 
 * 配置
-
 
 * [config-proxy.js](config-proxy.js), 存在则启动proxy进程.
 
