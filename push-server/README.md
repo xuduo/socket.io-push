@@ -8,24 +8,24 @@ push-server 5分钟搭建指南
 
 https://nodejs.org/en/download/package-manager/
 
-* 安装/启动redis
+#### 安装/启动redis
 ```
 redis-server &
 ```
 
-* 安装/更新socket.io-push
+####  安装/更新socket.io-push
 ```
 sudo npm install -g socket.io-push
 ```
 
-* 新建工作目录, 用于存储日志, 配置文件
+####  新建工作目录, 用于存储日志, 配置文件
 ```
 mkdir push-server    
 cd push-server
 generate-push-server-config
 ```
 
-* 配置
+#### 配置
 
 * [config-proxy.js](config-proxy.js), 存在则启动proxy进程.
 
