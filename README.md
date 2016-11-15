@@ -25,7 +25,7 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * [Browser sdk](push-client)
 
 ### 高级功能文档
-* topic相关
+* topic相关(用于实现如直播间观众列表，在线人数实时查询功能)
 * 多机器/机房部署
 * 统计相关
 
