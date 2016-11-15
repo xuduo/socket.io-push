@@ -14,7 +14,8 @@ util.inherits(SocketIOWorker, BaseWorker);
 
 SocketIOWorker.prototype.createClient = function (callback) {
     var self = this;
-    var client = require('socket.io-push/lib/client/push-client.js')(this.server);
+    var client = require('socket.io-push/lib/client/push-client.js')(this.server,
+        { transports:['websocket'], 'forceNew':true });
 
     client.subscribeTopic('bench-test');
 
