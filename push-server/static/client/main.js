@@ -17,7 +17,7 @@ $(function () {
         type: 'GET',
         url: $.cookie("api_url") + '/api/config',
         success: function (data) {
-            $hostInput.val(window.location.protocol + "//" + window.location.hostname + ":" + data.io_port);
+            $hostInput.val(window.location.protocol + "//" + window.location.hostname + ":" + 10001);
         }
     });
 

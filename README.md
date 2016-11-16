@@ -17,11 +17,18 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * 跨机房, 全流程, 60毫秒, 成功率99.9%
 * 手机端统计推送延迟, 260毫秒
 
-###文档
-* [服务器 push-server](push-server)
+### Quick Start
+* [5分钟搭建一个单机服务器](push-server)
+* [服务器推送Api文档](push-server/PUSH-API.md)
 * [Android SDK & Demo](https://github.com/xuduo/socket.io-push-android)
 * [IOS SDK & Demo](https://github.com/xuduo/socket.io-push-ios)
-* [Browser](push-client)
+* [Browser sdk](push-client)
+
+### 高级功能文档
+* topic相关(用于实现如直播间观众列表，在线人数实时查询功能)
+* 多机器/机房部署
+* 苹果推送代理服务器(用于解决api服务器连接美国网络较差问题)
+* 统计相关
 
 ###名词
 * `push-server` 推送服务器, 提供客户端长连接, http api接口
