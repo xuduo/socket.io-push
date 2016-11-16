@@ -50,7 +50,7 @@ class Proxy {
                 this.io.attach(this.httpsServer, opt);
                 console.log(`start https proxy on port:  ${config.https_port}`);
             } else {
-                console.log('https https key or cert file invalid!');
+                console.log('https key or cert file invalid!');
             }
         }
 
