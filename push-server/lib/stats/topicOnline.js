@@ -34,12 +34,12 @@ class TopicOnline {
         return false;
     }
 
-    writeTopicOnline(io_type, data) {
+    writeTopicOnline(data) {
         for (const key in data) {
             if (data[key].length > 0 && this.filterTopic(key, this.filters)) {
                 const devices = [];
                 for (const socketId in data[key].sockets) {
-                    const socket = io_type.sockets.connected[socketId];
+                    const socket = this.io.sockets.connected[socketId];
                     if (socket) {
                         devices.push({pushId: socket.pushId, uid: socket.uid, platform: socket.platform});
                     }
@@ -84,7 +84,7 @@ class TopicOnline {
                     if ((data.time + this.timeValidWithIn) < Date.now()) {
                         delKey.push(key);
                     } else {
-                        for(const device of data.devices){
+                        for (const device of data.devices) {
                             if (device.platform) {
                                 let pCount = json[device.platform];
                                 if (!pCount) {
