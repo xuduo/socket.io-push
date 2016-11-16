@@ -2,13 +2,15 @@ module.exports = (io, stats, packetService, tokenService, uidStore, ttlService, 
     return new ProxyServer(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats);
 };
 const logger = require('winston-proxy')('ProxyServer');
+const http = require('http');
 
 class ProxyServer {
 
     constructor(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats) {
         this.io = io;
 
-        this.connection_cb = (socket) => {
+        io.on('connection', (socket) => {
+
             socket.on('disconnect', () => {
                 stats.removeSession();
                 stats.removePlatformSession(socket.platform);
@@ -152,9 +154,13 @@ class ProxyServer {
             });
 
             stats.addSession(socket);
-        };
+        });
+    }
 
-        this.io.on('connection', this.connection_cb);
+    getTopicOnline(topic) {
+        const online = this.io.nsps['/'].adapter.rooms[topic].length;
+        logger.debug("on topic online %s %d", topic, online);
+        return online;
     }
 
 }

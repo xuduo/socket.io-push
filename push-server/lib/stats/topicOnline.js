@@ -16,7 +16,7 @@ class TopicOnline {
             setInterval(() => {
                 if (this.io.nsps) {
                     const result = this.io.nsps['/'].adapter.rooms;
-                    this.writeTopicOnline(this.io, result);
+                    this.writeTopicOnline(result);
                 }
             }, this.interval);
         }
