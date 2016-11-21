@@ -1,5 +1,5 @@
-module.exports = function (config) {
-    return new Proxy(config);
+module.exports = function (ioServer, config) {
+    return new Proxy(ioServer, config);
 };
 
 const urlCheck = require('./util/urlCheck');
@@ -10,50 +10,51 @@ const https = require('https');
 
 class Proxy {
 
-    constructor(config) {
-        this.io = new ioServer();
-        let opt = {
-            pingTimeout: config.pingTimeout,
-            pingInterval: config.pingInterval,
-            transports: ['websocket', 'polling']
-        };
-
-        if (config.http_port) {
-            this.httpServer = http.createServer((req, res) => {
-                urlCheck.checkPathname(req, res);
-            });
-            this.httpServer.listen(config.http_port);
-            this.io.attach(this.httpServer, opt);
-            console.log(`start http proxy on port:  ${config.http_port}`);
-        }
-
-        if (config.https_port) {
-            let fs = require('fs');
-            let https_key = null;
-            let https_cert = null;
-            try {
-                https_key = fs.readFileSync(__dirname + '/../cert/https/key.pem');
-                https_cert = fs.readFileSync(__dirname + '/../cert/https/cert.pem');
-            } catch (err) {
-                console.log('read https config file err:', err);
-            }
-
-            if (https_key && https_cert) {
-                let options = {
-                    key: https_key,
-                    cert: https_cert
-                };
-                this.httpsServer = https.createServer(options, (req, res) => {
-                    urlCheck.checkPathname(req, res);
-                });
-                this.httpsServer.listen(config.https_port);
-                this.io.attach(this.httpsServer, opt);
-                console.log(`start https proxy on port:  ${config.https_port}`);
-            } else {
-                console.log('https key or cert file invalid!');
-            }
-        }
-
+    constructor(ioServer, config) {
+        // this.io = new ioServer();
+        // let opt = {
+        //     pingTimeout: config.pingTimeout,
+        //     pingInterval: config.pingInterval,
+        //     transports: ['websocket', 'polling']
+        // };
+        //
+        // if (config.http_port) {
+        //     this.httpServer = http.createServer((req, res) => {
+        //         urlCheck.checkPathname(req, res);
+        //     });
+        //     this.httpServer.listen(config.http_port);
+        //     this.io.attach(this.httpServer, opt);
+        //     console.log(`start http proxy on port:  ${config.http_port}`);
+        // }
+        //
+        // if (config.https_port) {
+        //     let fs = require('fs');
+        //     let https_key = null;
+        //     let https_cert = null;
+        //     try {
+        //         https_key = fs.readFileSync(__dirname + '/../cert/https/key.pem');
+        //         https_cert = fs.readFileSync(__dirname + '/../cert/https/cert.pem');
+        //     } catch (err) {
+        //         console.log('read https config file err:', err);
+        //     }
+        //
+        //     if (https_key && https_cert) {
+        //         let options = {
+        //             key: https_key,
+        //             cert: https_cert
+        //         };
+        //         this.httpsServer = https.createServer(options, (req, res) => {
+        //             urlCheck.checkPathname(req, res);
+        //         });
+        //         this.httpsServer.listen(config.https_port);
+        //         this.io.attach(this.httpsServer, opt);
+        //         console.log(`start https proxy on port:  ${config.https_port}`);
+        //     } else {
+        //         console.log('https key or cert file invalid!');
+        //     }
+        // }
+        this.httpServer = ioServer.httpServer;
+        this.io = ioServer;
         if (this.httpServer || this.httpsServer) {
             const cluster = require('socket.io-push-redis/cluster')(config.redis);
             this.tagService = require('./service/tagService')(cluster);
