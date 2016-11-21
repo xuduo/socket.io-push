@@ -30,6 +30,10 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * 苹果推送代理服务器(用于解决api服务器连接美国网络较差问题)
 * 统计相关
 
+### 相关文章
+* 推送中的坑(notification-keng.md)
+* 送达率计算(arrive-rate.md)
+
 ###名词
 * `push-server` 推送服务器, 提供客户端长连接, http api接口
 * `业务服务器` push-server api的调用方
