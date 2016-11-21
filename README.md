@@ -31,8 +31,8 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * 统计相关
 
 ### 相关文章
-* 推送中的坑(notification-keng.md)
-* 送达率计算(arrive-rate.md)
+* [推送中的坑](notification-keng.md)
+* [送达率计算](arrive-rate.md)
 
 ###名词
 * `push-server` 推送服务器, 提供客户端长连接, http api接口
