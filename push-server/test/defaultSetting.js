@@ -25,11 +25,30 @@ DefaultSetting.getDefaultApiUrl = ()=> {
 };
 
 DefaultSetting.getDefaultApiServer = ()=> {
-    return require('../lib/api')(require('../config-api'));
+    let apiConfig = require('../config-api');
+    let apiHttpServer = require('http').createServer();
+    apiHttpServer.listen(apiConfig.port);
+    return require('../lib/api')(apiHttpServer, apiConfig);
 };
 
 DefaultSetting.getDefaultProxyServer = ()=> {
-    return require('../lib/proxy')(require('../config-proxy'));
+    let proxyConfig = require('../config-proxy');
+    let proxyHttpServer = require('http').createServer();
+    let fs = require('fs');
+    let proxyHttpsServer = require('https').createServer({key:fs.readFileSync(__dirname + '/../cert/https/key.pem'), cert: fs.readFileSync(__dirname + '/../cert/https/cert.pem')});
+    let ioServer = require('socket.io');
+    let io = new ioServer({
+        pingTimeout: proxyConfig.pingTimeout,
+        pingInterval: proxyConfig.pingInterval,
+        transports: ['websocket', 'polling']
+    });
+    io.attach(proxyHttpServer);
+    io.hs = proxyHttpServer;
+    io.attach(proxyHttpsServer);
+    io.hss = proxyHttpsServer;
+    proxyHttpServer.listen(proxyConfig.http_port);
+    proxyHttpsServer.listen(proxyConfig.https_port);
+    return require('../lib/proxy')(io, proxyConfig);
 };
 
 DefaultSetting.getAndroidPushClient = (pushId) => {

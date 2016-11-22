@@ -112,8 +112,10 @@ if(!sticky.listen(stickyServers)){
             transports: ['websocket', 'polling']
         });
         io.attach(proxyHttpServer);
+        io.hs = proxyHttpServer;
         if(proxyHttpsServer) {
             io.attach(proxyHttpsServer);
+            io.hss = proxyHttpsServer;
         }
         require('./lib/proxy')(io, proxy);
     }
