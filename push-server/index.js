@@ -37,12 +37,25 @@ let serverTobeAttach = [];
 let proxyHttpServer ;
 let proxyHttpsServer;
 if(proxy.instances > 0){
-    proxyHttpServer = require('http').createServer();
-    // proxyHttpsServer = require('https').createServer();
-    proxyHttpsServer = require('http').createServer();
     let proxyServers = {};
+
+    proxyHttpServer = require('http').createServer();
     proxyServers[proxy.http_port] = proxyHttpServer;
-    proxyServers[proxy.https_port] = proxyHttpsServer;
+
+    let fs = require('fs');
+    let https_key = null;
+    let https_cert = null;
+    try {
+       https_key = fs.readFileSync(process.cwd() + '/cert/https/key.pem');
+       https_cert = fs.readFileSync(process.cwd() + '/cert/https/cert.pem');
+    } catch (err) {
+       console.log('read https config file err:', err);
+    }
+    if(https_key && https_cert){
+        proxyHttpsServer = require('https').createServer({key: https_key, cert: https_cert});
+        proxyServers[proxy.https_port] = proxyHttpsServer;
+    }
+
     stickyServers.push({servers: proxyServers, workers: proxy.instances});
     logger.debug('proxy listening, port:' + proxy.http_port + ',' + proxy.https_port
         + ' instances: ' + proxy.instances);
@@ -73,9 +86,11 @@ if(!sticky.listen(stickyServers)){
         proxyHttpServer.once('listening', () => {
             logger.debug('proxy http listening ...');
         });
-        proxyHttpsServer.once('listening', () => {
-            logger.debug('proxy https listening ...')
-        });
+        if(proxyHttpsServer){
+            proxyHttpsServer.once('listening', () => {
+                logger.debug('proxy https listening ...')
+            });
+        }
     }
     if(api.instances > 0){
         apiHttpServer.once('listening', () => {
@@ -97,14 +112,15 @@ if(!sticky.listen(stickyServers)){
             transports: ['websocket', 'polling']
         });
         io.attach(proxyHttpServer);
-        io.attach(proxyHttpsServer);
+        if(proxyHttpsServer) {
+            io.attach(proxyHttpsServer);
+        }
         require('./lib/proxy')(io, proxy);
     }
     if(api.instances > 0){
         require('./lib/api')(apiHttpServer, api);
     }
     if(admin.instances > 0){
-        // adminHttpServer.on('request', (req, res) => {res.end('ok')})
         require('./lib/admin')(adminHttpServer, admin);
     }
 
