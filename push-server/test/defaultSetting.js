@@ -25,11 +25,15 @@ DefaultSetting.getDefaultApiUrl = ()=> {
 };
 
 DefaultSetting.getDefaultApiServer = ()=> {
-    return require('../lib/api')(require('../config-api'));
+    let Api = require('../lib/api');
+    let config = require('../config-api');
+    return new Api(config);
 };
 
 DefaultSetting.getDefaultProxyServer = ()=> {
-    return require('../lib/proxy')(require('../config-proxy'));
+    let Proxy = require('../lib/proxy');
+    let config = require('../config-proxy');
+    return new Proxy(config, true);
 };
 
 DefaultSetting.getAndroidPushClient = (pushId) => {

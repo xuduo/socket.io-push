@@ -1,6 +1,4 @@
-module.exports = function (config) {
-    return new Proxy(config);
-};
+'use strict';
 
 const urlCheck = require('./util/urlCheck');
 const net = require('net');
@@ -10,7 +8,7 @@ const https = require('https');
 
 class Proxy {
 
-    constructor(config) {
+    constructor(config, test = false) {
         this.io = new ioServer();
         let opt = {
             pingTimeout: config.pingTimeout,
@@ -22,9 +20,12 @@ class Proxy {
             this.httpServer = http.createServer((req, res) => {
                 urlCheck.checkPathname(req, res);
             });
-            this.httpServer.listen(config.http_port);
+
             this.io.attach(this.httpServer, opt);
-            console.log(`start http proxy on port:  ${config.http_port}`);
+            if (test) {
+                this.httpServer.listen(config.http_port);
+                console.log(`start http proxy on port:  ${config.http_port}`);
+            }
         }
 
         if (config.https_port) {
@@ -46,9 +47,13 @@ class Proxy {
                 this.httpsServer = https.createServer(options, (req, res) => {
                     urlCheck.checkPathname(req, res);
                 });
-                this.httpsServer.listen(config.https_port);
                 this.io.attach(this.httpsServer, opt);
-                console.log(`start https proxy on port:  ${config.https_port}`);
+
+                if (test) {
+                    this.httpsServer.listen(config.https_port);
+                    console.log(`start https proxy on port:  ${config.https_port}`);
+                }
+
             } else {
                 console.log('https key or cert file invalid!');
             }
@@ -88,7 +93,20 @@ class Proxy {
 
     }
 
+    getProxyInnerServers() {
+        console.log('getProxyInnerServers...');
+        let srvs = {};
+        if (this.httpServer) {
+            srvs.http = this.httpServer;
+        }
+        if (this.httpsServer) {
+            srvs.https = this.httpsServer;
+        }
+        return srvs;
+    }
+
     close() {
+        console.log('proxy close called....');
         if (this.io) {
             this.io.close();
         }
@@ -98,8 +116,8 @@ class Proxy {
         if (this.httpsServer) {
             this.httpsServer.close();
         }
-        if (this.restApi) {
-            this.restApi.close();
-        }
     }
 }
+
+
+module.exports = Proxy;

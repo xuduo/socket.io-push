@@ -6,7 +6,7 @@ config.http_port = 10001;
 // https端口,不配置不启用https，　证书＆密钥位置： cert/https/*.pem ;
 config.https_port = 10443;
 
-config.instances = 1;
+config.instances = 2;
 
 config.pingTimeout = 25000; //  心跳timeout
 config.pingInterval = 90000; // 心跳间隔

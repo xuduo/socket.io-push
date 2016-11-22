@@ -1,6 +1,4 @@
-module.exports = function (config, server) {
-    return new Api(config, server);
-};
+'use strict';
 
 class Api {
 
@@ -47,3 +45,5 @@ class Api {
         this.restApi.close();
     }
 }
+
+module.exports = Api;

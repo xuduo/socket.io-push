@@ -1,6 +1,4 @@
-module.exports = function (config) {
-    return new Admin(config);
-}
+'use strict';
 
 class Admin {
 
@@ -13,3 +11,5 @@ class Admin {
         this.admin.close();
     }
 }
+
+module.exports = Admin;
