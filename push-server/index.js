@@ -39,6 +39,7 @@ let proxyHttpsServer;
 if(proxy.instances > 0){
     proxyHttpServer = require('http').createServer();
     // proxyHttpsServer = require('https').createServer();
+    proxyHttpsServer = require('http').createServer();
     let proxyServers = {};
     proxyServers[proxy.http_port] = proxyHttpServer;
     proxyServers[proxy.https_port] = proxyHttpsServer;
@@ -52,7 +53,7 @@ if(api.instances > 0){
     apiHttpServer = require('http').createServer();
     let apiServers = {};
     apiServers[api.port] = apiHttpServer;
-    stickyServers.push({servers: apiServers, workers: api.instances})
+    stickyServers.push({servers: apiServers, workers: api.instances});
     logger.debug('api listening, port: ' + api.port + ' instances: ' + api.instances);
 }
 
@@ -66,18 +67,15 @@ if(admin.instances > 0){
 }
 
 //[{workers: <n>, servers<{<port>:<server>}>}, {workers: <n>, servers<{<port>:<server>}}, ...]
-// if(!sticky.listen(stickyServers)){
-if(!sticky.listen({12001: adminHttpServer}, {workers: 1})){
-// if(!sticky.listen({11001: apiHttpServer}, {workers: 2})){
-// if(!sticky.listen({10001: proxyHttpServer}, {workers: 2})){
+if(!sticky.listen(stickyServers)){
     //master
     if(proxy.instances > 0){
         proxyHttpServer.once('listening', () => {
             logger.debug('proxy http listening ...');
         });
-        // proxyHttpsServer.once('listening', () => {
-        //     logger.debug('proxy https listening ...')
-        // });
+        proxyHttpsServer.once('listening', () => {
+            logger.debug('proxy https listening ...')
+        });
     }
     if(api.instances > 0){
         apiHttpServer.once('listening', () => {
@@ -99,50 +97,16 @@ if(!sticky.listen({12001: adminHttpServer}, {workers: 1})){
             transports: ['websocket', 'polling']
         });
         io.attach(proxyHttpServer);
-        // io.attach(proxyHttpsServer);
+        io.attach(proxyHttpsServer);
         require('./lib/proxy')(io, proxy);
     }
     if(api.instances > 0){
-        // apiHttpServer.on('request', (req, res) => {logger.debug('request'); res.end('ok')})
         require('./lib/api')(apiHttpServer, api);
     }
     if(admin.instances > 0){
+        // adminHttpServer.on('request', (req, res) => {res.end('ok')})
         require('./lib/admin')(adminHttpServer, admin);
     }
 
 
 }
-
-
-
-//
-// var cluster = require('cluster');
-//
-// if (cluster.isMaster) {
-//     var totalFork = proxy.instances + api.instances + admin.instances;
-//     for (var i = 0; i < totalFork; i++) {
-//         cluster.fork();
-//     }
-//     let fs = require('fs');
-//     let path = process.cwd();
-//     fs.writeFile(path + '/num_processes', totalFork, (err) => {
-//         if (err) {
-//             logger.error("fail to write num of processes");
-//         }
-//     });
-//     let pid = process.pid;
-//     fs.writeFile(path + '/server_master_pid', pid.toString(), (err) => {
-//         if (err) {
-//             logger.error("fail to write pid of server_master");
-//         }
-//     });
-//     logger.info("cluster master totalFork " + totalFork);
-// } else {
-//     if (cluster.worker.id <= proxy.instances) {
-//         require('./lib/proxy')(proxy);
-//     } else if (cluster.worker.id > proxy.instances && cluster.worker.id <= ( proxy.instances + api.instances)) {
-//         require('./lib/api')(api);
-//     } else if (cluster.worker.id == (proxy.instances + api.instances + admin.instances)) {
-//         require('./lib/admin')(admin);
-//     }
-// }

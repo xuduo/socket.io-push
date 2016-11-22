@@ -11,37 +11,54 @@ function listen(servers, options) {
   if (!options)
     options = {};
 
-  if (cluster.isMaster) {
-    var workerCount = options.workers || os.cpus().length;
 
-    var master = new Master(Object.keys(servers), workerCount, options.env);
+  if (cluster.isMaster) {
+
+    let master = new Master(servers, options.env);
     master.listen();
-    master.on('listening', function(port) {
-      servers[port].emit('listening');
+    master.on('listening', (port) => {
+      servers.forEach((server) => {
+        let httpServers = server.servers;
+        if (Object.keys(httpServers).indexOf(port) != -1){
+          let server = httpServers[port];
+          server.emit('listening');
+        }
+      });
     });
-    return false;
   }
 
-  Object.keys(servers).forEach((port) => {
-    let server = servers[port];
-    // Override close callback to gracefully close server
-    var oldClose = server.close;
-    server.close = function close() {
-      debug('graceful close');
-      process.send({ type: 'close' });
-      return oldClose.apply(this, arguments);
-    };
+  servers.forEach((server) => {
+    let httpServers = server.servers;
+    Object.keys(httpServers).forEach((port) => {
+      let httpServer = httpServers[port];
+      let oldClose = httpServer.close;
+      httpServer.close = function () {
+        debug('graceful close');
+        process.send({type: 'close'});
+        return oldClose.apply(httpServer, arguments);
+      }
+    })
   });
 
   process.on('message', function(msg, socket) {
     if (msg !== 'sticky:balance' || !socket)
       return;
 
-    let server = servers[socket.localPort];
-    debug('incoming socket');
-    server._connections++;
-    socket.server = server;
-    server.emit('connection', socket);
+    debug('message arrival');
+    servers.forEach((server) => {
+      let httpServers = server.servers;
+      debug('try..', server.workers);
+      debug('socket port', socket.localPort);
+      debug('ports', Object.keys(httpServers));
+      if (Object.keys(httpServers).indexOf(socket.localPort.toString()) != -1){
+        let server = httpServers[socket.localPort];
+        debug('incoming socket in worker: ' + cluster.worker.id);
+        server._connections ++;
+        socket.server = server;
+        server.emit('connection', socket)
+      }
+    });
+
   });
   return true;
 }

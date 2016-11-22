@@ -8,28 +8,35 @@ var ip = require('ip');
 
 var debug = require('debug')('sticky:master');
 
-function Master(ports, workerCount, env) {
+function Master(servers, env) {
 
   this.env = env || {};
   this.seed = (Math.random() * 0xffffffff) | 0;
-  this.workers = [];
+  this.workers = {};
   this.netServers = {};
-  let listenCount = 0;
-  ports.forEach((port) => {
-    let netServer = net.Server.call(this, {
-      pauseOnConnect: true
-    }, this.balance.apply(this, arguments));
-    netServer.once('listening', () => {
-      listenCount ++;
-      if(listenCount == ports.length){
-        for(let i = 0; i < workerCount; i++){
-          this.spawnWorker();
+
+  servers.forEach((server) => {
+    let httpServers = server.servers;
+    let workrCount = server.workers;
+    let ports = Object.keys(httpServers);
+    let listenCount = 0;
+    debug('ports = ', ports);
+    ports.forEach((port) => {
+      debug('port = ' + port);
+      let netServer = net.Server.call(this, {pauseOnConnect: true}, this.balance.apply(this, arguments));
+      netServer.once('listening', () => {
+        listenCount ++;
+        if(listenCount == ports.length){
+          debug('spawn worker * ' + workrCount);
+          for(let i = 0; i < workrCount; i++){
+            this.spawnWorker(ports);
+          }
         }
-      }
-      this.emit('listening', port);
-    });
-    this.netServers[port] = netServer;
-  });
+        this.emit('listening', port);
+      });
+      this.netServers[port] = netServer;
+    })
+  })
 }
 util.inherits(Master, EventEmiter);
 module.exports = Master;
@@ -61,30 +68,36 @@ Master.prototype.hash = function hash(ip) {
   return hash >>> 0;
 };
 
-Master.prototype.spawnWorker = function spawnWorker() {
+Master.prototype.spawnWorker = function spawnWorker(ports) {
   var worker = cluster.fork(this.env);
 
   var self = this;
   worker.on('exit', function(code) {
     debug('worker=%d died with code=%d', worker.process.pid, code);
-    self.respawn(worker);
+    self.respawn(ports, worker);
   });
 
   worker.on('message', function(msg) {
     // Graceful exit
     if (msg.type === 'close')
-      self.respawn(worker);
+      self.respawn(ports, worker);
   });
 
   debug('worker=%d spawn', worker.process.pid);
-  this.workers.push(worker);
+  //this.workers.push(worker);
+  let port = ports[0];
+  let portWorkers = this.workers[port] || [];
+  portWorkers.push(worker);
+  ports.forEach((i) => {
+    this.workers[i] = portWorkers;
+  });
 };
 
-Master.prototype.respawn = function respawn(worker) {
-  var index = this.workers.indexOf(worker);
+Master.prototype.respawn = function respawn(ports, worker) {
+  var index = this.workers[ports[0]].indexOf(worker);
   if (index !== -1)
-    this.workers.splice(index, 1);
-  this.spawnWorker();
+    this.workers[ports[0]].splice(index, 1);
+  this.spawnWorker(ports);
 };
 
 Master.prototype.balance = function balance() {
@@ -95,7 +108,8 @@ Master.prototype.balance = function balance() {
     var hash = self.hash(addr);
 
     debug('balacing connection %j:%d', addr, port);
-    self.workers[hash % self.workers.length].send('sticky:balance', socket);
+    let workerPool = self.workers[port];
+    workerPool[(hash+port) % workerPool.length].send('sticky:balance', socket);
   };
 
 };
