@@ -1,12 +1,12 @@
-module.exports = (apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats) => {
-    return new RestApi(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats);
+module.exports = (httpServer, apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats) => {
+    return new RestApi(httpServer, apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats);
 };
 const express = require('express');
 const logger = require('winston-proxy')('RestApi');
 
 class RestApi {
 
-    constructor(apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats) {
+    constructor(httpServser, apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats) {
         this.apiAuth = apiAuth;
         this.apiRouter = apiRouter;
 
@@ -29,7 +29,9 @@ class RestApi {
         });
 
 
-        this.server = app.listen(config.port);
+        // this.server = app.listen(config.port);
+        this.server = httpServser;
+        httpServser.on('request', app);
 
         const handlePush = (req, res, next) => {
             if (this.apiAuth && !this.apiAuth("/api/push", req, logger)) {

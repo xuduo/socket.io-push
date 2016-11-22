@@ -1,10 +1,10 @@
-module.exports = function (config, server) {
-    return new Api(config, server);
+module.exports = function (httpServer, config) {
+    return new Api(httpServer, config);
 };
 
 class Api {
 
-    constructor(config) {
+    constructor(httpServer, config) {
         const instance = config.instance || 1;
         this.port = config.port = config.port + instance - 1;
 
@@ -40,7 +40,7 @@ class Api {
         }
         this.apiRouter = require('./service/apiRouter')(this.uidStore, this.notificationService, this.ttlService, this.tagService, config.routerMaxPushIds, config.routerApiUrls);
         this.onlineStats = require('./stats/onlineStats')(this.stats, this.port);
-        this.restApi = require('./api/restApi')(this.apiRouter, topicOnline, this.stats, config, cluster, apiThreshold, this.apnService, config.apiAuth, this.uidStore, this.onlineStats, this.connectService, this.arrivalStats);
+        this.restApi = require('./api/restApi')(httpServer, this.apiRouter, topicOnline, this.stats, config, cluster, apiThreshold, this.apnService, config.apiAuth, this.uidStore, this.onlineStats, this.connectService, this.arrivalStats);
     }
 
     close() {
