@@ -2,7 +2,7 @@ var config = {};
 
 config.port = 11001; //api端口, 可选. 不配置,不提供api接口
 
-config.instances = 1;
+config.instances = 3;
 
 config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei timeToLive
 

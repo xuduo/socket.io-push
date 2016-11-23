@@ -35,7 +35,10 @@ DefaultSetting.getDefaultProxyServer = ()=> {
     let proxyConfig = require('../config-proxy');
     let proxyHttpServer = require('http').createServer();
     let fs = require('fs');
-    let proxyHttpsServer = require('https').createServer({key:fs.readFileSync(__dirname + '/../cert/https/key.pem'), cert: fs.readFileSync(__dirname + '/../cert/https/cert.pem')});
+    let proxyHttpsServer = require('https').createServer({
+        key: fs.readFileSync(__dirname + '/../cert/https/key.pem'),
+        cert: fs.readFileSync(__dirname + '/../cert/https/cert.pem')
+    });
     let ioServer = require('socket.io');
     let io = new ioServer({
         pingTimeout: proxyConfig.pingTimeout,

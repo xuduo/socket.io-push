@@ -18,7 +18,6 @@ class AdminServer {
         }, this.interval);
 
         let app = express();
-        // app.listen(config.port);
         httpServer.on('request', app);
         console.log("serving static ", __dirname);
         app.use(express.static(__dirname + '/../../static', {

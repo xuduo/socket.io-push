@@ -4,7 +4,7 @@ let expect = chai.expect;
 let defSetting = require('./defaultSetting');
 
 describe("threshold test", () => {
-    before(() =>{
+    before(() => {
         let thresholdConfig = {'test': 1};
         global.apiServer = defSetting.getDefaultApiServer();
         global.apiThreshold = require('../lib/api/apiThreshold')(apiServer.io.redis, thresholdConfig);

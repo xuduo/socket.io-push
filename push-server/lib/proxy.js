@@ -10,6 +10,7 @@ class Proxy {
         this.httpServer = ioServer.hs;
         this.httpsServer = ioServer.hss;
         this.io = ioServer;
+        console.log(`start proxy on port  ${config.http_port} ${config.https_port} #${process.pid}`);
         if (this.io) {
             const cluster = require('socket.io-push-redis/cluster')(config.redis);
             this.tagService = require('./service/tagService')(cluster);
@@ -48,10 +49,10 @@ class Proxy {
         if (this.io) {
             this.io.close();
         }
-        if(this.httpServer){
+        if (this.httpServer) {
             this.httpServer.close();
         }
-        if(this.httpsServer){
+        if (this.httpsServer) {
             this.httpsServer.close();
         }
     }

@@ -34,9 +34,9 @@ let sticky = require('sticky-session');
 let stickyServers = [];
 let serverTobeAttach = [];
 
-let proxyHttpServer ;
+let proxyHttpServer;
 let proxyHttpsServer;
-if(proxy.instances > 0){
+if (proxy.instances > 0) {
     let proxyServers = {};
 
     proxyHttpServer = require('http').createServer();
@@ -46,12 +46,12 @@ if(proxy.instances > 0){
     let https_key = null;
     let https_cert = null;
     try {
-       https_key = fs.readFileSync(process.cwd() + '/cert/https/key.pem');
-       https_cert = fs.readFileSync(process.cwd() + '/cert/https/cert.pem');
+        https_key = fs.readFileSync(process.cwd() + '/cert/https/key.pem');
+        https_cert = fs.readFileSync(process.cwd() + '/cert/https/cert.pem');
     } catch (err) {
-       console.log('read https config file err:', err);
+        console.log('read https config file err:', err);
     }
-    if(https_key && https_cert){
+    if (https_key && https_cert) {
         proxyHttpsServer = require('https').createServer({key: https_key, cert: https_cert});
         proxyServers[proxy.https_port] = proxyHttpsServer;
     }
@@ -62,7 +62,7 @@ if(proxy.instances > 0){
 }
 
 let apiHttpServer;
-if(api.instances > 0){
+if (api.instances > 0) {
     apiHttpServer = require('http').createServer();
     let apiServers = {};
     apiServers[api.port] = apiHttpServer;
@@ -71,7 +71,7 @@ if(api.instances > 0){
 }
 
 let adminHttpServer;
-if(admin.instances > 0){
+if (admin.instances > 0) {
     adminHttpServer = require('http').createServer();
     let adminServers = {};
     adminServers[admin.port] = adminHttpServer;
@@ -80,51 +80,53 @@ if(admin.instances > 0){
 }
 
 //[{workers: <n>, servers<{<port>:<server>}>}, {workers: <n>, servers<{<port>:<server>}}, ...]
-if(!sticky.listen(stickyServers)){
+if (!sticky.listen(stickyServers)) {
     //master
-    if(proxy.instances > 0){
+    if (proxy.instances > 0) {
         proxyHttpServer.once('listening', () => {
             logger.debug('proxy http listening ...');
         });
-        if(proxyHttpsServer){
+        if (proxyHttpsServer) {
             proxyHttpsServer.once('listening', () => {
                 logger.debug('proxy https listening ...')
             });
         }
     }
-    if(api.instances > 0){
+    if (api.instances > 0) {
         apiHttpServer.once('listening', () => {
             logger.debug('api http listening ...');
         });
     }
-    if(admin.instances > 0) {
+    if (admin.instances > 0) {
         adminHttpServer.once('listening', () => {
             logger.debug('admin http listening ...');
         });
     }
-}else {
+} else {
     //worker
-    if(proxy.instances > 0){
-        let ioServer = require('socket.io');
-        let io = new ioServer({
-            pingTimeout: proxy.pingTimeout,
-            pingInterval: proxy.pingInterval,
-            transports: ['websocket', 'polling']
-        });
-        io.attach(proxyHttpServer);
-        io.hs = proxyHttpServer;
-        if(proxyHttpsServer) {
-            io.attach(proxyHttpsServer);
-            io.hss = proxyHttpsServer;
+    process.on('message', (msg) => {
+        if (typeof(msg) != 'object' || !msg.port) {
+            return
         }
-        require('./lib/proxy')(io, proxy);
-    }
-    if(api.instances > 0){
-        require('./lib/api')(apiHttpServer, api);
-    }
-    if(admin.instances > 0){
-        require('./lib/admin')(adminHttpServer, admin);
-    }
-
-
+        logger.debug('message received in worker, to start : ', msg);
+        if (msg.port == proxy.http_port || msg.port == proxy.https_port) {
+            let ioServer = require('socket.io');
+            let io = new ioServer({
+                pingTimeout: proxy.pingTimeout,
+                pingInterval: proxy.pingInterval,
+                transports: ['websocket', 'polling']
+            });
+            io.attach(proxyHttpServer);
+            io.hs = proxyHttpServer;
+            if (proxyHttpsServer) {
+                io.attach(proxyHttpsServer);
+                io.hss = proxyHttpsServer;
+            }
+            require('./lib/proxy')(io, proxy);
+        } else if (msg.port == api.port) {
+            require('./lib/api')(apiHttpServer, api);
+        } else if (msg.port == admin.port) {
+            require('./lib/admin')(adminHttpServer, admin);
+        }
+    });
 }

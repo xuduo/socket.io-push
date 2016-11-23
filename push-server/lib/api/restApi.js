@@ -27,9 +27,7 @@ class RestApi {
             res.set("Access-Control-Allow-Origin", "*");
             return next();
         });
-
-
-        // this.server = app.listen(config.port);
+        
         this.server = httpServser;
         httpServser.on('request', app);
 
@@ -295,7 +293,7 @@ class RestApi {
 
         router.get('/isConnected', (req, res, next) => {
             const pushId = req.p.pushId;
-            if(!pushId) {
+            if (!pushId) {
                 res.statusCode = 400;
                 res.json({code: 'error', message: 'pushId is required'});
                 return next();
