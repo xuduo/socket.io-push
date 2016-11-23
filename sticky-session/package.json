@@ -1,0 +1,93 @@
+{
+  "_args": [
+    [
+      {
+        "name": "sticky-session",
+        "raw": "sticky-session",
+        "rawSpec": "",
+        "scope": null,
+        "spec": "latest",
+        "type": "tag"
+      },
+      "/Users/libin1/WorkSpace/socket.io-push/push-server"
+    ]
+  ],
+  "_from": "sticky-session@latest",
+  "_id": "sticky-session@1.1.2",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/sticky-session",
+  "_nodeVersion": "6.0.0",
+  "_npmOperationalInternal": {
+    "host": "packages-12-west.internal.npmjs.com",
+    "tmp": "tmp/sticky-session-1.1.2.tgz_1464752092136_0.351754660718143"
+  },
+  "_npmUser": {
+    "email": "fedor@indutny.com",
+    "name": "indutny"
+  },
+  "_npmVersion": "3.8.6",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "sticky-session",
+    "raw": "sticky-session",
+    "rawSpec": "",
+    "scope": null,
+    "spec": "latest",
+    "type": "tag"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "https://registry.npmjs.org/sticky-session/-/sticky-session-1.1.2.tgz",
+  "_shasum": "716ce738452bbe9eedec506311895a3d64803de1",
+  "_shrinkwrap": null,
+  "_spec": "sticky-session",
+  "_where": "/Users/libin1/WorkSpace/socket.io-push/push-server",
+  "author": {
+    "email": "fedor.indutny@gmail.com",
+    "name": "Fedor Indutny"
+  },
+  "dependencies": {
+    "debug": "^2.2.0",
+    "ip": "^1.0.0"
+  },
+  "description": "Sticky session balancer based on a `cluster` module",
+  "devDependencies": {
+    "jscs": "^2.1.1",
+    "jshint": "^2.8.0"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "716ce738452bbe9eedec506311895a3d64803de1",
+    "tarball": "https://registry.npmjs.org/sticky-session/-/sticky-session-1.1.2.tgz"
+  },
+  "engines": {
+    "node": ">= 0.12.0"
+  },
+  "gitHead": "e0de9b7786255bf5d4c23f9714699b8d12e9882a",
+  "license": "MIT",
+  "main": "./lib/sticky-session",
+  "maintainers": [
+    {
+      "email": "fedor.indutny@gmail.com",
+      "name": "fedor.indutny"
+    },
+    {
+      "email": "fedor@indutny.com",
+      "name": "indutny"
+    },
+    {
+      "email": "tlhunter@gmail.com",
+      "name": "tlhunter"
+    }
+  ],
+  "name": "sticky-session",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "scripts": {
+    "lint": "jscs lib/*.js lib/**/*.js && jshint lib/*.js lib/**/*.js",
+    "test": "npm run lint && (echo test/*-test.js | xargs node)"
+  },
+  "version": "1.1.2"
+}
