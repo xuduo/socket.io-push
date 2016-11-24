@@ -1,6 +1,6 @@
 let logger = require('winston-proxy')('Index');
 let cluster = require('cluster');
-let sticky = require('sticky-session');
+let sticky = require('./lib/util/sticky-session.js');
 
 let proxy = {};
 try {
@@ -77,12 +77,12 @@ if (!sticky.listen(stickyServers)) {
     if (proxy.instances > 0) {
         let ports = proxy.http_port.toString();
         proxyHttpServer.once('listening', () => {
-            logger.debug('proxy http listening ...');
+            logger.debug('master proxy http listening ...');
         });
         if (proxyHttpsServer) {
             ports += proxy.https_port.toString();
             proxyHttpsServer.once('listening', () => {
-                logger.debug('proxy https listening ...')
+                logger.debug('master proxy https listening ...')
             });
         }
         logger.debug('proxy start, port: ' + ports + ' instances: ' + proxy.instances);
@@ -90,13 +90,13 @@ if (!sticky.listen(stickyServers)) {
     if (api.instances > 0) {
         logger.debug('api start, port: ' + api.port + ' instances: ' + api.instances);
         apiHttpServer.once('listening', () => {
-            logger.debug('api http listening ...');
+            logger.debug('master api http listening ...');
         });
     }
     if (admin.instances > 0) {
         logger.debug('admin start, port: ' + admin.port + ' instances: ' + admin.instances);
         adminHttpServer.once('listening', () => {
-            logger.debug('admin http listening ...');
+            logger.debug('master admin http listening ...');
         });
     }
 } else {
