@@ -15,7 +15,12 @@ class Proxy {
             const cluster = require('socket.io-push-redis/cluster')(config.redis);
             this.tagService = require('./service/tagService')(cluster);
             this.connectService = require('./service/connectService')(cluster);
-            this.stats = require('./stats/stats')(cluster, require('cluster').worker.id, config.statsCommitThreshold, config.packetDropThreshold);
+            const nodeCluster = require('cluster');
+            let id = 0;
+            if (nodeCluster.worker) {
+                id = nodeCluster.worker.id;
+            }
+            this.stats = require('./stats/stats')(cluster, id, config.statsCommitThreshold, config.packetDropThreshold);
             this.arrivalStats = require('./stats/arrivalStats')(cluster);
             const socketIoRedis = require('socket.io-push-redis/adapter')({
                 pubClient: cluster,
