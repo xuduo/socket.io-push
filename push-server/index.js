@@ -28,11 +28,9 @@ try {
     logger.warn('config-admin exeception: ' + ex);
 }
 
-
 let cluster = require('cluster');
-let sticky = require('sticky-session');
+let sticky = require('./lib/util/sticky-session.js');
 let stickyServers = [];
-let serverTobeAttach = [];
 
 let proxyHttpServer;
 let proxyHttpsServer;
@@ -57,8 +55,6 @@ if (proxy.instances > 0) {
     }
 
     stickyServers.push({servers: proxyServers, workers: proxy.instances});
-    logger.debug('proxy listening, port:' + proxy.http_port + ',' + proxy.https_port
-        + ' instances: ' + proxy.instances);
 }
 
 let apiHttpServer;
@@ -67,7 +63,6 @@ if (api.instances > 0) {
     let apiServers = {};
     apiServers[api.port] = apiHttpServer;
     stickyServers.push({servers: apiServers, workers: api.instances});
-    logger.debug('api listening, port: ' + api.port + ' instances: ' + api.instances);
 }
 
 let adminHttpServer;
@@ -76,7 +71,6 @@ if (admin.instances > 0) {
     let adminServers = {};
     adminServers[admin.port] = adminHttpServer;
     stickyServers.push({servers: adminServers, workers: admin.instances});
-    logger.debug('admin listening, port: ' + admin.port + ' instances: ' + admin.instances);
 }
 
 //[{workers: <n>, servers<{<port>:<server>}>}, {workers: <n>, servers<{<port>:<server>}}, ...]
@@ -84,22 +78,22 @@ if (!sticky.listen(stickyServers)) {
     //master
     if (proxy.instances > 0) {
         proxyHttpServer.once('listening', () => {
-            logger.debug('proxy http listening ...');
+            logger.debug('master proxy http listening ...');
         });
         if (proxyHttpsServer) {
             proxyHttpsServer.once('listening', () => {
-                logger.debug('proxy https listening ...')
+                logger.debug('master proxy https listening ...')
             });
         }
     }
     if (api.instances > 0) {
         apiHttpServer.once('listening', () => {
-            logger.debug('api http listening ...');
+            logger.debug('master api http listening ...');
         });
     }
     if (admin.instances > 0) {
         adminHttpServer.once('listening', () => {
-            logger.debug('admin http listening ...');
+            logger.debug('master admin http listening ...');
         });
     }
 } else {
