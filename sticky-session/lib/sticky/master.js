@@ -69,7 +69,9 @@ Master.prototype.hash = function hash(ip) {
 };
 
 Master.prototype.spawnWorker = function spawnWorker(ports) {
-    var worker = cluster.fork(this.env);
+    var env = this.env;
+    env.port = JSON.stringify(ports);
+    var worker = cluster.fork(env);
 
     var self = this;
     worker.on('exit', function (code) {
@@ -84,9 +86,7 @@ Master.prototype.spawnWorker = function spawnWorker(ports) {
     });
 
     debug('worker=%d spawn', worker.process.pid);
-    //this.workers.push(worker);
     let port = ports[0];
-    worker.send({port: port});
     let portWorkers = this.workers[port] || [];
     portWorkers.push(worker);
     ports.forEach((i) => {

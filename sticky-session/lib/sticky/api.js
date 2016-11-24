@@ -25,6 +25,7 @@ function listen(servers, options) {
                 }
             });
         });
+        return false;
     }
 
     servers.forEach((server) => {

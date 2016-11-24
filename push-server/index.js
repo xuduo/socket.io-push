@@ -1,4 +1,6 @@
 let logger = require('winston-proxy')('Index');
+let cluster = require('cluster');
+let sticky = require('sticky-session');
 
 let proxy = {};
 try {
@@ -7,8 +9,7 @@ try {
     logger.warn('config-proxy exeception: ' + ex);
 }
 proxy.instances = proxy.instances || 0;
-proxy.http_port = proxy.http_port || 10001;
-proxy.https_port = proxy.https_port || 10443;
+
 
 let api = {};
 try {
@@ -17,7 +18,7 @@ try {
     logger.warn('config-api exeception: ' + ex);
 }
 api.instances = api.instances || 0;
-api.port = api.port || 11001;
+
 
 let admin = {instances: 0};
 try {
@@ -28,15 +29,10 @@ try {
     logger.warn('config-admin exeception: ' + ex);
 }
 
-
-let cluster = require('cluster');
-let sticky = require('sticky-session');
 let stickyServers = [];
-let serverTobeAttach = [];
-
 let proxyHttpServer;
 let proxyHttpsServer;
-if (proxy.instances > 0) {
+if (proxy.instances > 0 && proxy.http_port) {
     let proxyServers = {};
 
     proxyHttpServer = require('http').createServer();
@@ -46,8 +42,8 @@ if (proxy.instances > 0) {
     let https_key = null;
     let https_cert = null;
     try {
-        https_key = fs.readFileSync(process.cwd() + '/cert/https/key.pem');
-        https_cert = fs.readFileSync(process.cwd() + '/cert/https/cert.pem');
+        https_key = fs.readFileSync(proxy.https_key);
+        https_cert = fs.readFileSync(proxy.https_cert);
     } catch (err) {
         console.log('read https config file err:', err);
     }
@@ -57,59 +53,57 @@ if (proxy.instances > 0) {
     }
 
     stickyServers.push({servers: proxyServers, workers: proxy.instances});
-    logger.debug('proxy listening, port:' + proxy.http_port + ',' + proxy.https_port
-        + ' instances: ' + proxy.instances);
 }
 
 let apiHttpServer;
-if (api.instances > 0) {
+if (api.instances > 0 && api.port) {
     apiHttpServer = require('http').createServer();
     let apiServers = {};
     apiServers[api.port] = apiHttpServer;
     stickyServers.push({servers: apiServers, workers: api.instances});
-    logger.debug('api listening, port: ' + api.port + ' instances: ' + api.instances);
 }
 
 let adminHttpServer;
-if (admin.instances > 0) {
+if (admin.instances > 0 && admin.port) {
     adminHttpServer = require('http').createServer();
     let adminServers = {};
     adminServers[admin.port] = adminHttpServer;
     stickyServers.push({servers: adminServers, workers: admin.instances});
-    logger.debug('admin listening, port: ' + admin.port + ' instances: ' + admin.instances);
 }
 
 //[{workers: <n>, servers<{<port>:<server>}>}, {workers: <n>, servers<{<port>:<server>}}, ...]
 if (!sticky.listen(stickyServers)) {
     //master
     if (proxy.instances > 0) {
+        let ports = proxy.http_port.toString();
         proxyHttpServer.once('listening', () => {
             logger.debug('proxy http listening ...');
         });
         if (proxyHttpsServer) {
+            ports += proxy.https_port.toString();
             proxyHttpsServer.once('listening', () => {
                 logger.debug('proxy https listening ...')
             });
         }
+        logger.debug('proxy start, port: ' + ports + ' instances: ' + proxy.instances);
     }
     if (api.instances > 0) {
+        logger.debug('api start, port: ' + api.port + ' instances: ' + api.instances);
         apiHttpServer.once('listening', () => {
             logger.debug('api http listening ...');
         });
     }
     if (admin.instances > 0) {
+        logger.debug('admin start, port: ' + admin.port + ' instances: ' + admin.instances);
         adminHttpServer.once('listening', () => {
             logger.debug('admin http listening ...');
         });
     }
 } else {
     //worker
-    process.on('message', (msg) => {
-        if (typeof(msg) != 'object' || !msg.port) {
-            return
-        }
-        logger.debug('message received in worker, to start : ', msg);
-        if (msg.port == proxy.http_port || msg.port == proxy.https_port) {
+    if (process.env.port) {
+        let ports = JSON.parse(process.env.port);
+        if (ports.indexOf(proxy.http_port.toString()) != -1 || ports.indexOf(proxy.https_port.toString()) != -1) {
             let ioServer = require('socket.io');
             let io = new ioServer({
                 pingTimeout: proxy.pingTimeout,
@@ -123,10 +117,10 @@ if (!sticky.listen(stickyServers)) {
                 io.hss = proxyHttpsServer;
             }
             require('./lib/proxy')(io, proxy);
-        } else if (msg.port == api.port) {
+        } else if (ports.indexOf(api.port.toString()) != -1) {
             require('./lib/api')(apiHttpServer, api);
-        } else if (msg.port == admin.port) {
+        } else if (ports.indexOf(admin.port.toString()) != -1) {
             require('./lib/admin')(adminHttpServer, admin);
         }
-    });
+    }
 }

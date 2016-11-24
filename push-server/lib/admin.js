@@ -5,7 +5,7 @@ module.exports = function (httpServer, config) {
 class Admin {
 
     constructor(httpServer, config) {
-        console.log(`start admin on port  ${config.port}`);
+        console.log(`start admin on port  ${config.port} #${process.pid}`);
         this.admin = require('./admin/adminServer')(httpServer, config);
     }
 

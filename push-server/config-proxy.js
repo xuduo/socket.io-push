@@ -5,6 +5,8 @@ var config = {};
 config.http_port = 10001;
 // https端口,不配置不启用https，　证书＆密钥位置： cert/https/*.pem ;
 config.https_port = 10443;
+config.https_key  = __dirname + "/cert/https/key.pem";
+config.https_cert = __dirname + "/cert/https/cert.pem";
 
 config.instances = 3;
 
