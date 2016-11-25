@@ -1,6 +1,7 @@
 let logger = require('winston-proxy')('Index');
 let cluster = require('cluster');
-let sticky = require('./lib/util/sticky-session.js');
+let net = require('net');
+// let sticky = require('./lib/util/sticky-session.js');
 
 let proxy = {};
 try {
@@ -29,98 +30,129 @@ try {
     logger.warn('config-admin exeception: ' + ex);
 }
 
-let stickyServers = [];
-let proxyHttpServer;
-let proxyHttpsServer;
-if (proxy.instances > 0 && proxy.http_port) {
-    let proxyServers = {};
-
-    proxyHttpServer = require('http').createServer();
-    proxyServers[proxy.http_port] = proxyHttpServer;
-
-    let fs = require('fs');
-    let https_key = null;
-    let https_cert = null;
-    try {
-        https_key = fs.readFileSync(proxy.https_key);
-        https_cert = fs.readFileSync(proxy.https_cert);
-    } catch (err) {
-        console.log('read https config file err:', err);
-    }
-    if (https_key && https_cert) {
-        proxyHttpsServer = require('https').createServer({key: https_key, cert: https_cert});
-        proxyServers[proxy.https_port] = proxyHttpsServer;
-    }
-
-    stickyServers.push({servers: proxyServers, workers: proxy.instances});
-}
-
-let apiHttpServer;
-if (api.instances > 0 && api.port) {
-    apiHttpServer = require('http').createServer();
-    let apiServers = {};
-    apiServers[api.port] = apiHttpServer;
-    stickyServers.push({servers: apiServers, workers: api.instances});
-}
-
-let adminHttpServer;
-if (admin.instances > 0 && admin.port) {
-    adminHttpServer = require('http').createServer();
-    let adminServers = {};
-    adminServers[admin.port] = adminHttpServer;
-    stickyServers.push({servers: adminServers, workers: admin.instances});
-}
-
-//[{workers: <n>, servers<{<port>:<server>}>}, {workers: <n>, servers<{<port>:<server>}}, ...]
-if (!sticky.listen(stickyServers)) {
-    //master
-    if (proxy.instances > 0) {
-        let ports = proxy.http_port.toString();
-        proxyHttpServer.once('listening', () => {
-            logger.debug('master proxy http listening ...');
+if (cluster.isMaster) {
+    let spawn = (env) => {
+        let worker = cluster.fork(env);
+        worker.on('exit', (code, signal) => {
+            logger.error('worker exit, code: ', code, ' signal: ', signal);
         });
-        if (proxyHttpsServer) {
-            ports += proxy.https_port.toString();
-            proxyHttpsServer.once('listening', () => {
-                logger.debug('master proxy https listening ...')
+        return worker;
+    };
+    let iphash = (ip, workerLength) => {
+        let s = '';
+        for (let i = 0; i < ip.length; i++) {
+            if (!isNaN(ip[i])) {
+                s += ip[i];
+            }
+        }
+        return Number(s) % workerLength;
+    };
+
+    function* indexMaker() {
+        let index = 0;
+        while (1) {
+            if (index >= 10000) {
+                index = 0;
+            }
+            yield index++;
+        }
+    }
+
+    let gen = indexMaker();
+    let rr = (workerLength) => {
+        return gen.next().value % workerLength;
+    };
+
+    if (proxy.instances > 0) {
+        let proxy_workers = [];
+        for (let i = 0; i < proxy.instances; i++) {
+            proxy_workers.push(spawn({bussinessType: 'proxy'}));
+        }
+        if (proxy.http_port) {
+            net.createServer({pauseOnConnect: true}, (socket) => {
+                let worker = proxy_workers[iphash(socket.remoteAddress, proxy.instances)];
+                worker.send('sticky:connection', socket);
+            }).listen(proxy.http_port).on('listening', () => {
+                logger.debug('proxy listening on ' + proxy.http_port)
             });
         }
-        logger.debug('proxy start, port: ' + ports + ' instances: ' + proxy.instances);
+        if (proxy.https_port) {
+            net.createServer({pauseOnConnect: true}, (socket) => {
+                let worker = proxy_workers[iphash(socket.remoteAddress, proxy.instances)];
+                worker.send('sticky:connection', socket);
+            }).listen(proxy.https_port);
+        }
     }
     if (api.instances > 0) {
-        logger.debug('api start, port: ' + api.port + ' instances: ' + api.instances);
-        apiHttpServer.once('listening', () => {
-            logger.debug('master api http listening ...');
-        });
+        let api_workers = [];
+        for (let i = 0; i < api.instances; i++) {
+            api_workers.push(spawn({bussinessType: 'api'}));
+        }
+        if (api.port) {
+            net.createServer({pauseOnConnect: true}, (socket) => {
+                let worker = api_workers[rr(api.instances)];
+                worker.send('sticky:connection', socket);
+            }).listen(api.port);
+        }
     }
     if (admin.instances > 0) {
-        logger.debug('admin start, port: ' + admin.port + ' instances: ' + admin.instances);
-        adminHttpServer.once('listening', () => {
-            logger.debug('master admin http listening ...');
-        });
+        let admin_worker = spawn({bussinessType: 'admin'});
+        net.createServer({pauseOnConnect: true}, (socket) => {
+            admin_worker.send('sticky:connection', socket);
+        }).listen(admin.port);
     }
 } else {
-    //worker
-    if (process.env.port) {
-        let ports = JSON.parse(process.env.port);
-        if (ports.indexOf(proxy.http_port.toString()) != -1 || ports.indexOf(proxy.https_port.toString()) != -1) {
+    if (process.env.bussinessType) {
+        let servers = {};
+        if (process.env.bussinessType == 'proxy') {
             let ioServer = require('socket.io');
             let io = new ioServer({
                 pingTimeout: proxy.pingTimeout,
                 pingInterval: proxy.pingInterval,
                 transports: ['websocket', 'polling']
             });
-            io.attach(proxyHttpServer);
-            io.hs = proxyHttpServer;
-            if (proxyHttpsServer) {
-                io.attach(proxyHttpsServer);
-                io.hss = proxyHttpsServer;
+            if (proxy.http_port) {
+                let httpServer = require('http').createServer();
+                io.attach(httpServer);
+                io.hs = httpServer;
+                servers[proxy.http_port] = httpServer;
+            }
+            if (proxy.https_port) {
+                let fs = require('fs');
+                try {
+                    let https_key = fs.readFileSync(proxy.https_key);
+                    let https_cert = fs.readFileSync(proxy.https_cert);
+                    let httpsServer = require('https').createServer({key: https_key, cert: https_cert});
+                    io.attach(httpsServer);
+                    io.hss = httpsServer;
+                    servers[proxy.https_port] = httpsServer;
+                } catch (e) {
+                    logger.error('error happened when start https on proxy.');
+                    process.exit(-1);
+                }
+
             }
             require('./lib/proxy')(io, proxy);
-        } else if (ports.indexOf(api.port.toString()) != -1) {
-            require('./lib/api')(apiHttpServer, api);
-        } else if (ports.indexOf(admin.port.toString()) != -1) {
-            require('./lib/admin')(adminHttpServer, admin);
+        } else if (process.env.bussinessType == 'api') {
+            let httpServer = require('http').createServer();
+            servers[api.port] = httpServer;
+            require('./lib/api')(httpServer, api);
+        } else if (process.env.bussinessType == 'admin') {
+            let httpServer = require('http').createServer();
+            servers[admin.port] = httpServer;
+            require('./lib/admin')(httpServer, admin);
         }
+        process.on('message', (msg, socket) => {
+            if (msg !== 'sticky:connection') {
+                return;
+            }
+            logger.debug('I am worker: ', cluster.worker.id);
+            let server = servers[socket.localPort];
+            server._connections++;
+            socket.server = server;
+            server.emit('connection', socket);
+            socket.resume();
+        })
     }
+
 }
