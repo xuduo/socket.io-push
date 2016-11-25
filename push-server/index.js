@@ -48,21 +48,13 @@ if (cluster.isMaster) {
         return Number(s) % workerLength;
     };
 
-    function* indexMaker() {
-        let index = 0;
-        while (1) {
-            if (index >= 10000) {
-                index = 0;
-            }
-            yield index++;
-        }
-    }
-
-    let gen = indexMaker();
+    let lastIndexNumber = 0;
     let rr = (workerLength) => {
-        return gen.next().value % workerLength;
+        lastIndexNumber ++;
+        if(lastIndexNumber > 10000) lastIndexNumber = 0 ;
+        return  lastIndexNumber % workerLength;
     };
-
+ 
     if (proxy.instances > 0) {
         let proxy_workers = [];
         for (let i = 0; i < proxy.instances; i++) {
