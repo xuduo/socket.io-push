@@ -1,5 +1,5 @@
-module.exports = function (httpServer, config) {
-    return new AdminServer(httpServer, config);
+module.exports = function (config) {
+    return new AdminServer(config);
 };
 const logger = require('winston-proxy')('AdminServer');
 const express = require("express");
@@ -7,7 +7,7 @@ const request = require('request');
 
 class AdminServer {
 
-    constructor(httpServer, config) {
+    constructor(config) {
         this.config = config;
         this.interval = 10 * 60 * 1000;
         setTimeout(()=> {
@@ -17,8 +17,8 @@ class AdminServer {
             this.onlineStatsJob();
         }, this.interval);
 
-        let app = express();
-        httpServer.on('request', app);
+        const app = express();
+        app.listen(config.port);
         console.log("serving static ", __dirname);
         app.use(express.static(__dirname + '/../../static', {
             setHeaders: (res) => {

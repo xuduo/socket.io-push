@@ -24,14 +24,16 @@ describe('statsTest', function () {
 
     it('sessionCount test', function (done) {
         pushClient.on('connect', function () {
-            stats.writeStatsToRedis();
-            stats.getSessionCount(function (data) {
-                console.log(data);
-                expect(data.total).to.be.equal(1);
-                expect(data.processCount[0].count.total).to.be.equal(1);
-                expect(data.processCount[0].id).to.be.equal(stats.id);
-                done();
+            stats.writeStatsToRedis(()=> {
+                stats.getSessionCount(function (data) {
+                    console.log(data);
+                    expect(data.total).to.be.equal(1);
+                    expect(data.processCount[0].count.total).to.be.equal(1);
+                    expect(data.processCount[0].id).to.be.equal(stats.id);
+                    done();
+                });
             });
+
         });
     });
 

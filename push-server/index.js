@@ -37,6 +37,7 @@ if (cluster.isMaster) {
         });
         return worker;
     };
+
     let ipHash = (ip, workerLength) => {
         let s = '';
         for (let i = 0; i < ip.length; i++) {
@@ -48,12 +49,12 @@ if (cluster.isMaster) {
     };
 
     let lastIndexNumber = 0;
+
     let rr = (workerLength) => {
-        lastIndexNumber ++;
-        if(lastIndexNumber > 10000) lastIndexNumber = 0 ;
-        return  lastIndexNumber % workerLength;
+        if (++lastIndexNumber == workerLength) lastIndexNumber = 0;
+        return lastIndexNumber;
     };
- 
+
     if (proxy.instances > 0) {
         let proxy_workers = [];
         for (let i = 0; i < proxy.instances; i++) {
@@ -87,17 +88,14 @@ if (cluster.isMaster) {
         }
     }
     if (admin.instances > 0) {
-        let admin_worker = spawn({processType: 'admin'});
-        net.createServer({pauseOnConnect: true}, (socket) => {
-            admin_worker.send('sticky:connection', socket);
-        }).listen(admin.port);
+        spawn({processType: 'admin'})
     }
 } else {
     if (process.env.processType) {
         let servers = {};
         if (process.env.processType == 'proxy') {
             let IoServer = require('socket.io');
-            let io = new IoServer(null, {
+            let io = new IoServer({
                 pingTimeout: proxy.pingTimeout,
                 pingInterval: proxy.pingInterval,
                 transports: ['websocket', 'polling']
@@ -108,7 +106,7 @@ if (cluster.isMaster) {
                 io.hs = httpServer;
                 servers[proxy.http_port] = httpServer;
             }
-            if (proxy.https_port) {
+            if (proxy.https_port && proxy.https_key && proxy.https_cert) {
                 let fs = require('fs');
                 try {
                     let https_key = fs.readFileSync(proxy.https_key);
@@ -129,21 +127,19 @@ if (cluster.isMaster) {
             servers[api.port] = httpServer;
             require('./lib/api')(httpServer, api);
         } else if (process.env.processType == 'admin') {
-            let httpServer = require('http').createServer();
-            servers[admin.port] = httpServer;
-            require('./lib/admin')(httpServer, admin);
+            require('./lib/admin')(admin);
         }
-        process.on('message', (msg, socket) => {
-            if (msg !== 'sticky:connection') {
-                return;
-            }
-            logger.debug('I am worker: ', cluster.worker.id);
-            let server = servers[socket.localPort];
-            server._connections++;
-            socket.server = server;
-            server.emit('connection', socket);
-            socket.resume();
-        })
+        if (Object.keys(servers).length > 0) {
+            process.on('message', (msg, socket) => {
+                if (msg !== 'sticky:connection') {
+                    return;
+                }
+                logger.debug('connection on worker: ', cluster.worker.id, socket.remoteAddress);
+                let server = servers[socket.localPort];
+                server.emit('connection', socket);
+                socket.resume();
+            });
+        }
     }
 
 }

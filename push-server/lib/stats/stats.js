@@ -31,16 +31,20 @@ class Stats {
         }
     }
 
-    writeStatsToRedis() {
+    writeStatsToRedis(callback) {
         const packetAverage = this.ms.sum([10 * 1000]);
         this.packetAverage1 = packetAverage[0];
+        if (!callback) {
+            callback = () => {
+            };
+        }
         this.redis.hset("stats#sessionCount", this.id, JSON.stringify({
             timestamp: Date.now(),
             sessionCount: this.sessionCount,
             packetAverage1: this.packetAverage1,
             packetDrop: this.packetDrop,
             packetDropThreshold: this.packetDropThreshold
-        }));
+        }), callback);
     }
 
     shouldDrop() {
