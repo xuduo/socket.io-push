@@ -10,6 +10,7 @@ function readableFormatter(args) {
         + args.level.substring(0, 1).toUpperCase() + "/" + args.meta.module + " " + (args.message ? args.message : '');
 }
 
+let deleteOpStarted = false;
 function createFileRotateTransport(dir, level, formatter = readableFormatter) {
     mkdirp(dir, err => {
         if (err && err.code != 'EEXIST') {
@@ -26,7 +27,8 @@ function createFileRotateTransport(dir, level, formatter = readableFormatter) {
         formatter: formatter
     };
     const msPerDel = 24 * 60 * 60 * 1000;
-    if (workId == 1) {
+    if (workId == 1 && false == deleteOpStarted) {
+        deleteOpStarted = true;
         deleteOutdatedLog(dir);
         setInterval(() => {
             deleteOutdatedLog(dir);
@@ -108,7 +110,7 @@ function LogProxy(moduleName) {
 });
 
 const deleteOutdatedLog = function (dir, days = 7) {
-    const msPerDay = 24 * 60 * 60 * 1000;
+    const msPerDay = 1;//24 * 60 * 60 * 1000;
     fs.readdir(dir, (err, files) => {
         if (err) {
             return;
