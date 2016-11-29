@@ -110,7 +110,7 @@ function LogProxy(moduleName) {
 });
 
 const deleteOutdatedLog = function (dir, days = 7) {
-    const msPerDay = 1;//24 * 60 * 60 * 1000;
+    const msPerDay = 24 * 60 * 60 * 1000;
     fs.readdir(dir, (err, files) => {
         if (err) {
             return;
