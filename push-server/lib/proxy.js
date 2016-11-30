@@ -42,7 +42,7 @@ class Proxy {
             this.proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.tokenService, this.uidStore,
                 this.ttlService, this.tagService, this.connectService, this.arrivalStats);
             if (config.topicOnlineFilter) {
-                this.topicOnline = require('./stats/topicOnline')(cluster, this.io, this.https_io, this.stats.id, config.topicOnlineFilter);
+                this.topicOnline = require('./stats/topicOnline')(cluster, this.io, this.stats.id, config.topicOnlineFilter);
             }
         } else {
             console.log('start proxy failed!');

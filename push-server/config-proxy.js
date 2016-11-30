@@ -48,5 +48,6 @@ config.redis = {
 };
 
 config.http_remove_headers = true;
+config.topicOnlineFilter = ['u_live_data', 'noti', 'chatRoom'];
 
 module.exports = config;

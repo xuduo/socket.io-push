@@ -68,7 +68,7 @@ if (cluster.isMaster) {
                 logger.debug('proxy listening on ' + proxy.http_port)
             });
         }
-        if (proxy.https_port) {
+        if (proxy.https_port && proxy.https_key && proxy.https_cert) {
             net.createServer({pauseOnConnect: true}, (socket) => {
                 let worker = proxy_workers[ipHash(socket.remoteAddress, proxy.instances)];
                 worker.send('sticky:connection', socket);
@@ -135,8 +135,7 @@ if (cluster.isMaster) {
                     return;
                 }
                 logger.debug('connection on worker: ', cluster.worker.id, socket.remoteAddress);
-                let server = servers[socket.localPort];
-                server.emit('connection', socket);
+                servers[socket.localPort].emit('connection', socket);
                 socket.resume();
             });
         }
