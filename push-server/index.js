@@ -37,10 +37,18 @@ if (cluster.isMaster) {
         }
     });
     logger.info('total worker: ' + totalWorker);
-    let spawn = (env) => {
+    let spawn = (env, workerPool) => {
         let worker = cluster.fork(env);
         worker.on('exit', (code, signal) => {
-            logger.error('worker exit, code: ', code, ' signal: ', signal);
+            logger.error('worker(%s) exit, code:%s, signal:%s', worker.id, code, signal);
+            let newWorker = spawn(env, workerPool);
+            if(workerPool){
+                let index = workerPool.indexOf(worker);
+                workerPool[index] = newWorker;
+                logger.debug('respwan new worker(%s), workers: %s, pid: %s', newWorker.id,
+                    workerPool.map((worker) => {return worker.id}),
+                    workerPool.map((worker) => {return worker.process.pid;}));
+            }
         });
         return worker;
     };
@@ -65,7 +73,7 @@ if (cluster.isMaster) {
     if (proxy.instances > 0) {
         let proxy_workers = [];
         for (let i = 0; i < proxy.instances; i++) {
-            proxy_workers.push(spawn({processType: 'proxy'}));
+            proxy_workers.push(spawn({processType: 'proxy'}, proxy_workers));
         }
         if (proxy.http_port) {
             net.createServer({pauseOnConnect: true}, (socket) => {
@@ -85,7 +93,7 @@ if (cluster.isMaster) {
     if (api.instances > 0) {
         let api_workers = [];
         for (let i = 0; i < api.instances; i++) {
-            api_workers.push(spawn({processType: 'api'}));
+            api_workers.push(spawn({processType: 'api'}, api_workers));
         }
         if (api.port) {
             net.createServer({pauseOnConnect: true}, (socket) => {
