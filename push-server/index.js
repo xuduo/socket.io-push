@@ -30,6 +30,13 @@ try {
 }
 
 if (cluster.isMaster) {
+    let totalWorker = proxy.instances + api.instances + admin.instances;
+    require('fs').writeFile(process.cwd() + '/num_processes', totalWorker, (err) => {
+        if (err) {
+            logger.error("fail to write num of processes");
+        }
+    });
+    logger.info('total worker: ' + totalWorker);
     let spawn = (env) => {
         let worker = cluster.fork(env);
         worker.on('exit', (code, signal) => {
