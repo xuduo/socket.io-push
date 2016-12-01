@@ -42,12 +42,16 @@ if (cluster.isMaster) {
         worker.on('exit', (code, signal) => {
             logger.error('worker(%s) exit, code:%s, signal:%s', worker.id, code, signal);
             let newWorker = spawn(env, workerPool);
-            if(workerPool){
+            if (workerPool) {
                 let index = workerPool.indexOf(worker);
                 workerPool[index] = newWorker;
                 logger.debug('respwan new worker(%s), workers: %s, pid: %s', newWorker.id,
-                    workerPool.map((worker) => {return worker.id}),
-                    workerPool.map((worker) => {return worker.process.pid;}));
+                    workerPool.map((worker) => {
+                        return worker.id
+                    }),
+                    workerPool.map((worker) => {
+                        return worker.process.pid;
+                    }));
             }
         });
         return worker;
