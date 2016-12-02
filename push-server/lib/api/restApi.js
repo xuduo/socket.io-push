@@ -3,6 +3,7 @@ module.exports = (httpServer, apiRouter, topicOnline, stats, config, redis, apiT
 };
 const express = require('express');
 const logger = require('winston-proxy')('RestApi');
+const async = require('async');
 
 class RestApi {
 
@@ -27,7 +28,7 @@ class RestApi {
             res.set("Access-Control-Allow-Origin", "*");
             return next();
         });
-        
+
         this.server = httpServser;
         httpServser.on('request', app);
 
@@ -90,7 +91,7 @@ class RestApi {
                 });
             }
 
-            apiRouter.push(pushData, req.p.topic, pushIds, uids, parseInt(req.p.timeToLive));
+            apiRouter.push(pushData, req.p.topic, pushIds, uids, this.parseNumber(req.p.timeToLive));
             res.json({code: "success"});
             return next();
         };
@@ -154,7 +155,7 @@ class RestApi {
                 return next();
             }
 
-            apiRouter.notification(notification, req.p.pushAll == 'true', pushIds, uids, req.p.tag, parseInt(req.p.timeToLive));
+            apiRouter.notification(notification, req.p.pushAll == 'true', pushIds, uids, req.p.tag, this.parseNumber(req.p.timeToLive));
             res.json({code: "success"});
             return next();
         };
@@ -162,7 +163,7 @@ class RestApi {
         const handleRouteNotification = (req, res, next) => {
             const notification = JSON.parse(req.p.notification);
             const pushIds = JSON.parse(req.p.pushId);
-            const timeToLive = parseInt(req.p.timeToLive);
+            const timeToLive = this.parseNumber(req.p.timeToLive);
             apiRouter.notificationLocal(notification, pushIds, timeToLive);
             res.json({code: "success"});
             return next();
@@ -198,7 +199,7 @@ class RestApi {
         };
 
         const handleAddPushIdToUid = (req, res, next) => {
-            uidStore.bindUid(req.p.pushId, req.p.uid, parseInt(req.p.timeToLive), req.p.platform, parseInt(req.p.platformLimit));
+            uidStore.bindUid(req.p.pushId, req.p.uid, this.parseNumber(req.p.timeToLive), req.p.platform, this.parseNumber(req.p.platformLimit));
             res.json({code: "success"});
             return next();
         };
@@ -238,7 +239,7 @@ class RestApi {
         };
 
         const handleStatsOnlineJob = (req, res, next) => {
-            onlineStats.write(parseInt(req.p.interval));
+            onlineStats.write(this.parseNumber(req.p.interval));
             res.json({code: "success"});
             return next();
         };
@@ -292,16 +293,31 @@ class RestApi {
         });
 
         router.get('/isConnected', (req, res, next) => {
-            const pushId = req.p.pushId;
-            if (!pushId) {
+            if (req.p.pushId) {
+                const pushId = req.p.pushId;
+                connectService.isConnected(pushId, (connected) => {
+                    res.json({pushId: pushId, connected: connected});
+                    return next();
+                })
+            } else if (req.p.uid) {
+                uidStore.getPlatformByUid(req.p.uid, (reply) => {
+                    let pushIds = Object.keys(reply);
+                    let result = [];
+                    async.each(pushIds, (pushId, callback) => {
+                        connectService.isConnected(pushId, (connected) => {
+                            result.push({pushId: pushId, platform: reply[pushId].split(',')[0], connected: connected});
+                            callback();
+                        })
+                    }, () => {
+                        res.json(result);
+                        return next();
+                    });
+                });
+            } else {
                 res.statusCode = 400;
                 res.json({code: 'error', message: 'pushId is required'});
                 return next();
             }
-            connectService.isConnected(pushId, (connectOrNot) => {
-                res.json({pushId: pushId, connected: connectOrNot});
-                return next();
-            })
         });
 
         router.get('/redis/del', (req, res, next) => {
@@ -376,5 +392,9 @@ class RestApi {
             arr = param;
         }
         return arr;
+    }
+
+    parseNumber(param) {
+        return parseInt(param) || 0;
     }
 }

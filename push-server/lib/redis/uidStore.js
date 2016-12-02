@@ -9,7 +9,7 @@ class UidStore {
         this.redis = redis;
     }
 
-    bindUid(pushId, uid, timeToLive = 3600 * 1000 * 24 * 14, platform = 0, platformLimit) {
+    bindUid(pushId, uid, timeToLive = 3600 * 1000 * 24 * 14, platform = 0, platformLimit = 0) {
         logger.debug("bindUid pushId %s %s", uid, pushId, platformLimit);
         this.removePushId(pushId, false, () => {
             this.redis.hgetall("uidToPushId#" + uid, (err, reply) => {
@@ -94,6 +94,12 @@ class UidStore {
                 });
                 callback(pushIds);
             }
+        });
+    }
+
+    getPlatformByUid(uid, callback) {
+        this.redis.hgetall("uidToPushId#" + uid, (err, reply) => {
+            callback(reply);
         });
     }
 
