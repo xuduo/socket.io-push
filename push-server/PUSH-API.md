@@ -1,8 +1,13 @@
-##推送 API
+推送 API
 
-string[]类型,表示http协议中list类型参数，如 get?uid=123&uid=456 ,表示一个uid数组 ["123", "456"]. get?uid=123 表示单个uid数组 [123]
 
-### /api/push 应用内透传
+1. string[]类型, 可以使用http标准的如
+   get?uid=123&uid=456 
+   或者使用uid=["123", "456"]
+   
+2. string
+
+## /api/push 应用内透传
 
 //推送给abc,def两个客户端.透传数据为字符串hello(hello),到topic=/topic/test
 
@@ -10,16 +15,10 @@ http://yourip:11001/api/push?pushAll=true&json=hello&topic=/topic/test
 
 --- 以下参数3选一,指定推送对象
 
-topic -> string, 客户端订阅的topic, (subscribeBroadcast的才能收到)
+- topic -> string, 客户端调用subscribeBroadcast的参数
+- pushId -> string[] 或 string，客户端生成的随机ID
+- uid -> string[] 或 string， 通过addPushIdToUid接口绑定的uid
 
-pushId -> string[], 如 ["abc","def"] 客户端生成的随机ID,单个或者数组
-
-        或 string, 如 "abc"
-
-uid -> string[],如 ["123","456"] 通过addPushIdToUid接口绑定的uid
-
-        或 string, 如 "123"
----
 
 json ->  以下类型三选一,透传给客户端的数据,客户端会在onPush里接收到
 
@@ -32,8 +31,6 @@ json ->  以下类型三选一,透传给客户端的数据,客户端会在onPush
          一般业务建议使用json数组(省流量)
 
          第一个int或string来表示推送类型,第二个参数表示该类型的透传数据
-
----
 
 timeToLive -> int, 毫秒, 表示当时用户不在线, 消息服务器保存多久
 
