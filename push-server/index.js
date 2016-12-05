@@ -120,7 +120,10 @@ if (cluster.isMaster) {
                 transports: ['websocket', 'polling']
             });
             if (proxy.http_port) {
-                let httpServer = require('http').createServer();
+                let httpServer = require('http').createServer((req, res) => {
+                    res.writeHead(404);
+                    res.end();
+                });
                 io.attach(httpServer);
                 io.hs = httpServer;
                 servers[proxy.http_port] = httpServer;
@@ -130,7 +133,10 @@ if (cluster.isMaster) {
                 try {
                     let https_key = fs.readFileSync(proxy.https_key);
                     let https_cert = fs.readFileSync(proxy.https_cert);
-                    let httpsServer = require('https').createServer({key: https_key, cert: https_cert});
+                    let httpsServer = require('https').createServer({key: https_key, cert: https_cert}, (req, res) => {
+                        res.writeHead(404);
+                        res.end();
+                    });
                     io.attach(httpsServer);
                     io.hss = httpsServer;
                     servers[proxy.https_port] = httpsServer;

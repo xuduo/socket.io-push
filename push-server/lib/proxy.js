@@ -2,8 +2,6 @@ module.exports = function (ioServer, config) {
     return new Proxy(ioServer, config);
 };
 
-const urlCheck = require('./util/urlCheck');
-
 class Proxy {
 
     constructor(ioServer, config) {
