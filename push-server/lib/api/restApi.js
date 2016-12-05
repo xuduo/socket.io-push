@@ -31,8 +31,10 @@ class RestApi {
 
         this.server = httpServser;
         httpServser.on('request', app);
+        const router = express.Router();
+        app.use("/api", router);
 
-        const handlePush = (req, res, next) => {
+        router.all('/push', (req, res, next) => {
             if (this.apiAuth && !this.apiAuth("/api/push", req, logger)) {
                 logger.error("push denied %j %j", req.p, req.headers);
                 res.statusCode = 400;
@@ -94,9 +96,9 @@ class RestApi {
             apiRouter.push(pushData, req.p.topic, pushIds, uids, this.parseNumber(req.p.timeToLive));
             res.json({code: "success"});
             return next();
-        };
+        });
 
-        const handleNotification = (req, res, next) => {
+        router.all('/notification', (req, res, next) => {
             logger.info("handleNotification %j", req.p);
             if (this.apiAuth && !this.apiAuth("/api/notification", req, logger)) {
                 logger.error("notification denied %j %j", req.p, req.headers);
@@ -158,53 +160,53 @@ class RestApi {
             apiRouter.notification(notification, req.p.pushAll == 'true', pushIds, uids, req.p.tag, this.parseNumber(req.p.timeToLive));
             res.json({code: "success"});
             return next();
-        };
+        });
 
-        const handleRouteNotification = (req, res, next) => {
+        router.all('/routeNotification', (req, res, next) => {
             const notification = JSON.parse(req.p.notification);
             const pushIds = JSON.parse(req.p.pushId);
             const timeToLive = this.parseNumber(req.p.timeToLive);
             apiRouter.notificationLocal(notification, pushIds, timeToLive);
             res.json({code: "success"});
             return next();
-        };
+        });
 
-        const heapdump = (req, res, next) => {
+        router.all('/heapdump', (req, res, next) => {
             var file = process.cwd() + "/" + Date.now() + '.heapsnapshot';
             require('heapdump').writeSnapshot(file);
             res.json({code: "success", file: file});
             return next();
-        };
+        });
 
-        const handleStatsBase = (req, res, next) => {
+        router.all('/stats/base', (req, res, next) => {
             stats.getSessionCount((count) => {
                 res.json(count);
                 return next();
             });
-        };
+        });
 
-        const handleChartStats = (req, res, next) => {
+        router.all('/stats/chart', (req, res, next) => {
             const key = req.p.key;
             stats.find(key, (result) => {
                 res.json(result);
                 return next();
             });
-        };
+        });
 
-        const handleArrivalRate = (req, res, next) => {
+        router.all('/stats/arrivalRate', (req, res, next) => {
             arrivalStats.getArrivalRateStatus((result) => {
                 res.json(result);
                 return next();
             });
-        };
+        });
 
-        const handleAddPushIdToUid = (req, res, next) => {
+        router.all('/uid/bind', (req, res, next) => {
             uidStore.bindUid(req.p.pushId, req.p.uid, this.parseNumber(req.p.timeToLive), req.p.platform, this.parseNumber(req.p.platformLimit));
             res.json({code: "success"});
             return next();
-        };
+        });
 
-        const removeRemoveUid = (req, res, next) => {
+        router.all('/uid/remove', (req, res, next) => {
             const pushIds = this.parseArrayParam(req.p.pushId);
             const uids = this.parseArrayParam(req.p.uid);
             if (pushIds) {
@@ -222,51 +224,29 @@ class RestApi {
                 res.json({code: "error", message: "pushId or uid is required"});
             }
             return next();
-        };
+        });
 
-        const handleQueryDataKeys = (req, res, next) => {
+        router.all('/stats/getQueryDataKeys', (req, res, next) => {
             stats.getQueryDataKeys((result) => {
                 logger.debug("getQueryDataKeys result: " + result)
                 res.json({"result": result});
                 return next();
             });
-        };
+        });
 
-        const handleApn = (req, res, next) => {
+        router.all('/apn', (req, res, next) => {
             apnService.callLocal(JSON.parse(req.p.notification), req.p.bundleId, this.parseArrayParam(req.p.tokens), req.p.pattern);
             res.json({code: "success"});
             return next();
-        };
+        });
 
-        const handleStatsOnlineJob = (req, res, next) => {
+        router.all('/stats/onlineJob', (req, res, next) => {
             onlineStats.write(this.parseNumber(req.p.interval));
             res.json({code: "success"});
             return next();
-        };
+        });
 
-        const router = express.Router();
-        app.use("/api", router);
-
-        router.get('/heapdump', heapdump);
-        router.post('/heapdump', heapdump);
-        router.get('/apn', handleApn);
-        router.post('/apn', handleApn);
-        router.get('/stats/base', handleStatsBase);
-        router.post('/stats/onlineJob', handleStatsOnlineJob);
-        router.get('/stats/chart', handleChartStats);
-        router.get('/stats/arrivalRate', handleArrivalRate);
-        router.get('/push', handlePush);
-        router.post('/push', handlePush);
-        router.get('/notification', handleNotification);
-        router.post('/notification', handleNotification);
-        router.post('/routeNotification', handleRouteNotification);
-        router.get('/uid/bind', handleAddPushIdToUid);
-        router.post('/uid/bind', handleAddPushIdToUid);
-        router.get('/uid/remove', removeRemoveUid);
-        router.post('/uid/remove', removeRemoveUid);
-        router.get('/stats/getQueryDataKeys', handleQueryDataKeys);
-
-        router.get('/topicOnline', (req, res, next) => {
+        router.all('/topicOnline', (req, res, next) => {
             const topic = req.p.topic;
             if (!topic) {
                 res.statusCode = 400;
@@ -279,7 +259,7 @@ class RestApi {
             });
         });
 
-        router.get('/topicDevices', (req, res, next) => {
+        router.all('/topicDevices', (req, res, next) => {
             const topic = req.p.topic;
             if (!topic) {
                 res.statusCode = 400;
@@ -292,7 +272,7 @@ class RestApi {
             });
         });
 
-        router.get('/isConnected', (req, res, next) => {
+        router.all('/isConnected', (req, res, next) => {
             if (req.p.pushId) {
                 const pushId = req.p.pushId;
                 connectService.isConnected(pushId, (connected) => {
@@ -320,34 +300,34 @@ class RestApi {
             }
         });
 
-        router.get('/redis/del', (req, res, next) => {
+        router.all('/redis/del', (req, res, next) => {
             redis.del(req.p.key);
             res.json({code: "success", key: req.p.key});
             return next();
         });
 
-        router.get('/redis/get', (req, res, next) => {
+        router.all('/redis/get', (req, res, next) => {
             redis.get(req.p.key, (err, result) => {
                 res.json({key: req.p.key, value: result});
                 return next();
             });
         });
 
-        router.get('/redis/hash', (req, res, next) => {
+        router.all('/redis/hash', (req, res, next) => {
             redis.hash(req.p.key, (result) => {
                 res.json(result);
                 return next();
             });
         });
 
-        router.get('/redis/hgetall', (req, res, next) => {
+        router.all('/redis/hgetall', (req, res, next) => {
             redis.hgetall(req.p.key, (err, result) => {
                 res.json({key: req.p.key, count: Object.keys(result).length, result: result});
                 return next();
             });
         });
 
-        router.get('/redis/hkeys', (req, res, next) => {
+        router.all('/redis/hkeys', (req, res, next) => {
             redis.hkeys(req.p.key, (err, result) => {
                 const strs = [];
                 result.forEach((token) => {
@@ -358,7 +338,7 @@ class RestApi {
             });
         });
 
-        router.get('/config', (req, res, next) => {
+        router.all('/config', (req, res, next) => {
             res.json(config);
             return next();
         });
