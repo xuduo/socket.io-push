@@ -18,7 +18,6 @@ class OnlineStats {
             this.writeRedis(result, "packetAverage1", timestamp, interval);
             this.writeRedis(result, "pc", timestamp, interval);
             this.writeRedis(result, "browser", timestamp, interval);
-            logger.info("write online stats to redis ", result);
             if (callback) {
                 callback();
             }

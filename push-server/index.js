@@ -1,7 +1,7 @@
 let logger = require('winston-proxy')('Index');
 let cluster = require('cluster');
 let net = require('net');
-
+let hashUtil = require('socket.io-push-redis/util');
 let proxy = {};
 try {
     proxy = require(process.cwd() + "/config-proxy");
@@ -57,16 +57,6 @@ if (cluster.isMaster) {
         return worker;
     };
 
-    let ipHash = (ip, workerLength) => {
-        let s = '';
-        for (let i = 0; i < ip.length; i++) {
-            if (!isNaN(ip[i])) {
-                s += ip[i];
-            }
-        }
-        return Number(s) % workerLength;
-    };
-
     let lastIndexNumber = 0;
 
     let rr = (workerLength) => {
@@ -81,7 +71,7 @@ if (cluster.isMaster) {
         }
         if (proxy.http_port) {
             net.createServer({pauseOnConnect: true}, (socket) => {
-                let worker = proxy_workers[ipHash(socket.remoteAddress, proxy.instances)];
+                let worker = hashUtil.getByHash(proxy_workers, socket.remoteAddress);
                 worker.send('sticky:connection', socket);
             }).listen(proxy.http_port).on('listening', () => {
                 logger.debug('proxy listening on ' + proxy.http_port)
@@ -89,7 +79,7 @@ if (cluster.isMaster) {
         }
         if (proxy.https_port && proxy.https_key && proxy.https_cert) {
             net.createServer({pauseOnConnect: true}, (socket) => {
-                let worker = proxy_workers[ipHash(socket.remoteAddress, proxy.instances)];
+                let worker = hashUtil.getByHash(proxy_workers, socket.remoteAddress);
                 worker.send('sticky:connection', socket);
             }).listen(proxy.https_port);
         }
