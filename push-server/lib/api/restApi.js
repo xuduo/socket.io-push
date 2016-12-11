@@ -1,5 +1,5 @@
-module.exports = (httpServer, apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats) => {
-    return new RestApi(httpServer, apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats);
+module.exports = (httpServer, spdyServer, apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats) => {
+    return new RestApi(httpServer, spdyServer, apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats);
 };
 const express = require('express');
 const logger = require('winston-proxy')('RestApi');
@@ -7,7 +7,7 @@ const async = require('async');
 
 class RestApi {
 
-    constructor(httpServser, apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats) {
+    constructor(httpServer, spdyServer, apiRouter, topicOnline, stats, config, redis, apiThreshold, apnService, apiAuth, uidStore, onlineStats, connectService, arrivalStats) {
         this.apiAuth = apiAuth;
         this.apiRouter = apiRouter;
 
@@ -29,8 +29,14 @@ class RestApi {
             return next();
         });
 
-        this.server = httpServser;
-        httpServser.on('request', app);
+        if (httpServer) {
+            this.httpServer = httpServer;
+            httpServer.on('request', app);
+        }
+        if (spdyServer) {
+            this.spdyServer = spdyServer;
+            spdyServer.on('request', app);
+        }
         const router = express.Router();
         app.use("/api", router);
 
@@ -345,7 +351,12 @@ class RestApi {
     }
 
     close() {
-        this.server.close();
+        if (this.httpServer) {
+            this.httpServer.close();
+        }
+        if (this.spdyServer) {
+            this.spdyServer.close();
+        }
     }
 
     moreThanOneTrue() {

@@ -20,15 +20,15 @@ DefaultSetting.getDefaultPushHttpsClient = (pushId)=> {
 };
 
 DefaultSetting.getDefaultApiUrl = ()=> {
-    let port = require("../config-api").port;
+    let port = require("../config-api").http_port;
     return 'http://localhost:' + port;
 };
 
 DefaultSetting.getDefaultApiServer = ()=> {
     let apiConfig = require('../config-api');
     let apiHttpServer = require('http').createServer();
-    apiHttpServer.listen(apiConfig.port);
-    return require('../lib/api')(apiHttpServer, apiConfig);
+    apiHttpServer.listen(apiConfig.http_port);
+    return require('../lib/api')(apiHttpServer, null, apiConfig);
 };
 
 DefaultSetting.getDefaultProxyServer = ()=> {

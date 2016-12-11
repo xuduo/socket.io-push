@@ -5,4 +5,7 @@ config.port = 12001; //admin port
 
 config.api_url = "http://localhost:11001";// api url
 
+config.https_key  = process.cwd() + "/cert/https/key.pem";
+config.https_cert = process.cwd() + "/cert/https/cert.pem";
+
 module.exports = config;

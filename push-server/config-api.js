@@ -1,8 +1,12 @@
 var config = {};
 
-config.port = 11001; //api端口, 可选. 不配置,不提供api接口
+config.http_port = 11001; //api端口, 可选. 不配置,不提供api接口
+config.https_port = 11443;
 
 config.instances = 3;
+
+config.https_key  = process.cwd() + "/cert/https/key.pem";
+config.https_cert = process.cwd() + "/cert/https/cert.pem";
 
 config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei timeToLive
 

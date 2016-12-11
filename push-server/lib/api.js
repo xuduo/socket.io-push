@@ -1,14 +1,14 @@
-module.exports = function (httpServer, config) {
-    return new Api(httpServer, config);
+module.exports = function (httpServer, spdyServer, config) {
+    return new Api(httpServer, spdyServer, config);
 };
 
 class Api {
 
-    constructor(httpServer, config) {
+    constructor(httpServer, spdyServer, config) {
         const instance = config.instance || 1;
         this.port = config.port = config.port + instance - 1;
 
-        console.log(`start api on port  ${this.port} #${process.pid}`);
+        console.log(`start api on port  http:${this.http_port} https:${this.https_port}  #${process.pid}`);
         const cluster = require('socket.io-push-redis/cluster')(config.redis);
 
         this.io = require('socket.io-push-redis/emitter')(cluster);
@@ -40,7 +40,7 @@ class Api {
         }
         this.apiRouter = require('./service/apiRouter')(this.uidStore, this.notificationService, this.ttlService, this.tagService, config.routerMaxPushIds, config.routerApiUrls);
         this.onlineStats = require('./stats/onlineStats')(this.stats, this.port);
-        this.restApi = require('./api/restApi')(httpServer, this.apiRouter, topicOnline, this.stats, config, cluster, apiThreshold, this.apnService, config.apiAuth, this.uidStore, this.onlineStats, this.connectService, this.arrivalStats);
+        this.restApi = require('./api/restApi')(httpServer, spdyServer, this.apiRouter, topicOnline, this.stats, config, cluster, apiThreshold, this.apnService, config.apiAuth, this.uidStore, this.onlineStats, this.connectService, this.arrivalStats);
     }
 
     close() {

@@ -4,25 +4,46 @@ module.exports = function (config) {
 const logger = require('winston-proxy')('AdminServer');
 const express = require("express");
 const request = require('request');
+const fs = require('fs');
 
 class AdminServer {
 
     constructor(config) {
         this.config = config;
         this.interval = 10 * 60 * 1000;
-        setTimeout(()=> {
-            this.onlineStatsJob();
-        }, 10000);
         setInterval(()=> {
             this.onlineStatsJob();
         }, this.interval);
-
         const app = express();
-        app.listen(config.port);
+        let options = {
+            key: fs.readFileSync(config.https_key),
+            cert: fs.readFileSync(config.https_cert)
+        };
+        require('spdy').createServer(options, app).listen(config.port, (error) => {
+            if (error) {
+                console.error(error)
+                return process.exit(1)
+            } else {
+                console.log('Listening on port: ' + config.port + '.')
+            }
+        });
+
         console.log("serving static ", __dirname);
+        let proxy = {};
+        try {
+            proxy = require(process.cwd() + "/config-proxy");
+        } catch (ex) {
+            logger.warn('config-proxy exception: ' + ex);
+        }
+        let api = {};
+        try {
+            api = require(process.cwd() + "/config-api");
+        } catch (ex) {
+            logger.warn('config-proxy exception: ' + ex);
+        }
         app.use(express.static(__dirname + '/../../static', {
             setHeaders: (res) => {
-                res.set('Set-Cookie', `api_url = ${config.api_url}`);
+                res.set('Set-Cookie', [`api_url = ${config.api_url}`, `proxy_port = ${proxy.https_port}`, `api_port = ${api.https_port}`]);
             }
         }));
     }

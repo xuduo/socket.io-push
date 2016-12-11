@@ -12,14 +12,6 @@ $(function () {
     // Initialize variables
     var $window = $(window);
     var $usernameInput = $('#usernameInput'); // Input for username
-    var $hostInput = $('#hostInput');
-    $.ajax({
-        type: 'GET',
-        url: $.cookie("api_url") + '/api/config',
-        success: function (data) {
-            $hostInput.val(window.location.protocol + "//" + window.location.hostname + ":" + 10001);
-        }
-    });
 
     var $messages = $('.messages'); // Messages area
     var $inputMessage = $('.inputMessage'); // Input message input box
@@ -47,12 +39,11 @@ $(function () {
     // Sets the client's username
     function setUsername() {
         username = cleanInput($usernameInput.val());
-        var host = cleanInput($hostInput.val());
-        console.log("set username ", username, host);
+        console.log("set username ", username);
         if (!username) {
             return;
         }
-        initClient(host);
+        initClient();
         // If the username is valid
         if (username) {
             $loginPage.fadeOut();
@@ -62,8 +53,8 @@ $(function () {
         }
     }
 
-    function initClient(host) {
-        pushClient = new PushClient(host, {transports: ['polling' , 'websocket']});
+    function initClient() {
+        pushClient = new PushClient("https://" + window.location.hostname + ":" + $.cookie("proxy_port"), {transports: ['polling' , 'websocket']});
         pushClient.subscribeTopic("chatRoom");
         pushClient.on('connect', function (data) {
             console.log("pushClient.on.connect ", data.uid);
@@ -88,10 +79,10 @@ $(function () {
         var json = {message: message, nickName: username, type: "chat_message"};
         $.ajax({
             type: 'GET',
-            url: $.cookie("api_url") + '/api/push',
+            url: "https://" + window.location.hostname + ":" + $.cookie("api_port") + "/api/push",
             data: {
                 topic: "chatRoom",
-                timeToLive: 10000,
+                timeToLive: 60000,
                 json: JSON.stringify(json)
             }
         });

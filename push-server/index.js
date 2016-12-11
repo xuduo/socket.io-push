@@ -1,6 +1,7 @@
 let logger = require('winston-proxy')('Index');
 let cluster = require('cluster');
 let net = require('net');
+let fs = require('fs');
 let hashUtil = require('socket.io-push-redis/util');
 let proxy = {};
 try {
@@ -89,11 +90,17 @@ if (cluster.isMaster) {
         for (let i = 0; i < api.instances; i++) {
             api_workers.push(spawn({processType: 'api'}, api_workers));
         }
-        if (api.port) {
+        if (api.http_port) {
             net.createServer({pauseOnConnect: true}, (socket) => {
                 let worker = api_workers[rr(api.instances)];
                 worker.send('sticky:connection', socket);
-            }).listen(api.port);
+            }).listen(api.http_port);
+        }
+        if (api.https_port) {
+            net.createServer({pauseOnConnect: true}, (socket) => {
+                let worker = api_workers[rr(api.instances)];
+                worker.send('sticky:connection', socket);
+            }).listen(api.https_port);
         }
     }
     if (admin.instances > 0) {
@@ -119,7 +126,6 @@ if (cluster.isMaster) {
                 servers[proxy.http_port] = httpServer;
             }
             if (proxy.https_port && proxy.https_key && proxy.https_cert) {
-                let fs = require('fs');
                 try {
                     let https_key = fs.readFileSync(proxy.https_key);
                     let https_cert = fs.readFileSync(proxy.https_cert);
@@ -138,9 +144,22 @@ if (cluster.isMaster) {
             }
             require('./lib/proxy')(io, proxy);
         } else if (process.env.processType == 'api') {
-            let httpServer = require('http').createServer();
-            servers[api.port] = httpServer;
-            require('./lib/api')(httpServer, api);
+            let spdyServer, httpServer;
+            if (api.http_port) {
+                httpServer = require('http').createServer();
+                servers[api.http_port] = httpServer;
+            }
+            if (api.https_port && api.https_cert && api.https_key) {
+                let options = {
+                    key: fs.readFileSync(api.https_key),
+                    cert: fs.readFileSync(api.https_cert)
+                };
+                spdyServer = require('spdy').createServer(options);
+                servers[api.https_port] = spdyServer;
+            }
+            if (httpServer || spdyServer) {
+                require('./lib/api')(httpServer, spdyServer, api);
+            }
         } else if (process.env.processType == 'admin') {
             require('./lib/admin')(admin);
         }
