@@ -19,12 +19,12 @@ class AdminServer {
             key: fs.readFileSync(config.https_key),
             cert: fs.readFileSync(config.https_cert)
         };
-        require('spdy').createServer(options, app).listen(config.port, (error) => {
+        require('spdy').createServer(options, app).listen(config.https_port, (error) => {
             if (error) {
                 console.error(error)
                 return process.exit(1)
             } else {
-                console.log('Listening on port: ' + config.port + '.')
+                console.log('Listening on port: ' + config.https_port + '.')
             }
         });
 

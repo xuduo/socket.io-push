@@ -197,7 +197,7 @@
 
         $.ajax({
             type: 'GET',
-            url: $.cookie("api_url") + '/api/push',
+            url: "https://" + window.location.hostname + ":" + $.cookie("api_port") + "/api/push",
             data: para,
             success: function (data) {
                 document.getElementById("result").innerHTML = JSON.stringify(data);

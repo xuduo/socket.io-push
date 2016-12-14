@@ -8,7 +8,7 @@ class Api {
         const instance = config.instance || 1;
         this.port = config.port = config.port + instance - 1;
 
-        console.log(`start api on port  http:${this.http_port} https:${this.https_port}  #${process.pid}`);
+        console.log(`start api on port  http:${config.http_port} https:${config.https_port}  #${process.pid}`);
         const cluster = require('socket.io-push-redis/cluster')(config.redis);
 
         this.io = require('socket.io-push-redis/emitter')(cluster);

@@ -103,7 +103,7 @@ if (cluster.isMaster) {
             }).listen(api.https_port);
         }
     }
-    if (admin.instances > 0) {
+    if (admin.instances > 0 && admin.https_port && admin.https_cert && admin.https_key) {
         spawn({processType: 'admin'})
     }
 } else {

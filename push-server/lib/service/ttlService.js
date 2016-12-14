@@ -21,7 +21,7 @@ class TTLService {
     }
 
     addTTL(topic, event, timeToLive, packet, unicast) {
-        if (timeToLive >= 0) {
+        if (timeToLive > 0) {
             if (!packet.id) {
                 packet.id = randomstring.generate(12);
             }
@@ -35,16 +35,15 @@ class TTLService {
             data.timestampValid = Date.now() + timeToLive;
             data.event = event;
             var listKey = "ttl#packet#" + topic;
-            if (timeToLive != 0) {
-                this.redis.pttl(listKey, (err, oldTtl) => {
-                    logger.debug("addPacket key %s ,id %s, %d , %d", listKey, packet.id, oldTtl, timeToLive);
-                    this.redis.rpush(listKey, JSON.stringify(data));
-                    this.redis.ltrim(listKey, maxTllPacketPerTopic, -1);
-                    if (timeToLive > oldTtl) {
-                        this.redis.pexpire(listKey, timeToLive);
-                    }
-                });
-            }
+            this.redis.pttl(listKey, (err, oldTtl) => {
+                logger.debug("addPacket key %s ,id %s, %d , %d", listKey, packet.id, oldTtl, timeToLive);
+                this.redis.rpush(listKey, JSON.stringify(data));
+                this.redis.ltrim(listKey, maxTllPacketPerTopic, -1);
+                if (timeToLive > oldTtl) {
+                    logger.debug("pexpire ", listKey);
+                    this.redis.pexpire(listKey, timeToLive);
+                }
+            });
 
             if (topic == 'noti') {
                 logger.debug("noti reach rate stats, id: ", data.id);

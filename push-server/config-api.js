@@ -5,7 +5,7 @@ config.https_port = 11443;
 
 config.instances = 3;
 
-config.https_key  = process.cwd() + "/cert/https/key.pem";
+config.https_key = process.cwd() + "/cert/https/key.pem";
 config.https_cert = process.cwd() + "/cert/https/cert.pem";
 
 config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei timeToLive
@@ -17,11 +17,14 @@ config.topicThreshold = {};
 //apns推送配置,可选
 config.apns = [
     {
-        production: false,
+        production: true,
         maxConnections: 100,
         bundleId: "com.xuduo.pushtest",
-        cert: process.cwd() + "/cert/com.xuduo.pushtest/cert.pem",
-        key: process.cwd() + "/cert/com.xuduo.pushtest/key.pem"
+        token: {
+            key: process.cwd() + "/cert/com.xuduo.pushtest.p8",
+            keyId: "E75AZZM4Z8",
+            teamId: "PVE2WH4PE2"
+        }
     },
     {
         production: false,
@@ -86,9 +89,9 @@ config.routerApiUrls = [
     "http://127.0.0.1:11001"
 ]; //国内api分流
 
-config.apnApiUrls = [
-    "http://127.0.0.1:11001",
-    "http://127.0.0.1:11020"
-]; // 香港代理,用于apn推送
+//config.apnApiUrls = [
+//    "http://127.0.0.1:11001",
+//    "http://127.0.0.1:11020"
+//]; // 香港代理,用于apn推送
 
 module.exports = config;
