@@ -138,3 +138,9 @@ topic -> 查询的topic
 --- 参数
 
 key -> redis key
+
+### /api/isConnected   pushId或者uid 是否在线查询
+
+--- 参数
+
+pushId=123 或者　uid=123
