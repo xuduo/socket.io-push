@@ -16,40 +16,20 @@ class ApnProvider {
         this.apnApiUrls = require("../util/infiniteArray")(apnApiUrls);
         this.tokenTTL = tokenTTL;
         const fs = require('fs');
-        const ca = [fs.readFileSync(__dirname + "/../../cert/entrust_2048_ca.cer")];
         this.callback = (response) => {
             if (response.sent && response.sent.length > 0) {
                 stats.addPushSuccess(response.sent.length, `${this.type}_${apnConfig.bundleId}_`);
             } else if (response.failed && response.failed.length > 0) {
                 for (const failed of response.failed) {
-                    logger.error("apn errorCallback %s %j", failed.device, failed.error);
+                    logger.error("apn errorCallback %s %j", failed.device, failed.error, failed.response);
                 }
             }
-
-            //if (device && device.token) {
-            //    const id = device.token.toString('hex');
-            //    logger.error("apn errorCallback errorCode %d %s", errorCode, id);
-            //    stats.addPushError(1, errorCode, `${this.type}_${apnConfig.bundleId}_`);
-            //    if (errorCode == 8 || errorCode == 5) {
-            //        redis.hdel("apnTokens#" + apnConfig.bundleId, id);
-            //        redis.get("tokenToPushId#apn#" + id, (err, oldPushId) => {
-            //            logger.error("apn errorCallback pushId %s", oldPushId);
-            //            if (oldPushId) {
-            //                redis.del("pushIdToToken#" + oldPushId);
-            //                redis.del("tokenToPushId#apn#" + id);
-            //            }
-            //        });
-            //    }
-            //} else {
-            //    logger.error("apn errorCallback no token %s %j", errorCode, device);
-            //}
         }
 
         apnConfigs.forEach((apnConfig, index) => {
             let connection = "";
             if ((apnConfig.cert && apnConfig.key) || apnConfig.token) {
                 apnConfig.maxConnections = apnConfig.maxConnections || 10;
-                apnConfig.ca = ca;
                 connection = apn.Provider(apnConfig);
                 connection.index = index;
             }

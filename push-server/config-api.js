@@ -17,8 +17,7 @@ config.topicThreshold = {};
 //apns推送配置,可选
 config.apns = [
     {
-        production: true,
-        maxConnections: 100,
+        production: false,
         bundleId: "com.xuduo.pushtest",
         token: {
             key: process.cwd() + "/cert/com.xuduo.pushtest.p8",
@@ -28,7 +27,6 @@ config.apns = [
     },
     {
         production: false,
-        maxConnections: 50,
         bundleId: "com.xuduo.pushtest2",
         cert: process.cwd() + "/cert/com.xuduo.pushtest2/cert.pem",
         key: process.cwd() + "/cert/com.xuduo.pushtest2/key.pem"
