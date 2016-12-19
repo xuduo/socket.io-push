@@ -188,7 +188,7 @@
         uids = cleanArray(uids, "");
         $.ajax({
             type: 'GET',
-            url: $.cookie("api_url") + '/api/notification',
+            url: "https://" + window.location.hostname + ":" + $.cookie("api_port") + "/api/notification",
             data: {
                 pushId: pushIds,
                 notification: str,
