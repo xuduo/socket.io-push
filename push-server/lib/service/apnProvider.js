@@ -32,6 +32,7 @@ class ApnProvider {
                 apnConfig.maxConnections = apnConfig.maxConnections || 10;
                 connection = apn.Provider(apnConfig);
                 connection.index = index;
+                logger.debug("load apnConfig: %j", apnConfig);
             }
             this.apnConnections[apnConfig.bundleId] = connection;
             logger.info("apnConnections init for %s maxConnections %s", apnConfig.bundleId, apnConfig.maxConnections);
