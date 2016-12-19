@@ -18,10 +18,15 @@ class ApnProvider {
         const fs = require('fs');
         this.callback = (response) => {
             if (response.sent && response.sent.length > 0) {
-                stats.addPushSuccess(response.sent.length, `${this.type}_${apnConfig.bundleId}_`);
+                stats.addPushSuccess(response.sent.length, `${this.type}`);
             } else if (response.failed && response.failed.length > 0) {
                 for (const failed of response.failed) {
-                    logger.error("apn errorCallback %s %j", failed.device, failed.error, failed.response);
+                    let error = "";
+                    if (failed.response) {
+                        error = failed.response.reason || "unknown";
+                    }
+                    stats.addPushError(response.sent.length, error, `${this.type}`);
+                    logger.error("apn errorCallback %s %j", error, failed, failed.response);
                 }
             }
         }
