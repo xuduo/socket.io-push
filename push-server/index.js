@@ -24,8 +24,9 @@ api.instances = api.instances || 0;
 let admin = {instances: 0};
 try {
     admin = require(process.cwd() + "/config-admin");
-    admin.instances = 1;
-    admin.port = admin.port || 12001;
+    if (admin.https_port && admin.https_cert && admin.https_key) {
+        admin.instances = 1;
+    }
 } catch (ex) {
     logger.warn('config-admin exception: ' + ex);
 }
@@ -103,7 +104,7 @@ if (cluster.isMaster) {
             }).listen(api.https_port);
         }
     }
-    if (admin.instances > 0 && admin.https_port && admin.https_cert && admin.https_key) {
+    if (admin.instances > 0) {
         spawn({processType: 'admin'})
     }
 } else {
