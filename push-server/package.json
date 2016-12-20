@@ -1,6 +1,6 @@
 {
   "name": "socket.io-push",
-  "version": "0.0.254",
+  "version": "0.0.256",
   "description": "socket.io-push server by xuduo",
   "main": "index.js",
   "bin": {
