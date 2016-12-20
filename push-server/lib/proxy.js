@@ -38,7 +38,7 @@ class Proxy {
             this.tokenService = require('./service/tokenService')(cluster, tokenTTL);
 
             this.proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.tokenService, this.uidStore,
-                this.ttlService, this.tagService, this.connectService, this.arrivalStats);
+                this.ttlService, this.tagService, this.connectService, this.arrivalStats,config);
             if (config.topicOnlineFilter) {
                 this.topicOnline = require('./stats/topicOnline')(cluster, this.io, this.stats.id, config.topicOnlineFilter);
             }

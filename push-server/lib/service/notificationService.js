@@ -56,6 +56,7 @@ class NotificationService {
         this.addIdAndTimestamp(notification);
         if (this.ttlService && notification.android.title) {
             this.ttlService.addTTL("noti", 'noti', timeToLive, notification, false);
+            // 小米,华为,苹果不订阅 "noti"
             this.ttlService.emitPacket("noti", 'noti', notification);
         }
         this.providerFactory.sendAll(notification, timeToLive);

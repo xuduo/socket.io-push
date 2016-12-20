@@ -1,16 +1,15 @@
-module.exports = (io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats) => {
-    return new ProxyServer(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats);
+module.exports = (io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats,config) => {
+    return new ProxyServer(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats,config);
 };
 const logger = require('winston-proxy')('ProxyServer');
 const http = require('http');
 
 class ProxyServer {
 
-    constructor(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats) {
+    constructor(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats,config) {
         this.io = io;
 
         io.on('connection', (socket) => {
-
             socket.on('disconnect', () => {
                 stats.removeSession();
                 stats.removePlatformSession(socket.platform);
@@ -145,6 +144,15 @@ class ProxyServer {
             socket.on('unbindUid', () => {
                 if (socket.pushId) {
                     uidStore.removePushId(socket.pushId, true);
+                }
+            });
+
+            socket.on('bindUid', (data) => {
+                logger.debug("on bindUid %s %j", socket.pushId, data);
+                if (socket.pushId && data && config.bindUidCallback) {
+                    config.bindUidCallback(data, (uid) => {
+                        uidStore.bindUid(socket.pushId,uid);
+                    });
                 }
             });
 
