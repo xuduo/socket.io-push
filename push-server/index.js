@@ -20,8 +20,6 @@ try {
 }
 api.instances = api.instances || 0;
 
-
-let admin = {instances: 0};
 try {
     admin = require(process.cwd() + "/config-admin");
     if (admin.https_port && admin.https_cert && admin.https_key) {
@@ -30,6 +28,7 @@ try {
 } catch (ex) {
     logger.warn('config-admin exception: ' + ex);
 }
+admin.instances = admin.instances || 0;
 
 if (cluster.isMaster) {
     let totalWorker = proxy.instances + api.instances + admin.instances;
