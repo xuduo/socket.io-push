@@ -5,7 +5,7 @@ var config = {};
 config.http_port = 10001;
 // https端口,不配置不启用https，　证书＆密钥位置： cert/https/*.pem ;
 config.https_port = 10443;
-config.https_key  = process.cwd() + "/cert/https/key.pem";
+config.https_key = process.cwd() + "/cert/https/key.pem";
 config.https_cert = process.cwd() + "/cert/https/cert.pem";
 
 config.instances = 3;
@@ -49,5 +49,9 @@ config.redis = {
 
 config.http_remove_headers = true;
 config.topicOnlineFilter = ['u_live_data', 'noti', 'chatRoom'];
+
+config.bindUid = (data, callback) => {
+    callback(data.uid);
+}
 
 module.exports = config;

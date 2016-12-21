@@ -142,6 +142,10 @@ PushClient.prototype.unbindUid = function () {
     this.socket.emit('unbindUid');
 }
 
+PushClient.prototype.bindUid = function (data) {
+    this.socket.emit('bindUid', data);
+}
+
 PushClient.prototype.disconnect = function () {
     this.socket.disconnect();
 }
