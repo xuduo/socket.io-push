@@ -147,17 +147,20 @@ class ProxyServer {
                 }
             });
 
-            socket.on('bindUid', (data) => {
-                logger.debug("bindUid %s %j", socket.pushId, data);
-                if (socket.pushId && data && config.bindUid) {
-                    config.bindUid(data, (uid)=> {
-                        if (uid) {
-                            socket.uid = uid;
-                            uidStore.bindUid(socket.pushId, data.uid);
-                        }
-                    });
-                }
-            });
+            if (config.bindUid) {
+                config.request = require('request');
+                socket.on('bindUid', (data) => {
+                    logger.debug("bindUid %s %j", socket.pushId, data);
+                    if (socket.pushId && data) {
+                        config.bindUid(data, (uid)=> {
+                            if (uid) {
+                                socket.uid = uid;
+                                uidStore.bindUid(socket.pushId, data.uid);
+                            }
+                        });
+                    }
+                });
+            }
 
             socket.on('notificationReply', (data) => {
                 stats.onNotificationReply(data.timestamp);
