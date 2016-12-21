@@ -15,9 +15,9 @@ class ApnProvider {
         this.stats = stats;
         this.apnApiUrls = require("../util/infiniteArray")(apnApiUrls);
         this.tokenTTL = tokenTTL;
-        const fs = require('fs');
         this.callback = (response) => {
             if (response.sent && response.sent.length > 0) {
+                logger.debug("send sucess ", response.length);
                 stats.addPushSuccess(response.sent.length, `${this.type}`);
             } else if (response.failed && response.failed.length > 0) {
                 for (const failed of response.failed) {
