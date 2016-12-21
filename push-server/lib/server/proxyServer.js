@@ -1,12 +1,12 @@
-module.exports = (io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats,config) => {
-    return new ProxyServer(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats,config);
+module.exports = (io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats, config) => {
+    return new ProxyServer(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats, config);
 };
 const logger = require('winston-proxy')('ProxyServer');
 const http = require('http');
 
 class ProxyServer {
 
-    constructor(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats,config) {
+    constructor(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats, config) {
         this.io = io;
 
         io.on('connection', (socket) => {
@@ -148,11 +148,22 @@ class ProxyServer {
             });
 
             socket.on('bindUid', (data) => {
-                logger.debug("on bindUid %s %j", socket.pushId, data);
-                if (socket.pushId && data && config.bindUidCallback) {
-                    config.bindUidCallback(data, (uid) => {
-                        uidStore.bindUid(socket.pushId,uid);
-                    });
+                logger.debug("on_bindUid %s %j", socket.pushId, data);
+
+                if (socket.pushId && data && config.bindUidAuthUrl) {
+                    const request = require('request');
+                    request({
+                            url: config.bindUidAuthUrl(data),
+                            method: "get"
+                        }, (error, response, body) => {
+                            let uidstr = JSON.parse(body).uid;
+                            logger.debug("on_bindUid,data.uid uidstr:", data.uid, uidstr);
+                            if (uidstr == data.uid) {
+                                logger.debug("on_bindUid,uidStore.bindUid:", data.uid, socket.pushId);
+                                uidStore.bindUid(socket.pushId, data.uid);
+                            }
+                        }
+                    );
                 }
             });
 
