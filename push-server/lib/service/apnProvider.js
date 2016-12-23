@@ -17,7 +17,7 @@ class ApnProvider {
         this.tokenTTL = tokenTTL;
         this.callback = (response) => {
             if (response.sent && response.sent.length > 0) {
-                logger.debug("send sucess ", response.length);
+                logger.debug("send sucess ", response.sent.length);
                 stats.addPushSuccess(response.sent.length, `${this.type}`);
             } else if (response.failed && response.failed.length > 0) {
                 for (const failed of response.failed) {
@@ -88,8 +88,8 @@ class ApnProvider {
         this.stats.addPushTotal(tokens.length, `${this.type}_${bundleId}_`);
         const note = this.toApnNotification(notification, timeToLive);
         note.topic = bundleId;
+        logger.debug("callLocal ", bundleId, note, tokens);
         apnConnection.send(note, tokens).then(this.callback);
-        logger.info("callLocal ", bundleId, tokens.length, notification);
     }
 
     callRemote(notification, bundleId, tokens, timeToLive, errorCount = 0) {
@@ -178,5 +178,3 @@ class ApnProvider {
     }
 
 }
-
-
