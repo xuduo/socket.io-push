@@ -2,7 +2,7 @@ var config = {};
 
 config.http_port = 11001; //api端口, 可选. 不配置,不提供api接口
 config.https_port = 11443;
-
+config.host = "localhost"; //留空表示listen所有interface
 config.instances = 3;
 
 config.https_key = process.cwd() + "/cert/https/key.pem";

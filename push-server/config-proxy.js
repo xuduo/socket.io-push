@@ -7,6 +7,7 @@ config.http_port = 10001;
 config.https_port = 10443;
 config.https_key = process.cwd() + "/cert/https/key.pem";
 config.https_cert = process.cwd() + "/cert/https/cert.pem";
+config.host = "localhost"; //无此选项, 表示listen所有interface
 
 config.instances = 3;
 

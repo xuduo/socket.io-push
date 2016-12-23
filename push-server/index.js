@@ -62,9 +62,9 @@ if (cluster.isMaster) {
 
     let lastIndexNumber = 0;
 
-    let rr = (workerLength) => {
-        if (++lastIndexNumber == workerLength) lastIndexNumber = 0;
-        return lastIndexNumber;
+    let rr = (workers) => {
+        if (++lastIndexNumber == workers.length) lastIndexNumber = 0;
+        return workers[lastIndexNumber];
     };
 
     if (proxy.instances > 0) {
@@ -73,18 +73,10 @@ if (cluster.isMaster) {
             proxy_workers.push(spawn({processType: 'proxy'}, proxy_workers));
         }
         if (proxy.http_port) {
-            net.createServer({pauseOnConnect: true}, (socket) => {
-                let worker = hashUtil.getByHash(proxy_workers, socket.remoteAddress);
-                worker.send('sticky:connection', socket);
-            }).listen(proxy.http_port).on('listening', () => {
-                logger.debug('proxy listening on ' + proxy.http_port)
-            });
+            createNetServer(proxy_workers, hashUtil.getByHash, proxy.http_port, proxy.host);
         }
         if (proxy.https_port && proxy.https_key && proxy.https_cert) {
-            net.createServer({pauseOnConnect: true}, (socket) => {
-                let worker = hashUtil.getByHash(proxy_workers, socket.remoteAddress);
-                worker.send('sticky:connection', socket);
-            }).listen(proxy.https_port);
+            createNetServer(proxy_workers, hashUtil.getByHash, proxy.https_port, proxy.host);
         }
     }
     if (api.instances > 0) {
@@ -93,16 +85,10 @@ if (cluster.isMaster) {
             api_workers.push(spawn({processType: 'api'}, api_workers));
         }
         if (api.http_port) {
-            net.createServer({pauseOnConnect: true}, (socket) => {
-                let worker = api_workers[rr(api.instances)];
-                worker.send('sticky:connection', socket);
-            }).listen(api.http_port);
+            createNetServer(api_workers, rr, api.http_port, api.host);
         }
-        if (api.https_port) {
-            net.createServer({pauseOnConnect: true}, (socket) => {
-                let worker = api_workers[rr(api.instances)];
-                worker.send('sticky:connection', socket);
-            }).listen(api.https_port);
+        if (api.https_port && api.https_key && api.https_cert) {
+            createNetServer(api_workers, rr, api.https_port, api.host);
         }
     }
     if (admin.instances > 0) {
@@ -177,4 +163,16 @@ if (cluster.isMaster) {
         }
     }
 
+}
+
+function createNetServer(workers, lb, port, host) {
+    const server = net.createServer({pauseOnConnect: true}, (socket) => {
+        let worker = lb(workers, socket.remoteAddress);
+        worker.send('sticky:connection', socket);
+    });
+    if (host) {
+        server.listen(port, host);
+    } else {
+        server.listen(port);
+    }
 }
