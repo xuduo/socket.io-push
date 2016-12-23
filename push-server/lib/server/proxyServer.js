@@ -10,19 +10,22 @@ class ProxyServer {
         this.io = io;
 
         io.on('connection', (socket) => {
-            socket.on('disconnect', () => {
+            socket.on('disconnect', (reason) => {
+                logger.debug("disconnect by transport, pushId: %s, socketId:%, reason: %s", socket.pushId, socket.id, reason);
                 stats.removeSession();
                 stats.removePlatformSession(socket.platform);
-                if (socket.pushId) {
-                    connectService.disconnect(socket, (ret) => {
-                        if (ret) {
-                            if (packetService) {
-                                logger.debug("publishDisconnect pushId:%s, socketId:%s", socket.pushId, socket.id);
-                                packetService.publishDisconnect(socket);
+                if (socket.pushId && reason != 'ping timeout') {
+                    setTimeout(() => {
+                        connectService.disconnect(socket, (ret) => {
+                            if (ret) {
+                                if (packetService) {
+                                    logger.debug("publishDisconnect pushId:%s, socketId:%s", socket.pushId, socket.id);
+                                    packetService.publishDisconnect(socket);
+                                }
+                                arrivalStats.disconnect(socket);
                             }
-                            arrivalStats.disconnect(socket);
-                        }
-                    })
+                        })
+                    }, config.disconnect_delay || 0);
                 }
             });
 
