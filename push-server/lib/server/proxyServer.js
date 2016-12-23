@@ -14,7 +14,9 @@ class ProxyServer {
                 logger.debug("disconnect by transport, pushId: %s, socketId:%s, reason: %s", socket.pushId, socket.id, reason);
                 stats.removeSession();
                 stats.removePlatformSession(socket.platform);
-                if (socket.pushId && reason != 'ping timeout') {
+                let disconnect_delay = 0;
+                if (reason != 'ping timeout') disconnect_delay = config.disconnect_delay || 0;
+                if (socket.pushId) {
                     setTimeout(() => {
                         connectService.disconnect(socket, (ret) => {
                             if (ret) {
@@ -25,7 +27,7 @@ class ProxyServer {
                                 arrivalStats.disconnect(socket);
                             }
                         })
-                    }, config.disconnect_delay || 0);
+                    }, disconnect_delay);
                 }
             });
 
