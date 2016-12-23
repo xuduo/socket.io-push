@@ -12,6 +12,7 @@ config.instances = 3;
 
 config.pingTimeout = 25000; //  心跳timeout
 config.pingInterval = 90000; // 心跳间隔
+config.disconnect_delay = 10000; //disconnect事件延迟处理
 
 config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei timeToLive
 
@@ -52,6 +53,6 @@ config.topicOnlineFilter = ['u_live_data', 'noti', 'chatRoom'];
 
 config.bindUid = (data, callback) => {
     callback(data.uid);
-}
+};
 
 module.exports = config;
