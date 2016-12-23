@@ -11,7 +11,7 @@ class ProxyServer {
 
         io.on('connection', (socket) => {
             socket.on('disconnect', (reason) => {
-                logger.debug("disconnect by transport, pushId: %s, socketId:%, reason: %s", socket.pushId, socket.id, reason);
+                logger.debug("disconnect by transport, pushId: %s, socketId:%s, reason: %s", socket.pushId, socket.id, reason);
                 stats.removeSession();
                 stats.removePlatformSession(socket.platform);
                 if (socket.pushId && reason != 'ping timeout') {
