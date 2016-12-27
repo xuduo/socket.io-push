@@ -206,6 +206,15 @@ class RestApi {
             });
         });
 
+        router.all('/stats/onlineCount', (req, res, next) => {
+            let now = new Date().getTime();
+            let topic = req.p.topic || 'noti';
+            arrivalStats.getUserOnlineCount(topic, now, now, (count) => {
+                res.json({topic : topic, count : count});
+                return next();
+            })
+        });
+
         router.all('/uid/bind', (req, res, next) => {
             uidStore.bindUid(req.p.pushId, req.p.uid, this.parseNumber(req.p.timeToLive), req.p.platform, this.parseNumber(req.p.platformLimit));
             res.json({code: "success"});
