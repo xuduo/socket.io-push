@@ -9,10 +9,10 @@ const mSecPerHour = 60 * 60 * 1000;
 
 class Stats {
 
-    constructor(redis, pid, commitThreshHold, packetDropThreshold = 0) {
+    constructor(redis, pid, redisIncreBuffer, packetDropThreshold = 0) {
         this.redis = redis;
         this.sessionCount = {total: 0};
-        this.redisIncrBuffer = require('./redisIncrBuffer.js')(redis, commitThreshHold);
+        this.redisIncrBuffer = redisIncreBuffer;
         this.packetDrop = 0;
         this.packetDropThreshold = packetDropThreshold;
         this.ms = require('./moving-sum.js')();

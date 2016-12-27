@@ -6,9 +6,9 @@ const logger = require('winston-proxy')('ArrivalStats');
 const async = require('async');
 
 class ArrivalStats {
-    constructor(redis) {
+    constructor(redis, redisIncreBuffer) {
         this.redis = redis;
-        this.redisIncrBuffer = require('./redisIncrBuffer.js')(redis, 10 * 1000);
+        this.redisIncrBuffer = redisIncreBuffer;
     }
 
     addOnline(topic, socket) {

@@ -10,17 +10,14 @@ class RedisIncrBuffer {
         this.redis = redis;
         this.map = {};
         this.timestamp = Date.now();
-        if (commitThreshHold === 0) {
-            this.commitThreshold = 0;
-        } else {
-            this.commitThreshold = commitThreshHold || 20 * 1000;
-        }
+        setInterval(() => {
+            this.commit();
+        }, commitThreshHold || 20 * 1000);
     }
 
     incrby(key, by) {
         const currentIncr = this.map[key] || 0;
         this.map[key] = currentIncr + by;
-        this.checkCommit();
     }
 
     set(key, value) {
@@ -37,17 +34,13 @@ class RedisIncrBuffer {
         }
     }
 
-    checkCommit() {
-        const timestamp = Date.now();
-        if ((timestamp - this.timestamp) >= this.commitThreshold) {
-            for (const key in this.map) {
-                this.redis.incrby(key, this.map[key]);
-                this.redis.expire(key, expire);
-                this.saveQueryDataKeys(key);
-            }
-            this.map = {};
-            this.timestamp = timestamp;
+    commit() {
+        for (const key in this.map) {
+            this.redis.incrby(key, this.map[key]);
+            this.redis.expire(key, expire);
+            this.saveQueryDataKeys(key);
         }
+        this.map = {};
     }
 
 }
