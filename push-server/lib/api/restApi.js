@@ -206,7 +206,7 @@ class RestApi {
             });
         });
 
-        router.all('/stats/onlineCount', (req, res, next) => {
+        router.all('/stats/arrivalOnline', (req, res, next) => {
             let now = new Date().getTime();
             let topic = req.p.topic || 'noti';
             arrivalStats.getUserOnlineCount(topic, now, now, (count) => {

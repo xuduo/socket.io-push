@@ -10,9 +10,10 @@ class RedisIncrBuffer {
         this.redis = redis;
         this.map = {};
         this.timestamp = Date.now();
+        let commitThresHold = commitThreshHold || 20 * 1000;
         setInterval(() => {
             this.commit();
-        }, commitThreshHold || 20 * 1000);
+        }, commitThresHold);
     }
 
     incrby(key, by) {

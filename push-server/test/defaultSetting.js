@@ -51,6 +51,7 @@ DefaultSetting.getDefaultProxyServer = ()=> {
     io.hss = proxyHttpsServer;
     proxyHttpServer.listen(proxyConfig.http_port);
     proxyHttpsServer.listen(proxyConfig.https_port);
+    proxyConfig.statsCommitThreshold = 500;
     return require('../lib/proxy')(io, proxyConfig);
 };
 

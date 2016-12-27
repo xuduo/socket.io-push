@@ -1,5 +1,5 @@
-module.exports = (redis) => {
-    return new ArrivalStats(redis);
+module.exports = (redis, redisIncreBuffer) => {
+    return new ArrivalStats(redis, redisIncreBuffer);
 };
 
 const logger = require('winston-proxy')('ArrivalStats');

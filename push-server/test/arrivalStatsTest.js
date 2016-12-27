@@ -10,8 +10,6 @@ describe('arrivalStatsTest', () => {
         global.apiServer = defSetting.getDefaultApiServer();
         global.apiUrl = defSetting.getDefaultApiUrl();
         global.arrivalStats = proxyServer.arrivalStats;
-
-        arrivalStats.redisIncrBuffer.commitThreshold = 0;
     });
 
     after(() => {

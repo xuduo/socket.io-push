@@ -18,8 +18,9 @@ class Proxy {
             if (nodeCluster.worker) {
                 id = nodeCluster.worker.id;
             }
-            this.stats = require('./stats/stats')(cluster, id, config.statsCommitThreshold, config.packetDropThreshold);
-            this.arrivalStats = require('./stats/arrivalStats')(cluster);
+            const redisIncreBuffer = require('./stats/redisIncrBuffer')(cluster, config.statsCommitThreshold);
+            this.stats = require('./stats/stats')(cluster, id, redisIncreBuffer, config.packetDropThreshold);
+            this.arrivalStats = require('./stats/arrivalStats')(cluster, redisIncreBuffer);
             const socketIoRedis = require('socket.io-push-redis/adapter')({
                 pubClient: cluster,
                 subClient: cluster,

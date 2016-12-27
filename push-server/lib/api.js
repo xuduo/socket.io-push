@@ -13,7 +13,7 @@ class Api {
 
         this.tagService = require('./service/tagService')(cluster);
         this.connectService = require('./service/connectService')(cluster);
-        let redisIncrBuffer = require('./stats/redisIncrBuffer')(cluster, config.statsCommitThreshold);
+        const redisIncrBuffer = require('./stats/redisIncrBuffer')(cluster, config.statsCommitThreshold);
         this.stats = require('./stats/stats')(cluster, 0, redisIncrBuffer);
         this.arrivalStats = require('./stats/arrivalStats')(cluster, redisIncrBuffer);
         this.uidStore = require('./redis/uidStore')(cluster);

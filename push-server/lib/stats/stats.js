@@ -1,5 +1,5 @@
-module.exports = (redis, pid, commitThreshHold, packetDropThreshold)=> {
-    return new Stats(redis, pid, commitThreshHold, packetDropThreshold);
+module.exports = (redis, pid, redisIncreBuffer, packetDropThreshold)=> {
+    return new Stats(redis, pid, redisIncreBuffer, packetDropThreshold);
 };
 
 const logger = require('winston-proxy')('Stats');
