@@ -76,7 +76,7 @@ class ProxyServer {
                                         if (packetService) {
                                             packetService.publishConnect(socket);
                                         }
-                                        if (topics && -1 != topics.indexOf('noti')) {
+                                        if (topics && -1 != topics.indexOf('noti') && socket.platform == 'android') {
                                             arrivalStats.addOnline('noti', socket);
                                         }
                                     }
