@@ -10,39 +10,26 @@ describe('arrivalStatsTest', () => {
         global.apiServer = defSetting.getDefaultApiServer();
         global.apiUrl = defSetting.getDefaultApiUrl();
         global.arrivalStats = proxyServer.arrivalStats;
-        // arrivalStats.redis.del("connInfo"); //bug
 
         arrivalStats.redisIncrBuffer.commitThreshold = 0;
-        // global.pushClient = defSetting.getAndroidPushClient();
     });
 
     after(() => {
         global.proxyServer.close();
         global.apiServer.close();
-        // global.pushClient.disconnect();
     });
 
-    // it('online count test', (done) => {
-    //     pushClient.on('connect', () => {
-    //         setTimeout(()=>{
-    //             arrivalStats.getUserOnlineCount(Date.now() - 1000 * 100, Date.now() + 1000 * 100, (count) => {
-    //                 expect(count).to.equal(1);
-    //                 done();
-    //             });
-    //         }, 1000);
-    //     });
-    // });
-
     it('connect test', (done) => {
-        arrivalStats.redis.del("connInfo");
+        arrivalStats.redis.del("test-online");
         let socket = {platform: 'android', pushId: 'thisisatestpushId1'};
-        arrivalStats.connect(socket);
+        socket.topics = ['test'];
+        arrivalStats.addOnline("test", socket);
         let now = Date.now();
-        arrivalStats.getUserOnlineCount(now - 1000 * 10, now + 1000 * 10, (count) => {
+        arrivalStats.getUserOnlineCount('test', now - 1000 * 10, now + 1000 * 10, (count) => {
             expect(count).to.equal(1);
-            arrivalStats.disconnect(socket);
+            arrivalStats.addOffline('test', socket);
             setTimeout(() => {
-                arrivalStats.getUserOnlineCount(now + 1000 * 3, now + 1000 * 10, (cnt) => {
+                arrivalStats.getUserOnlineCount('test', now + 1000 * 3, now + 1000 * 10, (cnt) => {
                     expect(cnt).to.equal(0);
                     done();
                 });
@@ -51,14 +38,15 @@ describe('arrivalStatsTest', () => {
     });
 
     it('arrival test', (done) => {
-        arrivalStats.redis.del("connInfo");
+        arrivalStats.redis.del("test-online");
         arrivalStats.redis.del("stats#arrivalStats");
         let socket = {platform: 'android', pushId: 'thisisatestpushId'};
-        arrivalStats.connect(socket);
+        socket.topics = ['test'];
+        arrivalStats.addOnline('test', socket);
         let now = Date.now();
         let packet = {id:123456543, android:{title:'title', message:'message'}, timestampValid: now + 5000};
         arrivalStats.redis.del("stats#arrival#"+packet.id, () => {
-            arrivalStats.addPacketToArrivalRate(packet, now + 3000, 5000);
+            arrivalStats.addPacketToArrivalRate('test', packet, now + 3000, 5000);
             arrivalStats.addArrivalSuccess(packet.id, 1);
             setTimeout(() => {
                 arrivalStats.getArrivalRateStatus((stats) => {
@@ -73,24 +61,3 @@ describe('arrivalStatsTest', () => {
     })
 
 });
-
-let noti = () => {
-    var title = 'hello',
-        message = 'hello world';
-    var data = {
-        android: {"title": title, "message": message},
-        payload: {"ppp": 123}
-    };
-    var str = JSON.stringify(data);
-    request({
-        url: apiUrl + '/api/notification',
-        method: "post",
-        form: {
-            pushId: '',
-            pushAll: 'true',
-            notification: str
-        }
-    }, (error, response, body) => {
-        expect(JSON.parse(body).code).to.be.equal("success");
-    });
-}

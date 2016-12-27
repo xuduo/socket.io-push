@@ -24,7 +24,7 @@ class ProxyServer {
                                     logger.debug("publishDisconnect pushId:%s, socketId:%s", socket.pushId, socket.id);
                                     packetService.publishDisconnect(socket);
                                 }
-                                arrivalStats.disconnect(socket);
+                                arrivalStats.addOffline('noti', socket);
                             }
                         })
                     }, disconnect_delay);
@@ -49,6 +49,7 @@ class ProxyServer {
                         topics.forEach((topic) => {
                             socket.join(topic);
                         });
+                        socket.topics = topics;
                     }
                     if (data.platform) {
                         socket.platform = data.platform.toLowerCase();
@@ -76,7 +77,7 @@ class ProxyServer {
                                             packetService.publishConnect(socket);
                                         }
                                         if (topics && -1 != topics.indexOf('noti')) {
-                                            arrivalStats.connect(socket);
+                                            arrivalStats.addOnline('noti', socket);
                                         }
                                     }
                                 });

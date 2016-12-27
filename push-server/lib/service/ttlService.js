@@ -44,11 +44,10 @@ class TTLService {
                     this.redis.pexpire(listKey, timeToLive);
                 }
             });
-
-            if (topic == 'noti') {
-                logger.debug("noti reach rate stats, id: ", data.id);
-                this.arrivalStats.addPacketToArrivalRate(data, Date.now(), timeToLive);
-            }
+        }
+        if (topic == 'noti') {
+            logger.debug("noti reach rate stats, id: ", data.id);
+            this.arrivalStats.addPacketToArrivalRate(topic, data, Date.now(), timeToLive || 0);
         }
     }
 

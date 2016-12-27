@@ -11,27 +11,27 @@ class ArrivalStats {
         this.redisIncrBuffer = require('./redisIncrBuffer.js')(redis, 10 * 1000);
     }
 
-    connect(socket) {
-        if (socket.platform == 'android') {
-            const loginfo = Date.now().toString() + ",0";
-            logger.debug("user login, pushId: ", socket.pushId, "loginfo ", loginfo);
-            this.redis.hhset("connInfo", socket.pushId, loginfo);
+    addOnline(topic, socket) {
+        const loginfo = Date.now().toString() + ",0";
+        logger.debug("user login, pushId: ", socket.pushId, "loginfo ", loginfo);
+        this.redis.hhset(topic + "-online", socket.pushId, loginfo);
+    }
+
+    addOffline(topic, socket) {
+        if (-1 != socket.topics.indexOf(topic)) {
+            this.redis.hhget(topic + "-online", socket.pushId, (err, result) => {
+                if (result) {
+                    logger.debug("user logout, pushId: ", socket.pushId, "loginfo: ", result);
+                    let loginfo = result.toString().split(',');
+                    loginfo[1] = (Date.now() - parseInt(loginfo[0])).toString();
+                    this.redis.hhset(topic + "-online", socket.pushId, loginfo[0] + ',' + loginfo[1]);
+                }
+            })
         }
     }
 
-    disconnect(socket) {
-        this.redis.hhget("connInfo", socket.pushId, (err, result) => {
-            if (result) {
-                logger.debug("user logout, pushId: ", socket.pushId, "loginfo: ", result);
-                let loginfo = result.toString().split(',');
-                loginfo[1] = (Date.now() - parseInt(loginfo[0])).toString();
-                this.redis.hhset("connInfo", socket.pushId, loginfo[0] + ',' + loginfo[1]);
-            }
-        })
-    }
-
-    getUserOnlineCount(start, end, callback) {
-        const stream = this.redis.hhscanStream("connInfo");
+    getUserOnlineCount(topic, start, end, callback) {
+        const stream = this.redis.hhscanStream(topic + "-online");
         let result = 0;
         stream.on('data', (resultKeys) => {
             for (let i = 0; i < resultKeys.length; i++) {
@@ -43,7 +43,7 @@ class ArrivalStats {
                         result++;
                     }
                     if (discon != 0 && discon + con < Date.now() - 3 * 24 * 3600 * 1000) {
-                        this.redis.hhdel("connInfo", resultKeys[i - 1]);
+                        this.redis.hhdel(topic + "-online", resultKeys[i - 1]);
                     }
                 }
             }
@@ -60,7 +60,7 @@ class ArrivalStats {
         }
     }
 
-    addPacketToArrivalRate(msg, start, ttl) {
+    addPacketToArrivalRate(topic, msg, start, ttl) {
         msg = JSON.parse(JSON.stringify(msg));
         let packet = {};
         packet.id = msg.id;
@@ -72,12 +72,12 @@ class ArrivalStats {
         packet.reachCount = 0;
         packet.targetBefore = 0;
         packet.targetEnd = 0;
-        this.getUserOnlineCount(start, start, (targetNow) => {
+        this.getUserOnlineCount(topic, start, start, (targetNow) => {
             packet.targetBefore = targetNow;
             this.writeArrivalRateToRedis(packet);
             setTimeout(() => {
                 logger.debug("calculate packet reach rate, id: ", packet.id);
-                this.getUserOnlineCount(start, start + ttl, (target) => {
+                this.getUserOnlineCount(topic, start, start + ttl, (target) => {
                     packet.targetEnd = target || 0;
                     this.writeArrivalRateToRedis(packet);
                 });
@@ -95,7 +95,13 @@ class ArrivalStats {
         stream.on('data', (resultKeys) => {
             for (let i = 0; i < resultKeys.length; i++) {
                 if (i % 2 == 1) {
-                    result[resultKeys[i - 1]] = JSON.parse(resultKeys[i]);
+                    let item = JSON.parse(resultKeys[i]);
+                    let itemValid = new Date(item.timeValid).getTime();
+                    if (new Date().getTime() - itemValid > 30 * 24 * 3600 * 1000) {
+                        this.redis.hdel('stats#arrivalStats', resultKeys[i - 1]);
+                    } else {
+                        result[resultKeys[i - 1]] = item;
+                    }
                 }
             }
         });
