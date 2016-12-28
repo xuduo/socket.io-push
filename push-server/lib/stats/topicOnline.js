@@ -7,7 +7,17 @@ class TopicOnline {
     constructor(redis, io, id, filterTopics) {
         this.redis = redis;
         this.id = id;
-        this.filters = filterTopics;
+        if (!filterTopics) {
+            this.filters = {};
+        } else if (filterTopics.isArray) {
+            this.filters = {};
+            for (const prefix of filterTopics) {
+                this.filters[prefix] = "devices";
+            }
+        } else {
+            this.filters = filterTopics;
+        }
+        this.filters['noti'] = "count";
         this.interval = 10000;
         this.timeValidWithIn = 20000;
         this.expire = 3600 * 24;
@@ -22,32 +32,37 @@ class TopicOnline {
         }
     }
 
-    filterTopic(topic, filterArray) {
-        if (!filterArray || !topic) {
+    filterTopic(topic) {
+        if (!topic) {
             return false;
         }
-        for (let i = 0; i < filterArray.length; i++) {
-            if (topic.startsWith(filterArray[i])) {
-                return true;
-            }
+        for (const prefix in this.filters) {
+            topic.startsWith(prefix);
+            return this.filters[prefix];
         }
         return false;
     }
 
     writeTopicOnline(data) {
         for (const key in data) {
-            if (data[key].length > 0 && this.filterTopic(key, this.filters)) {
-                const devices = [];
-                for (const socketId in data[key].sockets) {
-                    const socket = this.io.sockets.connected[socketId];
-                    if (socket) {
-                        devices.push({pushId: socket.pushId, uid: socket.uid, platform: socket.platform});
+            if (data[key].length > 0) {
+                const type = this.filterTopic(key);
+                if (type) {
+                    const json = {length: data[key].length, time: Date.now()};
+                    if (type == 'devices') {
+                        const devices = [];
+                        for (const socketId in data[key].sockets) {
+                            const socket = this.io.sockets.connected[socketId];
+                            if (socket) {
+                                devices.push({pushId: socket.pushId, uid: socket.uid, platform: socket.platform});
+                            }
+                        }
+                        json.devices = devices;
                     }
+                    const redisKey = "stats#topicOnline#" + key;
+                    this.redis.hset(redisKey, this.id, JSON.stringify(json));
+                    this.redis.expire(redisKey, this.expire);
                 }
-                const json = {length: data[key].length, devices: devices, time: Date.now()};
-                const redisKey = "stats#topicOnline#" + key;
-                this.redis.hset(redisKey, this.id, JSON.stringify(json));
-                this.redis.expire(redisKey, this.expire);
             }
         }
     }
@@ -83,7 +98,7 @@ class TopicOnline {
                     const data = JSON.parse(result[key]);
                     if ((data.time + this.timeValidWithIn) < Date.now()) {
                         delKey.push(key);
-                    } else {
+                    } else if (data.devices) {
                         for (const device of data.devices) {
                             if (device.platform) {
                                 let pCount = json[device.platform];

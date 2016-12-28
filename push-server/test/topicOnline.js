@@ -30,7 +30,7 @@ describe('api topicOnline', () =>{
                 topicOnline.getTopicOnline('xxxx', (result) => {
                     expect(result).to.be.equal(0);
                     topicOnline.getTopicOnline('testTopic2', (result) => {
-                        expect(result).to.be.equal(0);
+                        expect(result).to.be.equal(8);
                         done();
                     });
                 });

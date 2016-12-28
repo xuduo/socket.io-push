@@ -19,7 +19,9 @@ config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei timeToLive
 
 config.statsCommitThreshold = 0;//ms,统计缓存commit间隔, 生产环境建议10秒以上
 
-config.topicOnlineFilter = ['chatRoom'];//在线统计功能, 以chatRoom开头的topic会进行统计在线, 并提供查询接口
+config.topicOnlineFilter = {chatRoom: "devices", xxx: "count"};
+//在线统计功能, 以chatRoom开头的topic会进行统计在线, 并提供查询接口
+// devices -- 统计设备列表 count -- 只统计总数
 
 config.packetDropThreshold = 0;
 
@@ -48,9 +50,6 @@ config.redis = {
         }
     ]
 };
-
-config.http_remove_headers = true;
-config.topicOnlineFilter = ['u_live_data', 'noti', 'chatRoom'];
 
 config.bindUid = (data, callback) => {
     callback(data.uid);
