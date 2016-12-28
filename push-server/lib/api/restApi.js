@@ -200,19 +200,10 @@ class RestApi {
         });
 
         router.all('/stats/arrivalRate', (req, res, next) => {
-            arrivalStats.getArrivalRateStatus((result) => {
+            arrivalStats.getRateStatusByTopic((result) => {
                 res.json(result);
                 return next();
             });
-        });
-
-        router.all('/stats/arrivalOnline', (req, res, next) => {
-            let now = new Date().getTime();
-            let topic = req.p.topic || 'noti';
-            arrivalStats.getUserOnlineCount(topic, now, now, (count) => {
-                res.json({topic : topic, count : count});
-                return next();
-            })
         });
 
         router.all('/uid/bind', (req, res, next) => {

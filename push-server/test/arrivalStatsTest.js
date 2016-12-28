@@ -1,5 +1,4 @@
 var chai = require('chai');
-var request = require('request');
 var expect = chai.expect;
 var defSetting = require('./defaultSetting');
 
@@ -10,6 +9,7 @@ describe('arrivalStatsTest', () => {
         global.apiServer = defSetting.getDefaultApiServer();
         global.apiUrl = defSetting.getDefaultApiUrl();
         global.arrivalStats = proxyServer.arrivalStats;
+        global.topicOnline = arrivalStats.topicOnline;
     });
 
     after(() => {
@@ -17,45 +17,35 @@ describe('arrivalStatsTest', () => {
         global.apiServer.close();
     });
 
-    it('connect test', (done) => {
-        arrivalStats.redis.del("test-online");
-        let socket = {platform: 'android', pushId: 'thisisatestpushId1'};
-        socket.topics = ['test'];
-        arrivalStats.addOnline("test", socket);
-        let now = Date.now();
-        arrivalStats.getUserOnlineCount('test', now - 1000 * 10, now + 1000 * 10, (count) => {
-            expect(count).to.equal(1);
-            arrivalStats.addOffline('test', socket);
-            setTimeout(() => {
-                arrivalStats.getUserOnlineCount('test', now + 1000 * 3, now + 1000 * 10, (cnt) => {
-                    expect(cnt).to.equal(0);
-                    done();
-                });
-            }, 1000)
-        })
-    });
-
-    it('arrival test', (done) => {
-        arrivalStats.redis.del("test-online");
-        arrivalStats.redis.del("stats#arrivalStats");
-        let socket = {platform: 'android', pushId: 'thisisatestpushId'};
-        socket.topics = ['test'];
-        arrivalStats.addOnline('test', socket);
-        let now = Date.now();
-        let packet = {id:123456543, android:{title:'title', message:'message'}, timestampValid: now + 5000};
-        arrivalStats.redis.del("stats#arrival#"+packet.id, () => {
-            arrivalStats.addPacketToArrivalRate('test', packet, now + 3000, 5000);
-            arrivalStats.addArrivalSuccess(packet.id, 1);
-            setTimeout(() => {
-                arrivalStats.getArrivalRateStatus((stats) => {
-                    expect(stats[0]).to.be.ok;
-                    expect(stats[0].reachCount).to.equal('1');
-                    expect(stats[0].targetBefore).to.equal(1);
-                    done();
-                });
-            }, 1000);
-        });
-
+    it('arrivalRate test', (done) => {
+        const topic = 'testTopic';
+        const packetId = '42';
+        let packet = {
+            id: packetId,
+            android: {
+                title: 'test msg',
+                message: 'content of test msg'
+            }
+        };
+        let topicOnlineData = {testTopic: {length: 99}};
+        topicOnline.writeTopicOnline(topicOnlineData);
+        arrivalStats.startToStats(topic, packet, 1000);
+        arrivalStats.addPacketRecv(topic, packetId, 98);
+        arrivalStats.addPacketSent(topic, packetId, 1);
+        arrivalStats.addPacketRecv('errorTopic', packetId, 1);
+        arrivalStats.addPacketSent(topic, 'errorPacket', 1);
+        setTimeout(()=>{
+            arrivalStats.getRateStatusByTopic(topic, (stats) => {
+                const item = stats[0];
+                console.log(item);
+                expect(item.id).to.be.equal(packetId);
+                expect(item.title).to.be.equal(packet.android.title);
+                expect(item.message).to.be.equal(packet.android.message);
+                expect(item.target).to.be.equal('100');
+                expect(item.arrive).to.be.equal('98');
+                done();
+            })
+        },1000);
     })
 
 });

@@ -15,14 +15,14 @@ class Api {
         this.connectService = require('./service/connectService')(cluster);
         const redisIncrBuffer = require('./stats/redisIncrBuffer')(cluster, config.statsCommitThreshold);
         this.stats = require('./stats/stats')(cluster, 0, redisIncrBuffer);
-        this.arrivalStats = require('./stats/arrivalStats')(cluster, redisIncrBuffer);
+        const topicOnline = require('./stats/topicOnline')(cluster);
+        this.arrivalStats = require('./stats/arrivalStats')(cluster, redisIncrBuffer, topicOnline);
         this.uidStore = require('./redis/uidStore')(cluster);
         this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version, this.stats, this.arrivalStats);
         const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
-        this.notificationService = require('./service/notificationService')(config.apns, cluster, this.ttlService, tokenTTL);
+        this.notificationService = require('./service/notificationService')(config.apns, cluster, this.ttlService, tokenTTL, this.arrivalStats);
 
         const apiThreshold = require('./api/apiThreshold')(cluster, config.topicThreshold);
-        const topicOnline = require('./stats/topicOnline')(cluster);
         const providerFactory = require('./service/notificationProviderFactory')();
         this.notificationService.providerFactory = providerFactory;
         if (config.apns != undefined) {

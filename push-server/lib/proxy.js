@@ -20,7 +20,8 @@ class Proxy {
             }
             const redisIncreBuffer = require('./stats/redisIncrBuffer')(cluster, config.statsCommitThreshold);
             this.stats = require('./stats/stats')(cluster, id, redisIncreBuffer, config.packetDropThreshold);
-            this.arrivalStats = require('./stats/arrivalStats')(cluster, redisIncreBuffer);
+            this.topicOnline = require('./stats/topicOnline')(cluster, this.io, this.stats.id, config.topicOnlineFilter);
+            this.arrivalStats = require('./stats/arrivalStats')(cluster, redisIncreBuffer, this.topicOnline);
             const socketIoRedis = require('socket.io-push-redis/adapter')({
                 pubClient: cluster,
                 subClient: cluster,
@@ -40,9 +41,6 @@ class Proxy {
 
             this.proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.tokenService, this.uidStore,
                 this.ttlService, this.tagService, this.connectService, this.arrivalStats,config);
-            if (config.topicOnlineFilter) {
-                this.topicOnline = require('./stats/topicOnline')(cluster, this.io, this.stats.id, config.topicOnlineFilter);
-            }
         } else {
             console.log('start proxy failed!');
         }

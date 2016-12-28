@@ -46,10 +46,6 @@ class TTLService {
                 }
             });
         }
-        if (topic == 'noti') {
-            logger.debug("noti reach rate stats, id: ", data.id);
-            this.arrivalStats.addPacketToArrivalRate(topic, data, Date.now(), timeToLive);
-        }
     }
 
     getPackets(topic, lastId, socket, unicast) {
@@ -69,6 +65,7 @@ class TTLService {
                         } else if (lastFound == true && jsonPacket.timestampValid > now) {
                             logger.debug("call emitPacket %s %s", jsonPacket.id, lastId);
                             this.emitToSocket(socket, jsonPacket.event, jsonPacket);
+                            this.arrivalStats.addPacketSent(topic, jsonPacket.id, 1);
                         }
                     });
 
@@ -81,7 +78,8 @@ class TTLService {
                         list.forEach((packet) => {
                             var jsonPacket = JSON.parse(packet);
                             if (jsonPacket.timestampValid > now) {
-                                this.emitToSocket(socket, jsonPacket.event, jsonPacket)
+                                this.emitToSocket(socket, jsonPacket.event, jsonPacket);
+                                this.arrivalStats.addPacketSent(topic, jsonPacket.id, 1);
                             }
                         });
                     }

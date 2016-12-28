@@ -1,5 +1,5 @@
-module.exports = (providerFactory, redis, ttlService, tokenTTL) => {
-    return new NotificationService(providerFactory, redis, ttlService, tokenTTL);
+module.exports = (providerFactory, redis, ttlService, tokenTTL, arrivalRate) => {
+    return new NotificationService(providerFactory, redis, ttlService, tokenTTL, arrivalRate);
 };
 
 const logger = require('winston-proxy')('NotificationService');
@@ -8,11 +8,12 @@ const async = require('async');
 
 class NotificationService {
 
-    constructor(providerFactory, redis, ttlService, tokenTTL) {
+    constructor(providerFactory, redis, ttlService, tokenTTL, arrivalRate) {
         this.redis = redis;
         this.ttlService = ttlService;
         this.providerFactory = providerFactory;
         this.tokenTTL = tokenTTL;
+        this.arrivalRate = arrivalRate;
     }
 
     getTokenDataByPushId(pushId, callback) {
@@ -55,6 +56,7 @@ class NotificationService {
     sendAll(notification, timeToLive) {
         this.addIdAndTimestamp(notification);
         if (this.ttlService && notification.android.title) {
+            this.arrivalRate.startToStats('noti', notification);
             this.ttlService.addTTL("noti", 'noti', timeToLive, notification, false);
             // 小米,华为,苹果不订阅 "noti"
             this.ttlService.emitPacket("noti", 'noti', notification);

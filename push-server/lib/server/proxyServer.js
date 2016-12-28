@@ -24,7 +24,6 @@ class ProxyServer {
                                     logger.debug("publishDisconnect pushId:%s, socketId:%s", socket.pushId, socket.id);
                                     packetService.publishDisconnect(socket);
                                 }
-                                arrivalStats.addOffline('noti', socket);
                             }
                         })
                     }, disconnect_delay);
@@ -75,9 +74,6 @@ class ProxyServer {
                                     if (ret) {
                                         if (packetService) {
                                             packetService.publishConnect(socket);
-                                        }
-                                        if (topics && -1 != topics.indexOf('noti') && socket.platform == 'android') {
-                                            arrivalStats.addOnline('noti', socket);
                                         }
                                     }
                                 });
@@ -170,7 +166,7 @@ class ProxyServer {
 
             socket.on('notificationReply', (data) => {
                 stats.onNotificationReply(data.timestamp);
-                arrivalStats.addArrivalSuccess(data.id, 1);
+                arrivalStats.addPacketRecv('noti', data.id, 1);
             });
 
             stats.addSession(socket);
