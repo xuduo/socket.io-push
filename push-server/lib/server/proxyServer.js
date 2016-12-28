@@ -161,7 +161,7 @@ class ProxyServer {
                         config.bindUid(data, (uid)=> {
                             if (uid) {
                                 socket.uid = uid;
-                                uidStore.bindUid(socket.pushId, data.uid);
+                                uidStore.bindUid(socket.pushId, data.uid, socket.platform);
                             }
                         });
                     }
