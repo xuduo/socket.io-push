@@ -247,9 +247,11 @@ class RestApi {
         });
 
         router.all('/apn', (req, res, next) => {
-            apnService.callLocal(JSON.parse(req.p.notification), req.p.bundleId, this.parseArrayParam(req.p.tokens), req.p.pattern);
-            res.json({code: "success"});
-            return next();
+            apnService.callLocal(JSON.parse(req.p.notification), req.p.bundleId, this.parseArrayParam(req.p.tokens), req.p.pattern, (result) => {
+                result.code = "success";
+                res.json(result);
+                return next();
+            });
         });
 
         router.all('/stats/onlineJob', (req, res, next) => {

@@ -1,5 +1,5 @@
-module.exports = (apnConfigs, apnApiUrls, redis, stats, tokenTTL) => {
-    return new ApnProvider(apnConfigs, apnApiUrls, redis, stats, tokenTTL);
+module.exports = (apnConfigs, apnApiUrls, redis, stats, tokenTTL, tokenService) => {
+    return new ApnProvider(apnConfigs, apnApiUrls, redis, stats, tokenTTL, tokenService);
 };
 
 const logger = require('winston-proxy')('ApnProvider');
@@ -8,28 +8,22 @@ const request = require('request');
 
 class ApnProvider {
 
-    constructor(apnConfigs, apnApiUrls = [], redis, stats, tokenTTL) {
+    constructor(apnConfigs, apnApiUrls = [], redis, stats, tokenTTL, tokenService) {
         this.redis = redis;
         this.type = "apn";
         this.apnConnections = {};
         this.stats = stats;
         this.apnApiUrls = require("../util/infiniteArray")(apnApiUrls);
         this.tokenTTL = tokenTTL;
-        this.callback = (response) => {
-            if (response.sent && response.sent.length > 0) {
-                logger.debug("send sucess ", response.sent.length);
-                stats.addPushSuccess(response.sent.length, `${this.type}`);
-            } else if (response.failed && response.failed.length > 0) {
-                for (const failed of response.failed) {
-                    let error = "";
-                    if (failed.response) {
-                        error = failed.response.reason || "unknown";
-                    }
-                    stats.addPushError(response.sent.length, error, `${this.type}`);
-                    logger.error("apn errorCallback %s %j", error, failed, failed.response);
+
+        this.sentCallback = (result)=> {
+            if (result.errorTokens) {
+                logger.debug("sentCallback errorTokens", result.errorTokens, result.bundleId);
+                for (const token of result.errorTokens) {
+                    tokenService.delToken(this.type, token, result.bundleId);
                 }
             }
-        }
+        };
 
         apnConfigs.forEach((apnConfig, index) => {
             let connection = "";
@@ -69,13 +63,13 @@ class ApnProvider {
 
     batchSendToApn(notification, bundleId, tokens, timeToLive) {
         if (this.apnApiUrls.hasNext()) {
-            this.callRemote(notification, bundleId, tokens, timeToLive);
+            this.callRemote(notification, bundleId, tokens, timeToLive, 0, this.sentCallback);
         } else {
-            this.callLocal(notification, bundleId, tokens, timeToLive);
+            this.callLocal(notification, bundleId, tokens, timeToLive, this.sentCallback);
         }
     }
 
-    callLocal(notification, bundleId, tokens, timeToLive) {
+    callLocal(notification, bundleId, tokens, timeToLive, callback) {
         const apnConnection = this.apnConnections[bundleId];
         if (!apnConnection) {
             logger.error("bundleId not supported", bundleId);
@@ -85,14 +79,32 @@ class ApnProvider {
             logger.error("tokens empty ", bundleId);
             return;
         }
-        this.stats.addPushTotal(tokens.length, `${this.type}_${bundleId}_`);
         const note = this.toApnNotification(notification, timeToLive);
         note.topic = bundleId;
         logger.debug("callLocal ", bundleId, note, tokens);
-        apnConnection.send(note, tokens).then(this.callback);
+        apnConnection.send(note, tokens).then((response) => {
+            let successCount = 0;
+            const errorToken = [];
+            if (response.sent && response.sent.length > 0) {
+                logger.debug("send sucess ", response.sent.length);
+                successCount = response.sent.length;
+            } else if (response.failed && response.failed.length > 0) {
+                for (const failed of response.failed) {
+                    let error = "";
+                    if (failed.response) {
+                        error = failed.response.reason || "unknown";
+                    }
+                    if (error == "BadDeviceToken" && failed.device) {
+                        errorToken.push(failed.device);
+                    }
+                    logger.error("apn errorCallback %s %j", error, failed.device);
+                }
+            }
+            callback({bundleId: bundleId, success: successCount, total: tokens.length, errorTokens: errorToken});
+        });
     }
 
-    callRemote(notification, bundleId, tokens, timeToLive, errorCount = 0) {
+    callRemote(notification, bundleId, tokens, timeToLive, errorCount = 0, callback) {
         if (!tokens || tokens.length == 0) {
             return;
         }
@@ -111,7 +123,13 @@ class ApnProvider {
                 logger.info("callRemote api batch ", tokens.length, apiUrl, error, body, notification);
                 if (error && errorCount <= retryCount) {
                     logger.error("retry remote api batch ", tokens.length, errorCount, apiUrl, error, body);
-                    this.callRemote(notification, bundleId, tokens, timeToLive, errorCount + 1);
+                    this.callRemote(notification, bundleId, tokens, timeToLive, errorCount + 1, callback);
+                } else {
+                    try {
+                        callback(JSON.parse(body));
+                    } catch (e) {
+                        logger.error("callRemote callback error ", e);
+                    }
                 }
             }
         );

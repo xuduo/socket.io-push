@@ -11,6 +11,21 @@ class TokenService {
         this.tokenTTL = tokenTTL;
     }
 
+    delToken(type, token, bundleId) {
+        if (type && token) {
+            const tokenToPushIdKey = "tokenToPushId#" + type + "#" + token;
+            this.redis.get(tokenToPushIdKey, (err, oldPushId) => {
+                if (oldPushId) {
+                    this.redis.del("pushIdToToken#" + oldPushId);
+                }
+                this.redis.del(tokenToPushIdKey);
+                if (bundleId && type == "apn") {
+                    this.redis.hdel("apnTokens#" + bundleId, token);
+                }
+            });
+        }
+    }
+
     setToken(data) {
         logger.debug("setToken ", data);
         if (data && data.pushId && data.token && data.type) {

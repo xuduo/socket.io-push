@@ -88,6 +88,7 @@ class XiaomiProvider {
         }
         if (!error && response && response.statusCode == 200) {
             const result = JSON.parse(body);
+            logger.debug("response result ", result);
             if (result.code == 0 || result.code == 20301) {
                 return true;
             }

@@ -44,8 +44,16 @@ describe('apn send one', function () {
                     notification: str
                 }
             }, (error, response, body) => {
-                expect(JSON.parse(body).code).to.be.equal("success");
-                done();
+                const result = JSON.parse(body);
+                expect(result.code).to.be.equal("success");
+                const id = result.id;
+                setTimeout(()=> {
+                    global.apiServer.notificationService.getTokenDataByPushId(pushClient.pushId, (data)=> {
+                        expect(data).to.be.undefined;
+                        done();
+                    });
+                }, 4000);
+
             });
         });
 

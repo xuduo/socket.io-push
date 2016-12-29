@@ -5,7 +5,7 @@ module.exports = function (httpServer, spdyServer, config) {
 class Api {
 
     constructor(httpServer, spdyServer, config) {
-        
+
         console.log(`start api on port  http:${config.http_port} https:${config.https_port}  #${process.pid}`);
         const cluster = require('socket.io-push-redis/cluster')(config.redis);
 
@@ -26,7 +26,8 @@ class Api {
         const providerFactory = require('./service/notificationProviderFactory')();
         this.notificationService.providerFactory = providerFactory;
         if (config.apns != undefined) {
-            this.apnService = require('./service/apnProvider')(config.apns, config.apnApiUrls, cluster, this.stats, tokenTTL);
+            this.tokenService = require('./service/tokenService')(cluster, tokenTTL);
+            this.apnService = require('./service/apnProvider')(config.apns, config.apnApiUrls, cluster, this.stats, tokenTTL, this.tokenService);
             providerFactory.addProvider(this.apnService);
         }
         if (config.huawei) {

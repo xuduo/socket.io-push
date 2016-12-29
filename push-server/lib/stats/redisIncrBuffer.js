@@ -37,8 +37,12 @@ class RedisIncrBuffer {
 
     commit() {
         for (const key in this.map) {
-            this.redis.incrby(key, this.map[key]);
-            this.redis.expire(key, expire);
+            const count = this.map[key];
+            this.redis.incrby(key, count, (err, result)=> {
+                if (result == count) {
+                    this.redis.expire(key, expire);
+                }
+            });
             this.saveQueryDataKeys(key);
         }
         this.map = {};
