@@ -3,6 +3,7 @@ module.exports = (redis, redisIncreBuffer, topicOnline) => {
 };
 
 const logger = require('winston-proxy')('ArrivalStats');
+const async = require('async');
 
 const getPacketSentKey = (msgId) => {
     return 'stats#packetSent#' + msgId;
@@ -26,42 +27,46 @@ class ArrivalStats {
         this.maxrecordKeep = -100;
     }
 
-    addPacketSent(msgId, incr){
+    addPacketSent(msgId, incr) {
         const key = getPacketSentKey(msgId);
-        if(incr > 0){
+        if (incr > 0) {
             this.redis.ttl(key, (err, ttl) => {
-                if(!err && ttl > 0){
+                if (!err && ttl > 0) {
                     logger.debug('send packet, packet:%s, count: ', msgId, incr);
                     this.redisIncrBuffer.incrby(key, incr);
                 }
             });
         }
     }
-    getPacketSent (msgId, callback){
+
+    getPacketSent(msgId, callback) {
         this.redis.get(getPacketSentKey(msgId), (err, c) => {
-            if(!err){
+            if (!err) {
                 callback(c);
             }
         })
     }
-    addPacketRecv(msgId, incr){
+
+    addPacketRecv(msgId, incr) {
         const key = getPacketRecvKey(msgId);
-        if(incr > 0){
+        if (incr > 0) {
             this.redis.ttl(key, (err, ttl) => {
-                if(!err && ttl > 0){
+                if (!err && ttl > 0) {
                     logger.debug('recv packet, packet:%s, count: ', msgId, incr);
                     this.redisIncrBuffer.incrby(key, incr);
                 }
             });
         }
     }
-    getPacketRecv(msgId, callback){
+
+    getPacketRecv(msgId, callback) {
         this.redis.get(getPacketRecvKey(msgId), (err, c) => {
-            if(!err){
+            if (!err) {
                 callback(c);
             }
         })
     }
+
     startToStats(topic, msg, ttl) {
         let packet = {};
         packet.id = msg.id;
@@ -74,7 +79,7 @@ class ArrivalStats {
         this.redis.rpush(getTopicArrivalKey(topic), msg.id);
         this.redis.set(getPacketInfoKey(msg.id), JSON.stringify(packet));
         this.redis.pexpire(getPacketInfoKey(msg.id), this.recordKeepTime);
-        if(topic != 'group'){
+        if (topic != 'group') {
             this.topicOnline.getTopicOnline(topic, (count) => {
                 logger.info('packet(%s) init count:%d', packet.id, count);
                 const packetSentKey = getPacketSentKey(msg.id);
@@ -84,54 +89,37 @@ class ArrivalStats {
                 this.redis.set(packetRecvKey, 0);
                 this.redis.pexpire(packetRecvKey, this.recordKeepTime);
             })
-        }else{ //单播,比较麻烦
+        } else { //单播,比较麻烦
             this.redis.ltrim(getTopicArrivalKey(topic), this.maxrecordKeep, -1);
             //@todo
         }
     }
-    getRateStatusByTopic (topic, callback){
-        if(!callback){
-            callback = topic;
-            topic = 'noti';
-        }
+
+    getRateStatusByTopic(topic, callback) {
         let result = [];
         this.redis.lrange(getTopicArrivalKey(topic), 0, -1, (err, data) => {
-            if(err) {
-                callback(err, null);
-            }else{
-                let packetsLen = data.length;
-                let packetsCnt = 0;
-                for(let i = 0; i < data.length; i ++){
-                    this.redis.get(getPacketInfoKey(data[i]), (err, strPacket) => {
-                        if(err) {
-                            logger.info("the packet did not exist, id: ", data[i]);
-                            packetsLen --;
-                            return;
-                        }
-                        try{
-                            logger.debug("packet " + strPacket);
-                            let packet = JSON.parse(strPacket);
-                            this.getPacketSent(packet.id, (sentCount) => {
-                                packet.target = sentCount;
-                                this.getPacketRecv(packet.id, (recvCount) => {
-                                    packet.arrive = recvCount;
-                                    packet.arrivalRate = sentCount != 0 ? recvCount / sentCount : 0;
-                                    result.push(packet);
-                                    packetsCnt ++;
-                                    if(packetsCnt >= packetsLen){
-                                        callback(null, result);
-                                    }
-
-                                })
+            async.each(data, (packetId, asynccb) => {
+                this.redis.get(getPacketInfoKey(packetId), (err, strPacket) => {
+                    if (strPacket) {
+                        let packet = JSON.parse(strPacket);
+                        this.getPacketSent(packet.id, (sentCount) => {
+                            packet.target = sentCount;
+                            this.getPacketRecv(packet.id, (recvCount) => {
+                                packet.arrive = recvCount;
+                                packet.arrivalRate = sentCount != 0 ? recvCount / sentCount : 0;
+                                result.push(packet);
+                                asynccb();
                             })
-                        }catch (e){
-                            logger.error("json parse fail, reason:%s, packet:%s", e, strPacket);
-                            callback('parse error, ' + e);
-                        }
-                    });
+                        })
+                    }
+                })
+            }, (err) => {
+                if (err) {
+                    callback('error happend', result);
+                } else {
+                    callback(null, result);
                 }
-            }
-
+            });
         });
     }
 
