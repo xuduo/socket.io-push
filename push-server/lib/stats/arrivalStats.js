@@ -98,7 +98,7 @@ class ArrivalStats {
     getRateStatusByTopic(topic, callback) {
         let result = [];
         this.redis.lrange(getTopicArrivalKey(topic), 0, -1, (err, data) => {
-            async.each(data, (packetId, asynccb) => {
+            async.each(data.reverse(), (packetId, asynccb) => {
                 this.redis.get(getPacketInfoKey(packetId), (err, strPacket) => {
                     if (strPacket) {
                         let packet = JSON.parse(strPacket);
