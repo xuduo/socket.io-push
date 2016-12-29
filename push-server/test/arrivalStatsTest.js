@@ -31,13 +31,13 @@ describe('arrivalStatsTest', () => {
         let topicOnlineData = {testTopic: {length: 99}};
         topicOnline.writeTopicOnline(topicOnlineData);
         arrivalStats.startToStats(topic, packet, 1000);
-        setTimeout(()=>{
+        setTimeout(()=> {
             arrivalStats.addPacketRecv(packetId, 98);
             arrivalStats.addPacketSent(packetId, 1);
             arrivalStats.addPacketRecv(packetId, 1);
             arrivalStats.addPacketSent('errorPacket', 1);
         }, 500);
-        setTimeout(()=>{
+        setTimeout(()=> {
             arrivalStats.getRateStatusByTopic(topic, (e, stats) => {
                 const item = stats[0];
                 console.log(item);
@@ -48,7 +48,7 @@ describe('arrivalStatsTest', () => {
                 expect(item.arrive).to.be.equal('99');
                 done();
             })
-        },1000);
+        }, 1000);
     })
 
 });

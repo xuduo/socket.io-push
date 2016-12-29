@@ -203,9 +203,9 @@ class RestApi {
             let topic = req.p.key || 'noti';
             logger.debug('topic: ' + topic);
             arrivalStats.getRateStatusByTopic(topic, (err, result) => {
-                if(err){
+                if (err) {
                     res.json([{error: err}]);
-                }else {
+                } else {
                     res.json(result);
                 }
                 return next();
