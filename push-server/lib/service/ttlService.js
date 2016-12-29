@@ -65,7 +65,7 @@ class TTLService {
                         } else if (lastFound == true && jsonPacket.timestampValid > now) {
                             logger.debug("call emitPacket %s %s", jsonPacket.id, lastId);
                             this.emitToSocket(socket, jsonPacket.event, jsonPacket);
-                            this.arrivalStats.addPacketSent(topic, jsonPacket.id, 1);
+                            this.arrivalStats.addPacketInfo(jsonPacket.id, 'target', 1);
                         }
                     });
 
@@ -79,7 +79,7 @@ class TTLService {
                             var jsonPacket = JSON.parse(packet);
                             if (jsonPacket.timestampValid > now) {
                                 this.emitToSocket(socket, jsonPacket.event, jsonPacket);
-                                this.arrivalStats.addPacketSent(topic, jsonPacket.id, 1);
+                                this.arrivalStats.addPacketInfo(jsonPacket.id, 'target', 1);
                             }
                         });
                     }

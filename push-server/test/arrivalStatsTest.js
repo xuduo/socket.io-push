@@ -32,13 +32,13 @@ describe('arrivalStatsTest', () => {
         topicOnline.writeTopicOnline(topicOnlineData);
         arrivalStats.startToStats(topic, packet, 1000);
         setTimeout(()=> {
-            arrivalStats.addPacketRecv(packetId, 98);
-            arrivalStats.addPacketSent(packetId, 1);
-            arrivalStats.addPacketRecv(packetId, 1);
-            arrivalStats.addPacketSent('errorPacket', 1);
+            arrivalStats.addPacketInfo(packetId, 'arrive', 98);
+            arrivalStats.addPacketInfo(packetId, 'target', 1);
+            arrivalStats.addPacketInfo(packetId, 'arrive', 1);
+            arrivalStats.addPacketInfo('errorPacket', 1);
         }, 500);
         setTimeout(()=> {
-            arrivalStats.getRateStatusByTopic(topic, (e, stats) => {
+            arrivalStats.getRateStatusByTopic(topic, (stats) => {
                 const item = stats[0];
                 console.log(item);
                 expect(item.id).to.be.equal(packetId);

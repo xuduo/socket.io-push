@@ -16,7 +16,7 @@ class Api {
         const redisIncrBuffer = require('./stats/redisIncrBuffer')(cluster, config.statsCommitThreshold);
         this.stats = require('./stats/stats')(cluster, 0, redisIncrBuffer);
         const topicOnline = require('./stats/topicOnline')(cluster);
-        this.arrivalStats = require('./stats/arrivalStats')(cluster, redisIncrBuffer, topicOnline);
+        this.arrivalStats = require('./stats/arrivalStats')(cluster, topicOnline);
         this.uidStore = require('./redis/uidStore')(cluster);
         this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version, this.stats, this.arrivalStats);
         const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
