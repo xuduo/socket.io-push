@@ -96,7 +96,7 @@ class ArrivalStats {
     }
 
     getRateStatusByTopic(topic, callback) {
-        let result = [];
+        const result = [];
         this.redis.lrange(getTopicArrivalKey(topic), 0, -1, (err, data) => {
             async.each(data, (packetId, asynccb) => {
                 this.redis.get(getPacketInfoKey(packetId), (err, strPacket) => {
@@ -114,11 +114,8 @@ class ArrivalStats {
                     }
                 })
             }, (err) => {
-                if (err) {
-                    callback('error happend', result);
-                } else {
-                    callback(null, result);
-                }
+                if (err) logger.error('error: ' + err);
+                callback(result);
             });
         });
     }
