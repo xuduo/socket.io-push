@@ -5,6 +5,7 @@ module.exports = (uidStore, notificationService, ttlService, tagService, maxPush
 const logger = require('winston-proxy')('ApiRouter');
 const request = require('request');
 const pushEvent = 'push';
+const randomstring = require("randomstring");
 
 class ApiRouter {
 
@@ -18,6 +19,7 @@ class ApiRouter {
     }
 
     notification(notification, pushAll, pushIds, uids, tag, timeToLive) {
+        this.addIdAndTimestamp(notification);
         if (pushAll) {
             this.notificationService.sendAll(notification, timeToLive);
         } else if (pushIds) {
@@ -42,6 +44,7 @@ class ApiRouter {
                 }
             });
         }
+        return notification.id;
     }
 
     push(pushData, topic, pushIds, uids, timeToLive) {
@@ -105,6 +108,15 @@ class ApiRouter {
 
     notificationLocal(notification, pushIds, timeToLive) {
         this.notificationService.sendByPushIds(pushIds, timeToLive, notification);
+    }
+
+    addIdAndTimestamp(notification) {
+        if (!notification.id) {
+            notification.id = randomstring.generate(12);
+        }
+        if (!notification.timestamp) {
+            notification.timestamp = Date.now();
+        }
     }
 
 }

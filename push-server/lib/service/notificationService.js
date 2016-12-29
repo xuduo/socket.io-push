@@ -3,7 +3,6 @@ module.exports = (providerFactory, redis, ttlService, tokenTTL, arrivalRate) => 
 };
 
 const logger = require('winston-proxy')('NotificationService');
-const randomstring = require("randomstring");
 const async = require('async');
 
 class NotificationService {
@@ -27,8 +26,6 @@ class NotificationService {
     }
 
     sendByPushIds(pushIds, timeToLive, notification) {
-        this.addIdAndTimestamp(notification);
-
         const mapTypeToToken = {};
         async.each(pushIds, (pushId, callback) => {
             //集合元素并发执行,如果全部未出错,则最后callback中err为undefined;
@@ -54,7 +51,6 @@ class NotificationService {
     }
 
     sendAll(notification, timeToLive) {
-        this.addIdAndTimestamp(notification);
         if (this.ttlService && notification.android.title) {
             this.arrivalRate.startToStats('noti', notification, timeToLive);
             this.ttlService.addTTL("noti", 'noti', timeToLive, notification, false);
@@ -64,14 +60,6 @@ class NotificationService {
         this.providerFactory.sendAll(notification, timeToLive);
     }
 
-    addIdAndTimestamp(notification) {
-        if (!notification.id) {
-            notification.id = randomstring.generate(12);
-        }
-        if (!notification.timestamp) {
-            notification.timestamp = Date.now();
-        }
-    }
 }
 
 

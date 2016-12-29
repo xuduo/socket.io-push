@@ -163,8 +163,8 @@ class RestApi {
                 return next();
             }
 
-            apiRouter.notification(notification, req.p.pushAll == 'true', pushIds, uids, req.p.tag, this.parseNumber(req.p.timeToLive));
-            res.json({code: "success"});
+            const id = apiRouter.notification(notification, req.p.pushAll == 'true', pushIds, uids, req.p.tag, this.parseNumber(req.p.timeToLive));
+            res.json({code: "success", id: id});
             return next();
         });
 
