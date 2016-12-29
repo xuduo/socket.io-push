@@ -76,7 +76,7 @@ class ArrivalStats {
         packet.timeStart = new Date(now).toLocaleString();
         packet.timeValid = new Date(now + ttl).toLocaleString();
         logger.info('start to stats this packet, topic:%s, packet:%s', topic, msg.id);
-        this.redis.rpush(getTopicArrivalKey(topic), msg.id);
+        this.redis.lpush(getTopicArrivalKey(topic), msg.id);
         this.redis.set(getPacketInfoKey(msg.id), JSON.stringify(packet));
         this.redis.pexpire(getPacketInfoKey(msg.id), this.recordKeepTime);
         if (topic != 'group') {
@@ -98,7 +98,7 @@ class ArrivalStats {
     getRateStatusByTopic(topic, callback) {
         let result = [];
         this.redis.lrange(getTopicArrivalKey(topic), 0, -1, (err, data) => {
-            async.each(data.reverse(), (packetId, asynccb) => {
+            async.each(data, (packetId, asynccb) => {
                 this.redis.get(getPacketInfoKey(packetId), (err, strPacket) => {
                     if (strPacket) {
                         let packet = JSON.parse(strPacket);
