@@ -100,7 +100,13 @@ class ApnProvider {
                     logger.error("apn errorCallback %s %j", error, failed.device);
                 }
             }
-            callback({bundleId: bundleId, success: successCount, total: tokens.length, errorTokens: errorToken});
+            callback({
+                id: notification.id,
+                bundleId: bundleId,
+                success: successCount,
+                total: tokens.length,
+                errorTokens: errorToken
+            });
         });
     }
 
