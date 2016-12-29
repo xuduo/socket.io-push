@@ -166,7 +166,7 @@ class ProxyServer {
 
             socket.on('notificationReply', (data) => {
                 stats.onNotificationReply(data.timestamp);
-                arrivalStats.addPacketRecv('noti', data.id, 1);
+                arrivalStats.addPacketRecv(data.id, 1);
             });
 
             stats.addSession(socket);
