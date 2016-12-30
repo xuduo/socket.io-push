@@ -97,7 +97,7 @@ class ApnProvider {
                     if (failed.response) {
                         error = failed.response.reason || "unknown";
                     }
-                    if (error == "BadDeviceToken" && failed.device) {
+                    if ((error == "BadDeviceToken" || error == "DeviceTokenNotForTopic") && failed.device) {
                         errorToken.push(failed.device);
                     }
                     logger.error("apn errorCallback %s %j", error, failed.device);

@@ -4,9 +4,9 @@ module.exports = (config, arrivalStats) => {
 
 const logger = require('winston-proxy')('XiaomiProvider');
 
-const util = require('socket.io-push-redis/util');//@tochange
+const util = require('socket.io-push-redis/util');
 const request = require('request');
-const sendOneUrl = "https://api.xmpush.xiaomi.com/v3/message/regid";
+const sendOneUrl = "https://api.xmpush.xiaomi.com/v3/time_to_live/regid";
 const sendAllUrl = "https://api.xmpush.xiaomi.com/v3/message/all";
 const traceUrl = "https://api.xmpush.xiaomi.com/v1/trace/message/status";
 const timeout = 5000;
@@ -63,7 +63,6 @@ class XiaomiProvider {
 
     sendAll(notification, timeToLive, callback) {
         if (notification.android.title) {
-            logger.debug("addPushTotal");
             request.post({
                 url: sendAllUrl,
                 form: this.getPostData(notification, 0, timeToLive),
