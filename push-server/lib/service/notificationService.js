@@ -27,6 +27,7 @@ class NotificationService {
 
     sendByPushIds(pushIds, timeToLive, notification) {
         const mapTypeToToken = {};
+        this.arrivalRate.addPushMany(notification, timeToLive, pushIds.length);
         async.each(pushIds, (pushId, callback) => {
             //集合元素并发执行,如果全部未出错,则最后callback中err为undefined;
             // 否则如果中途出错,直接调用callback,其他未执行完的任务继续(只执行一次callback..)
@@ -52,7 +53,7 @@ class NotificationService {
 
     sendAll(notification, timeToLive) {
         if (this.ttlService && notification.android.title) {
-            this.arrivalRate.startToStats('noti', notification, timeToLive);
+            this.arrivalRate.addPushAll(notification, timeToLive);
             this.ttlService.addTTL("noti", 'noti', timeToLive, notification, false);
             // 小米,华为,苹果不订阅 "noti"
             this.ttlService.emitPacket("noti", 'noti', notification);

@@ -18,7 +18,7 @@ class ArrivalStats {
         this.redis = redis;
         this.topicOnline = topicOnline;
         this.recordKeepTime = 30 * 24 * 3600 * 1000;
-        this.maxrecordKeep = -100;
+        this.maxrecordKeep = -50;
         this.xiaomiProvider = xiaomiProvider;
     }
 
@@ -44,27 +44,41 @@ class ArrivalStats {
         });
     }
 
-    startToStats(topic, msg, ttl) {
-        logger.info('start to stats this packet, topic:%s, packet:%s', topic, msg.id);
-        this.redis.lpush(getArrivalListKey(topic), msg.id);
+    setArrivalList(type, msgId) {
+        const listKey = getArrivalListKey(type);
+        this.redis.lpush(listKey, msgId);
+        this.redis.ltrim(listKey, this.maxrecordKeep, -1);
+    }
 
-        const packetInfoKey = getArrivalInfoKey(msg.id);
-        this.redis.hmset(packetInfoKey, 'id', msg.id,
-            'title', msg.android.title,
-            'message', msg.android.message,
+    setPacketInfo(key, msg, ttl) {
+        this.redis.hmset(key, 'id', msg.id,
+            'android', JSON.stringify(msg.android),
             'timeStart', new Date().getTime(),
             'ttl', ttl);
-        this.redis.pexpire(packetInfoKey, this.recordKeepTime);
-        if (topic != 'group') {
-            this.topicOnline.getTopicOnline(topic, (count) => {
-                logger.info('packet(%s) init count:%d', msg.id, count);
-                this.redis.hset(packetInfoKey, 'target', count);
-                this.redis.hset(packetInfoKey, 'arrive', 0);
-            })
-        } else { //单播,比较麻烦
-            this.redis.ltrim(getArrivalListKey(topic), this.maxrecordKeep, -1);
-            //@todo
-        }
+        this.redis.pexpire(key, this.recordKeepTime);
+    }
+
+    addPushAll(msg, ttl) {
+        logger.info('addPushAll: start to stats packet:%s', msg.id);
+        this.setArrivalList('noti', msg.id);
+
+        const packetInfoKey = getArrivalInfoKey(msg.id);
+        this.setPacketInfo(packetInfoKey, msg, ttl);
+        this.topicOnline.getTopicOnline('noti', (count) => {
+            logger.info('packet(%s) init count:%d', msg.id, count);
+            this.redis.hset(packetInfoKey, 'target_android', count);
+            this.redis.hset(packetInfoKey, 'arrive_android', 0);
+        })
+    }
+
+    addPushMany(msg, ttl, sentCount) {
+        logger.info('addPushMany: start to stats packet: %s', msg.id);
+        this.setArrivalList('group', msg.id);
+
+        const packetInfoKey = getArrivalInfoKey(msg.id);
+        this.setPacketInfo(packetInfoKey, msg, ttl);
+        this.redis.hset(packetInfoKey, 'target_android', sentCount);
+        this.redis.hset(packetInfoKey, 'arrive_android', 0);
     }
 
     getRateStatusByTopic(topic, callback) {
@@ -99,7 +113,7 @@ class ArrivalStats {
             }
             packet.timeValid = new Date(parseInt(packet.timeStart) + parseInt(packet.ttl)).toLocaleString();
             packet.timeStart = new Date(parseInt(packet.timeStart)).toLocaleString();
-            packet.arrivalRate = packet.target != 0 ? parseInt(packet.arrive_android) / parseInt(packet.target) : 0;
+            packet.arrivalRate = packet.target != 0 ? parseInt(packet.arrive_android) / parseInt(packet.target_android) : 0;
             if (this.xiaomiProvider) {
                 this.xiaomiProvider.trace(packet, ()=> {
                     callback(packet);
