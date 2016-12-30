@@ -87,7 +87,7 @@ class XiaomiProvider {
             const result = JSON.parse(body);
             logger.debug("response result ", result);
             if (result.data && result.data.id) {
-                this.arrivalStats.setArrivalInfo(notificationId, "xiaomi_trace_id", result.data.id);
+                this.arrivalStats.setArrivalInfo(notificationId, "xiaomi_msg_id", result.data.id);
             }
             if (result.code == 0 || result.code == 20301) {
                 return true;
@@ -97,10 +97,10 @@ class XiaomiProvider {
     }
 
     trace(packetInfo, callback) {
-        if (packetInfo.xiaomi_trace_id) {
+        if (packetInfo.xiaomi_msg_id) {
             request.get({
                 url: traceUrl,
-                qs: {msg_id: packetInfo.xiaomi_trace_id},
+                qs: {msg_id: packetInfo.xiaomi_msg_id},
                 headers: this.headers,
                 timeout: timeout
             }, (error, response, body) => {
