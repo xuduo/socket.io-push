@@ -81,9 +81,9 @@ class ArrivalStats {
         this.redis.hset(packetInfoKey, 'arrive_android', 0);
     }
 
-    getRateStatusByTopic(topic, callback) {
+    getRateStatusByType(type, callback) {
         const result = [];
-        this.redis.lrange(getArrivalListKey(topic), 0, -1, (err, data) => {
+        this.redis.lrange(getArrivalListKey(type), 0, -1, (err, data) => {
             async.each(data, (id, asynccb) => {
                 this.getArrivalInfo(id, (info)=> {
                     if (info) {
