@@ -1,5 +1,5 @@
-module.exports = (config, stats) => {
-    return new XiaomiProvider(config, stats);
+module.exports = (config, arrivalStats) => {
+    return new XiaomiProvider(config, arrivalStats);
 };
 
 const logger = require('winston-proxy')('XiaomiProvider');
@@ -8,12 +8,13 @@ const util = require('socket.io-push-redis/util');//@tochange
 const request = require('request');
 const sendOneUrl = "https://api.xmpush.xiaomi.com/v3/message/regid";
 const sendAllUrl = "https://api.xmpush.xiaomi.com/v3/message/all";
+const traceUrl = "https://api.xmpush.xiaomi.com/v1/trace/message/status";
 const timeout = 5000;
 
 class XiaomiProvider {
 
-    constructor(config, stats) {
-        this.stats = stats;
+    constructor(config, arrivalStats) {
+        this.arrivalStats = arrivalStats;
         this.headers = {
             'Authorization': 'key=' + config.app_secret
         };
@@ -23,7 +24,6 @@ class XiaomiProvider {
 
     sendMany(notification, tokenDataList, timeToLive, callback) {
         if (notification.android.title) {
-            this.stats.addPushTotal(1, this.type);
             request.post({
                 url: sendOneUrl,
                 form: this.getPostData(notification, tokenDataList, timeToLive),
@@ -31,8 +31,7 @@ class XiaomiProvider {
                 timeout: timeout
             }, (error, response, body) => {
                 logger.debug("sendOne result", error, response && response.statusCode, body);
-                if (this.success(error, response, body, callback)) {
-                    this.stats.addPushSuccess(1, this.type);
+                if (this.success(error, response, body, callback, notification.id)) {
                     return;
                 }
                 logger.error("sendOne error", error, response && response.statusCode, body);
@@ -64,7 +63,6 @@ class XiaomiProvider {
 
     sendAll(notification, timeToLive, callback) {
         if (notification.android.title) {
-            this.stats.addPushTotal(1, this.type + "All");
             logger.debug("addPushTotal");
             request.post({
                 url: sendAllUrl,
@@ -73,8 +71,7 @@ class XiaomiProvider {
                 timeout: timeout
             }, (error, response, body) => {
                 logger.info("sendAll result", error, response && response.statusCode, body);
-                if (this.success(error, response, body, callback)) {
-                    this.stats.addPushSuccess(1, this.type + "All");
+                if (this.success(error, response, body, callback, notification.id)) {
                     return;
                 }
                 logger.error("sendAll error", error, response && response.statusCode, body);
@@ -82,13 +79,16 @@ class XiaomiProvider {
         }
     }
 
-    success(error, response, body, callback) {
+    success(error, response, body, callback, notificationId) {
         if (callback) {
             callback(error);
         }
         if (!error && response && response.statusCode == 200) {
             const result = JSON.parse(body);
             logger.debug("response result ", result);
+            if (result.data && result.data.id) {
+                this.arrivalStats.setPacketInfo(notificationId, "xiaomi_trace_id", result.data.id);
+            }
             if (result.code == 0 || result.code == 20301) {
                 return true;
             }
@@ -96,4 +96,27 @@ class XiaomiProvider {
         return false;
     }
 
+    trace(packetInfo, callback) {
+        if (packetInfo.xiaomi_trace_id) {
+            request.get({
+                url: traceUrl,
+                qs: {msg_id: packetInfo.xiaomi_trace_id},
+                headers: this.headers,
+                timeout: timeout
+            }, (error, response, body) => {
+                logger.info("trace result", error, response && response.statusCode, body);
+                try {
+                    const result = JSON.parse(body);
+                    if (result.data && result.data.data) {
+                        packetInfo.xiaomi = result.data.data;
+                    }
+                } catch (e) {
+                }
+                callback();
+            });
+        } else {
+            callback();
+        }
+
+    }
 }

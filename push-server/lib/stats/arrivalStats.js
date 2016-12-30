@@ -1,5 +1,5 @@
-module.exports = (redis, topicOnline) => {
-    return new ArrivalStats(redis, topicOnline);
+module.exports = (redis, topicOnline, xiaomiProvider) => {
+    return new ArrivalStats(redis, topicOnline, xiaomiProvider);
 };
 
 const logger = require('winston-proxy')('ArrivalStats');
@@ -13,11 +13,13 @@ const getTopicArrivalKey = (topic) => {
 };
 
 class ArrivalStats {
-    constructor(redis, topicOnline) {
+
+    constructor(redis, topicOnline, xiaomiProvider) {
         this.redis = redis;
         this.topicOnline = topicOnline;
         this.recordKeepTime = 30 * 24 * 3600 * 1000;
         this.maxrecordKeep = -100;
+        this.xiaomiProvider = xiaomiProvider;
     }
 
     addPacketInfo(msgId, key, incr) {
@@ -30,6 +32,16 @@ class ArrivalStats {
                 }
             });
         }
+    }
+
+    setPacketInfo(msgId, key, value) {
+        const packetInfoKey = getPacketInfoKey(msgId);
+        this.redis.ttl(packetInfoKey, (err, ttl) => {
+            if (!err && ttl > 0) {
+                logger.debug('setPacketInfo ', msgId, value);
+                this.redis.hset(packetInfoKey, key, value);
+            }
+        });
     }
 
     startToStats(topic, msg, ttl) {
@@ -61,21 +73,27 @@ class ArrivalStats {
             async.each(data, (packetId, asynccb) => {
                 const packetInfoKey = getPacketInfoKey(packetId);
                 this.redis.hgetall(packetInfoKey, (err, reply) => {
-                    if(err){
+                    if (err) {
                         logger.error('fail to read packet info, key:%s, reaon:%s', packetInfoKey, err);
                         asynccb();
-                        return ;
+                        return;
                     }
                     const packet = {};
                     logger.debug('reply: %s', JSON.stringify(reply));
-                    for(const key in reply){
+                    for (const key in reply) {
                         packet[key] = reply[key];
                     }
                     packet.timeValid = new Date(parseInt(packet.timeStart) + parseInt(packet.ttl)).toLocaleString();
                     packet.timeStart = new Date(parseInt(packet.timeStart)).toLocaleString();
                     packet.arrivalRate = packet.target != 0 ? parseInt(packet.arrive) / parseInt(packet.target) : 0;
                     result.push(packet);
-                    asynccb();
+                    if (this.xiaomiProvider) {
+                        this.xiaomiProvider.trace(packet, ()=> {
+                            asynccb();
+                        });
+                    } else {
+                        asynccb();
+                    }
                 });
             }, (err) => {
                 if (err) logger.error('error: ' + err);

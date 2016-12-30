@@ -35,8 +35,9 @@ class Api {
             providerFactory.addProvider(this.huaweiProvider);
         }
         if (config.xiaomi) {
-            this.xiaomiProvider = require('./service/xiaomiProvider')(config.xiaomi, this.stats);
+            this.xiaomiProvider = require('./service/xiaomiProvider')(config.xiaomi, this.arrivalStats);
             providerFactory.addProvider(this.xiaomiProvider);
+            this.arrivalStats.xiaomiProvider = this.xiaomiProvider;
         }
         this.apiRouter = require('./service/apiRouter')(this.uidStore, this.notificationService, this.ttlService, this.tagService, config.routerMaxPushIds, config.routerApiUrls);
         this.onlineStats = require('./stats/onlineStats')(this.stats);
