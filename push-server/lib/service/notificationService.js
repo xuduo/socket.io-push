@@ -27,7 +27,7 @@ class NotificationService {
 
     sendByPushIds(pushIds, timeToLive, notification) {
         const mapTypeToToken = {};
-        this.arrivalRate.addPushMany(notification, timeToLive, pushIds.length);
+        let sendViaTtlService = 0;
         async.each(pushIds, (pushId, callback) => {
             //集合元素并发执行,如果全部未出错,则最后callback中err为undefined;
             // 否则如果中途出错,直接调用callback,其他未执行完的任务继续(只执行一次callback..)
@@ -39,6 +39,7 @@ class NotificationService {
                     mapTypeToToken[token.type] = tokenList;
                 } else {
                     logger.debug("send notification in socket.io, connection %s", pushId);
+                    sendViaTtlService ++;
                     if (notification.android.title) {
                         this.ttlService.addTTL(pushId, 'noti', timeToLive, notification, true);
                         this.ttlService.emitPacket(pushId, 'noti', notification);
@@ -47,6 +48,7 @@ class NotificationService {
                 callback();
             });
         }, () => {
+            this.arrivalRate.addPushMany(notification, timeToLive, sendViaTtlService);
             this.providerFactory.sendMany(notification, mapTypeToToken, timeToLive);
         });
     }
