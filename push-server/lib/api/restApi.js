@@ -199,12 +199,30 @@ class RestApi {
             });
         });
 
-        router.all('/stats/arrivalRate', (req, res, next) => {
-            const type = req.p.type || 'noti';
-            arrivalStats.getRateStatusByType(type, (result) => {
+        router.all('/stats/arrival', (req, res, next) => {
+            const packetId = req.p.id;
+            if(packetId){
+                arrivalStats.getArrivalInfo(packetId, (packet) => {
+                    res.json(packet);
+                    return next();
+                });
+            }else{
+                res.json({});
+                return next();
+            }
+
+        });
+        router.all('/stats/pushAll', (req, res, next) => {
+            arrivalStats.getRateStatusByType('noti', (result) => {
                 res.json(result);
                 return next();
-            });
+            })
+        });
+        router.all('/stats/pushMany', (req, res, next) => {
+            arrivalStats.getRateStatusByType('group', (result) => {
+                res.json(result);
+                return next();
+            })
         });
 
         router.all('/uid/bind', (req, res, next) => {
