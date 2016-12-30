@@ -77,7 +77,6 @@ class ArrivalStats {
                     }
                     asynccb();
                 });
-
             }, (err) => {
                 if (err) logger.error('error: ' + err);
                 callback(result);

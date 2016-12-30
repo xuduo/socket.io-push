@@ -1,5 +1,5 @@
-module.exports = (apnConfigs, apnApiUrls, redis, stats, tokenTTL, tokenService) => {
-    return new ApnProvider(apnConfigs, apnApiUrls, redis, stats, tokenTTL, tokenService);
+module.exports = (apnConfigs, apnApiUrls, redis, arrivalStats, tokenTTL, tokenService) => {
+    return new ApnProvider(apnConfigs, apnApiUrls, redis, arrivalStats, tokenTTL, tokenService);
 };
 
 const logger = require('winston-proxy')('ApnProvider');
@@ -8,11 +8,11 @@ const request = require('request');
 
 class ApnProvider {
 
-    constructor(apnConfigs, apnApiUrls = [], redis, stats, tokenTTL, tokenService) {
+    constructor(apnConfigs, apnApiUrls = [], redis, arrivalStats, tokenTTL, tokenService) {
         this.redis = redis;
         this.type = "apn";
         this.apnConnections = {};
-        this.stats = stats;
+        this.arrivalStats = arrivalStats;
         this.apnApiUrls = require("../util/infiniteArray")(apnApiUrls);
         this.tokenTTL = tokenTTL;
 
@@ -23,6 +23,9 @@ class ApnProvider {
                     tokenService.delToken(this.type, token, result.bundleId);
                 }
             }
+            logger.debug("sentCallback ", result);
+            arrivalStats.setArrivalInfo(result.id, "target_ios", result.total);
+            arrivalStats.setArrivalInfo(result.id, "arrive_ios", result.success);
         };
 
         apnConfigs.forEach((apnConfig, index) => {

@@ -27,7 +27,7 @@ class Api {
         this.notificationService.providerFactory = providerFactory;
         if (config.apns != undefined) {
             this.tokenService = require('./service/tokenService')(cluster, tokenTTL);
-            this.apnService = require('./service/apnProvider')(config.apns, config.apnApiUrls, cluster, this.stats, tokenTTL, this.tokenService);
+            this.apnService = require('./service/apnProvider')(config.apns, config.apnApiUrls, cluster, this.arrivalStats, tokenTTL, this.tokenService);
             providerFactory.addProvider(this.apnService);
         }
         if (config.huawei) {
