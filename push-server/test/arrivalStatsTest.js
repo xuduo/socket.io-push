@@ -32,10 +32,10 @@ describe('arrivalStatsTest', () => {
         topicOnline.writeTopicOnline(topicOnlineData);
         arrivalStats.startToStats(topic, packet, 1000);
         setTimeout(()=> {
-            arrivalStats.addPacketInfo(packetId, 'arrive', 98);
-            arrivalStats.addPacketInfo(packetId, 'target', 1);
-            arrivalStats.addPacketInfo(packetId, 'arrive', 1);
-            arrivalStats.addPacketInfo('errorPacket', 1);
+            arrivalStats.addArrivalInfo(packetId, 'arrive', 98);
+            arrivalStats.addArrivalInfo(packetId, 'target', 1);
+            arrivalStats.addArrivalInfo(packetId, 'arrive', 1);
+            arrivalStats.addArrivalInfo('errorPacket', 1);
         }, 500);
         setTimeout(()=> {
             arrivalStats.getRateStatusByTopic(topic, (stats) => {

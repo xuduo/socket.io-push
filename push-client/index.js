@@ -180,6 +180,7 @@ var notiHandler = function (data) {
     data.payload = data.android.payload;
     delete data.android;
     this.updateLastPacketId('noti', data);
+    this.socket.emit('notificationReply', {id: data.id, timestamp: data.timestamp});
     this.event.emit("notification", data);
 }
 

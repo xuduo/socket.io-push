@@ -57,7 +57,14 @@ describe('notification', function () {
             expect(data.title).to.be.equal(title);
             expect(data.message).to.be.equal(message);
             done();
+            //setTimeout(()=>{
+            //    apiServer.arrivalStats.getArrivalInfo(data.id, (result)=>{
+            //        expect(result.arrive_android).to.be.equal(1);
+            //        done();
+            //    });
+            //},100);
         }
+
         pushClient.on('notification', notificationCallback);
 
 
@@ -87,7 +94,12 @@ describe('notification', function () {
             expect(data.title).to.be.equal(title);
             expect(data.message).to.be.equal(message);
             expect(data.payload.ppp).to.be.equal(123);
-            done();
+            setTimeout(()=>{
+                apiServer.arrivalStats.getArrivalInfo(data.id, (result)=>{
+                    expect(result.arrive_android).to.be.equal('2');
+                    done();
+                });
+            },100);
         }
         pushClient.on('notification', notificationCallback);
 

@@ -168,8 +168,13 @@ class ProxyServer {
             }
 
             socket.on('notificationReply', (data) => {
+                logger.debug("notificationReply ", data);
                 stats.onNotificationReply(data.timestamp);
-                arrivalStats.addPacketInfo(data.id, 'arrive', 1);
+                arrivalStats.addArrivalInfo(data.id, 'arrive_android', 1);
+            });
+
+            socket.on('notificationClick', (data) => {
+                arrivalStats.addArrivalInfo(data.id, 'click_' + (data.type || "android"), 1);
             });
 
             stats.addSession(socket);

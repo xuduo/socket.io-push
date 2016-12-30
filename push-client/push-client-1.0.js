@@ -113,6 +113,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var self = this;
 	    this.topics = {};
 	    this.socket = __webpack_require__(6)(url, opt);
+	    //this.socket = require('wxapp-socket-io')(url, opt);
 	    this.initStorage();
 
 	    if (opt.pushId) {
@@ -124,6 +125,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    }
 	    this.setItem("pushId", this.pushId);
+
+	    this.platform = opt.platform || "browser" ;
 
 	    this.event = new EventEmitter();
 	    this.socket.on('connect', function () {
@@ -171,7 +174,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.socket.emit('pushId', {
 	        id: this.pushId,
 	        version: 1,
-	        platform: "browser",
+	        platform: this.platform,
 	        topics: topics,
 	        lastUnicastId: this.getItem("lastUnicastId"),
 	        lastPacketIds: this.topicToLastPacketId
@@ -193,6 +196,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	PushClient.prototype.unbindUid = function () {
 	    this.socket.emit('unbindUid');
+	}
+
+	PushClient.prototype.bindUid = function (data) {
+	    this.socket.emit('bindUid', data);
 	}
 
 	PushClient.prototype.disconnect = function () {
@@ -229,6 +236,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    data.payload = data.android.payload;
 	    delete data.android;
 	    this.updateLastPacketId('noti', data);
+	    this.socket.emit('notificationReply', {id: data.id, timestamp: data.timestamp});
 	    this.event.emit("notification", data);
 	}
 

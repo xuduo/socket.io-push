@@ -87,7 +87,7 @@ class XiaomiProvider {
             const result = JSON.parse(body);
             logger.debug("response result ", result);
             if (result.data && result.data.id) {
-                this.arrivalStats.setPacketInfo(notificationId, "xiaomi_trace_id", result.data.id);
+                this.arrivalStats.setArrivalInfo(notificationId, "xiaomi_trace_id", result.data.id);
             }
             if (result.code == 0 || result.code == 20301) {
                 return true;

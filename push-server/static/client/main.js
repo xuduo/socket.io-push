@@ -54,7 +54,10 @@ $(function () {
     }
 
     function initClient() {
-        pushClient = new PushClient("https://" + window.location.hostname + ":" + $.cookie("proxy_port"), {transports: ['polling' , 'websocket']});
+        pushClient = new PushClient("https://" + window.location.hostname + ":" + $.cookie("proxy_port"), {
+            useNotification: true,
+            transports: ['polling', 'websocket']
+        });
         pushClient.subscribeTopic("chatRoom");
         pushClient.on('connect', function (data) {
             console.log("pushClient.on.connect ", data.uid);
