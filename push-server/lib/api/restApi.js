@@ -200,8 +200,8 @@ class RestApi {
         });
 
         router.all('/stats/arrivalRate', (req, res, next) => {
-            const topic = req.p.key || 'noti';
-            arrivalStats.getRateStatusByTopic(topic, (result) => {
+            const type = req.p.type || 'noti';
+            arrivalStats.getRateStatusByType(type, (result) => {
                 res.json(result);
                 return next();
             });
