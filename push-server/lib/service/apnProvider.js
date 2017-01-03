@@ -24,8 +24,8 @@ class ApnProvider {
                 }
             }
             logger.debug("sentCallback ", result);
-            arrivalStats.setArrivalInfo(result.id, "target_ios", result.total);
-            arrivalStats.setArrivalInfo(result.id, "arrive_ios", result.success);
+            arrivalStats.setArrivalInfo(result.id, "target_apn", result.total);
+            arrivalStats.setArrivalInfo(result.id, "arrive_apn", result.success);
         };
 
         apnConfigs.forEach((apnConfig, index) => {
