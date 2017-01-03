@@ -94,6 +94,9 @@ class ArrivalStats {
                 });
             }, (err) => {
                 if (err) logger.error('error: ' + err);
+                result.sort((l, r) => {
+                    return new Date(r.timeStart) - new Date(l.timeStart);
+                });
                 callback(result);
             });
         });
