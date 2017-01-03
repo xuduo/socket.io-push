@@ -96,7 +96,7 @@ describe('notification', function () {
             expect(data.payload.ppp).to.be.equal(123);
             setTimeout(()=>{
                 apiServer.arrivalStats.getArrivalInfo(data.id, (result)=>{
-                    expect(result.arrive_android).to.be.equal('2');
+                    expect(result.android.arrive).to.be.equal(2);
                     done();
                 });
             },100);
