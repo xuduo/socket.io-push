@@ -41,8 +41,8 @@ describe('arrivalStatsTest', () => {
                 const item = stats[0];
                 console.log(item);
                 expect(item.id).to.be.equal(packetId);
-                expect(item.target_android).to.be.equal('100');
-                expect(item.arrive_android).to.be.equal('99');
+                expect(item.android.target).to.be.equal(100);
+                expect(item.android.arrive).to.be.equal(99);
                 done();
             })
         }, 1000);
