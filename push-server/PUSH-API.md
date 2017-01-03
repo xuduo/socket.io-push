@@ -34,7 +34,7 @@ json ->  以下类型三选一,透传给客户端的数据,客户端会在onPush
 
 timeToLive -> int, 毫秒, 表示当时用户不在线, 消息服务器保存多久
 
-### /api/notification 状态栏通知api
+## /api/notification 状态栏通知api
 
 http://yourip:11001/api/notification?pushId=true&notification=%7B%20%22android%22%3A%7B%22title%22%3A%22title%22%2C%22message%22%3A%22message%22%7D%2C%22apn%22%3A%7B%22alert%22%3A%22message%22%20%2C%20%22badge%22%3A5%2C%20%22sound%22%3A%22default%22%2C%20%22payload%22%3A1234%7D%7D
 
@@ -85,7 +85,7 @@ sound(ios) - (apn对应的sound字段) 可选
 payload - 发送给应用非显示用的透传信息, 需要是一个json map
 
 
-### /api/uid/bind 绑定UID和pushId
+## /api/uid/bind 绑定UID和pushId
 
 http://yourip:11001/api/uid/bind?pushId=abc&uid=123&platform=ios
 
@@ -99,7 +99,7 @@ platform -> string(可选), 默认 = "default", pushId所属平台
 
 platformLimit -> int(可选), 默认 = 0, 表示不限制. 不为0时, 表示保留多少该平台的pushId绑定关系, 优先删除最旧的绑定关系
 
-### /api/uid/remove 解除pushId的绑定
+## /api/uid/remove 解除pushId的绑定
 
 http://yourip:11001/api/uid/remove?pushId=abc
 
@@ -113,34 +113,38 @@ uid -> string[],如 ["123","456"] 解绑该uid的所有设备
 
         或 string, 如 "123"
 
-##topic在线 API
 
-### /api/topicOnline topic在线数查询
-
---- 参数
-
-topic -> 查询的topic
-
-### /api/topicDevices topic在线数查询, 包括每台设备的pushId, uid(如果有绑定)
+## /api/topicOnline topic在线数查询
 
 --- 参数
 
 topic -> 查询的topic
 
-##其它 API
+## /api/topicDevices topic在线数查询, 包括每台设备的pushId, uid(如果有绑定)
 
-### /api/stats/base 服务器实时状态
+--- 参数
+
+topic -> 查询的topic
+
+
+## /api/stats/base 服务器实时状态
 
 返回当前各个端(ios/android/browser)实时在线, 细分到每个proxy实例的在线
 
-### /api/redis/get /api/redis/del /redis/hkey /redis/hash(查询对应key hash到的redis实例)
+## /api/redis/get /api/redis/del /redis/hkey /redis/hash(查询对应key hash到的redis实例)
 
 --- 参数
 
 key -> redis key
 
-### /api/isConnected   pushId或者uid 是否在线查询
+## /api/isConnected   pushId或者uid 是否在线查询
 
 --- 参数
 
 pushId=123 或者　uid=123
+
+## /api/stats/arrival/info 查询某条notification送达率
+
+--- 参数 
+
+id=xxxxxx 调用notification接口时返回的id

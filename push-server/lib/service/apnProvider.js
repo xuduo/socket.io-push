@@ -24,8 +24,8 @@ class ApnProvider {
                 }
             }
             logger.debug("sentCallback ", result);
-            arrivalStats.setArrivalInfo(result.id, "target_apn", result.total);
-            arrivalStats.setArrivalInfo(result.id, "arrive_apn", result.success);
+            arrivalStats.addArrivalInfo(result.id, "target_apn", result.total);
+            arrivalStats.addArrivalInfo(result.id, "arrive_apn", result.success);
         };
 
         apnConfigs.forEach((apnConfig, index) => {
@@ -84,23 +84,28 @@ class ApnProvider {
         }
         const note = this.toApnNotification(notification, timeToLive);
         note.topic = bundleId;
-        logger.debug("callLocal ", bundleId, note, tokens);
+        logger.debug("callLocal ", bundleId, notification.id, tokens.length);
         apnConnection.send(note, tokens).then((response) => {
             let successCount = 0;
             const errorToken = [];
+            let errorCount = 0;
+            if (response.failed) {
+                errorCount = response.failed.length;
+            }
             if (response.sent && response.sent.length > 0) {
-                logger.debug("send sucess ", response.sent.length);
+                logger.debug("send success ", bundleId, notification.id, tokens.length, errorCount);
                 successCount = response.sent.length;
-            } else if (response.failed && response.failed.length > 0) {
+            }
+            if (errorCount > 0) {
                 for (const failed of response.failed) {
                     let error = "";
                     if (failed.response) {
                         error = failed.response.reason || "unknown";
                     }
-                    if ((error == "BadDeviceToken" || error == "DeviceTokenNotForTopic") && failed.device) {
+                    if ((error == "BadDeviceToken" || error == "Unregistered" || error == "DeviceTokenNotForTopic") && failed.device) {
                         errorToken.push(failed.device);
                     }
-                    logger.error("apn errorCallback %s %j", error, failed.device);
+                    logger.error("apn failed %s %s %j", notification.id, error, failed.device);
                 }
             }
             callback({
