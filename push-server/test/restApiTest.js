@@ -55,7 +55,7 @@ describe('rest api test', () => {
 
     it('stat arrival rate', (done) => {
         request({
-            url: apiUrl + '/api/stats/arrivalRate',
+            url: apiUrl + '/api/stats/arrival/pushall',
             method: 'get',
         }, (error, response, body) => {
             let ret = JSON.parse(body);

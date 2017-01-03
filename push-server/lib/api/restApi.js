@@ -199,7 +199,7 @@ class RestApi {
             });
         });
 
-        router.all('/stats/arrival', (req, res, next) => {
+        router.all('/stats/arrival/info', (req, res, next) => {
             const packetId = req.p.id;
             if(packetId){
                 arrivalStats.getArrivalInfo(packetId, (packet) => {
@@ -212,13 +212,13 @@ class RestApi {
             }
 
         });
-        router.all('/stats/pushAll', (req, res, next) => {
+        router.all('/stats/arrival/pushAll', (req, res, next) => {
             arrivalStats.getRateStatusByType('noti', (result) => {
                 res.json(result);
                 return next();
             })
         });
-        router.all('/stats/pushMany', (req, res, next) => {
+        router.all('/stats/arrival/pushMany', (req, res, next) => {
             arrivalStats.getRateStatusByType('group', (result) => {
                 res.json(result);
                 return next();
