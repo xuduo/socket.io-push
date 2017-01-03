@@ -53,6 +53,7 @@ class ArrivalStats {
     setPacketInfo(key, msg, ttl) {
         this.redis.hmset(key, 'id', msg.id,
             'android', JSON.stringify(msg.android),
+            'apn', JSON.stringify(msg.apn),
             'timeStart', new Date().getTime(),
             'ttl', ttl);
         this.redis.pexpire(key, this.recordKeepTime);
@@ -113,7 +114,26 @@ class ArrivalStats {
             }
             packet.timeValid = new Date(parseInt(packet.timeStart) + parseInt(packet.ttl)).toLocaleString();
             packet.timeStart = new Date(parseInt(packet.timeStart)).toLocaleString();
-            packet.arrivalRate = packet.target != 0 ? parseInt(packet.arrive_android) / parseInt(packet.target_android) : 0;
+            let apn = {};
+            apn.msg = packet.apn;
+            apn.target = parseInt(packet.target_apn);
+            apn.arrive = parseInt(packet.arrive_apn);
+            apn.arrivalRate = apn.target != 0 ? apn.arrive / apn.target : 0;
+            delete packet.apn;
+            delete packet.target_apn;
+            delete packet.arrive_apn;
+            packet.apn = apn;
+
+            let android = {};
+            android.msg = packet.android;
+            android.target = parseInt(packet.target_android);
+            android.arrive = parseInt(packet.arrive_android);
+            android.arrivalRate = android.target != 0 ? android.arrive / android.target : 0;
+            delete packet.android;
+            delete packet.target_android;
+            delete packet.arrive_android;
+            packet.android = android;
+
             if (this.xiaomiProvider) {
                 this.xiaomiProvider.trace(packet, ()=> {
                     callback(packet);
