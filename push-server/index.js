@@ -97,8 +97,10 @@ if (cluster.isMaster) {
 } else {
     if (process.env.processType) {
         let servers = {};
+        let socketTimeout = 0;
         if (process.env.processType == 'proxy') {
             let IoServer = require('socket.io');
+            socketTimeout = proxy.pingTimeout + proxy.pingInterval + 10 * 1000;
             let io = new IoServer({
                 pingTimeout: proxy.pingTimeout,
                 pingInterval: proxy.pingInterval,
@@ -133,6 +135,7 @@ if (cluster.isMaster) {
             require('./lib/proxy')(io, proxy);
         } else if (process.env.processType == 'api') {
             let spdyServer, httpServer;
+            socketTimeout = api.socketTimeout || 0;
             if (api.http_port) {
                 httpServer = require('http').createServer();
                 servers[api.http_port] = httpServer;
@@ -153,12 +156,15 @@ if (cluster.isMaster) {
         }
         if (Object.keys(servers).length > 0) {
             process.on('message', (msg, socket) => {
-                if (msg !== 'sticky:connection') {
+                if (msg !== 's:conn') {
                     return;
                 }
-                logger.debug('connection on worker: ', cluster.worker.id, socket.remoteAddress);
+                logger.debug('connection on worker: ', cluster.worker.id, socket.remoteAddress, socket.remotePort, socket.localPort);
                 servers[socket.localPort].emit('connection', socket);
                 socket.resume();
+                socket.setTimeout(socketTimeout, ()=> {
+                    logger.info("socket timeout ", socket.remoteAddress, socket.remotePort, socket.localPort);
+                });
             });
         }
     }
@@ -168,7 +174,7 @@ if (cluster.isMaster) {
 function createNetServer(workers, lb, port, host) {
     const server = net.createServer({pauseOnConnect: true}, (socket) => {
         let worker = lb(workers, socket.remoteAddress);
-        worker.send('sticky:connection', socket);
+        worker.send('s:conn', socket);
     });
     if (host) {
         server.listen(port, host);

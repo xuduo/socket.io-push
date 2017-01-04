@@ -6,10 +6,10 @@ const logger = require('winston-proxy')('ArrivalStats');
 const async = require('async');
 
 const getArrivalInfoKey = (msgId) => {
-    return 'stats#arrival#' + msgId;
+    return 'stats:arrival:' + msgId;
 };
 const getArrivalListKey = (topic) => {
-    return 'stats#arrivalList#' + topic;
+    return 'stats:arrivalList:' + topic;
 };
 
 class ArrivalStats {
@@ -62,7 +62,6 @@ class ArrivalStats {
     addPushAll(msg, ttl) {
         logger.info('addPushAll: start to stats packet:%s', msg.id);
         this.setArrivalList('noti', msg.id);
-
         const packetInfoKey = getArrivalInfoKey(msg.id);
         this.setPacketInfo(packetInfoKey, msg, ttl);
         this.topicOnline.getTopicOnline('noti', (count) => {
