@@ -108,7 +108,9 @@ class XiaomiProvider {
                     const result = JSON.parse(body);
                     if (result.data && result.data.data) {
                         delete packetInfo.xiaomi_msg_id;
-                        packetInfo.xiaomi = result.data.data;
+                        if(result.data.data.resolved > 0){
+                            packetInfo.xiaomi = result.data.data;
+                        }
                     }
                 } catch (e) {
                 }
