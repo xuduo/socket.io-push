@@ -50,35 +50,46 @@ class ArrivalStats {
         this.redis.ltrim(listKey, this.maxrecordKeep, -1);
     }
 
-    setPacketInfo(key, msg, ttl) {
-        this.redis.hmset(key, 'id', msg.id,
-            'android', JSON.stringify(msg.android),
-            'apn', JSON.stringify(msg.apn),
-            'timeStart', new Date().getTime(),
-            'ttl', ttl);
-        this.redis.pexpire(key, this.recordKeepTime);
+    setPacketInfo(key, msg, ttl, callback) {
+        this.redis.hsetnx(key, 'id', msg.id, (err, ret) => {
+            if (!err && ret == 1) {
+                this.redis.hmset(key,
+                    'notification', JSON.stringify(msg.android),
+                    'timeStart', new Date().getTime(),
+                    'ttl', ttl);
+                this.redis.pexpire(key, this.recordKeepTime);
+                callback(true);
+            } else {
+                callback(false);
+            }
+        });
     }
 
     addPushAll(msg, ttl) {
-        logger.info('addPushAll: start to stats packet:%s', msg.id);
-        this.setArrivalList('noti', msg.id);
+        logger.info('addPushAll, packet:%s', msg.id);
         const packetInfoKey = getArrivalInfoKey(msg.id);
-        this.setPacketInfo(packetInfoKey, msg, ttl);
+        this.setPacketInfo(packetInfoKey, msg, ttl, (ret) => {
+            if (ret) {
+                logger.info('addPushAll: start to stats packet:%s', msg.id);
+                this.setArrivalList('noti', msg.id);
+            }
+        });
         this.topicOnline.getTopicOnline('noti', (count) => {
             logger.info('packet(%s) init count:%d', msg.id, count);
-            this.redis.hset(packetInfoKey, 'target_android', count);
-            this.redis.hset(packetInfoKey, 'arrive_android', 0);
+            this.redis.hincrby(packetInfoKey, 'target_android', count);
         })
     }
 
     addPushMany(msg, ttl, sentCount) {
-        logger.info('addPushMany: start to stats packet: %s', msg.id);
-        this.setArrivalList('group', msg.id);
-
+        logger.info('addPushMany, packet: %s', msg.id);
         const packetInfoKey = getArrivalInfoKey(msg.id);
-        this.setPacketInfo(packetInfoKey, msg, ttl);
-        this.redis.hset(packetInfoKey, 'target_android', sentCount);
-        this.redis.hset(packetInfoKey, 'arrive_android', 0);
+        this.setPacketInfo(packetInfoKey, msg, ttl, (ret) => {
+            if (ret) {
+                logger.info('addPushMany: start to stats packet: %s', msg.id);
+                this.setArrivalList('group', msg.id);
+            }
+        });
+        this.redis.hincrby(packetInfoKey, 'target_android', sentCount);
     }
 
     getRateStatusByType(type, callback) {
@@ -117,25 +128,25 @@ class ArrivalStats {
             packet.timeValid = new Date(parseInt(packet.timeStart) + parseInt(packet.ttl)).toLocaleString();
             packet.timeStart = new Date(parseInt(packet.timeStart)).toLocaleString();
             let apn = {};
-            apn.msg = packet.apn;
             apn.target = parseInt(packet.target_apn);
             apn.arrive = parseInt(packet.arrive_apn);
             apn.arrivalRate = apn.target != 0 ? apn.arrive / apn.target : 0;
-            delete packet.apn;
             delete packet.target_apn;
             delete packet.arrive_apn;
-            packet.apn = apn;
+            if (apn.target > 0) {
+                packet.apn = apn;
+            }
 
             let android = {};
-            android.msg = packet.android;
             android.target = parseInt(packet.target_android);
             android.arrive = parseInt(packet.arrive_android);
             android.arrivalRate = android.target != 0 ? android.arrive / android.target : 0;
-            delete packet.android;
             delete packet.target_android;
             delete packet.arrive_android;
-            packet.android = android;
-
+            if (android.target > 0) {
+                packet.android = android;
+            }
+            
             if (this.xiaomiProvider) {
                 this.xiaomiProvider.trace(packet, ()=> {
                     callback(packet);
