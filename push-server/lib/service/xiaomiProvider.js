@@ -6,7 +6,7 @@ const logger = require('winston-proxy')('XiaomiProvider');
 
 const util = require('socket.io-push-redis/util');
 const request = require('request');
-const sendOneUrl = "https://api.xmpush.xiaomi.com/v3/time_to_live/regid";
+const sendOneUrl = "https://api.xmpush.xiaomi.com/v3/message/regid";
 const sendAllUrl = "https://api.xmpush.xiaomi.com/v3/message/all";
 const traceUrl = "https://api.xmpush.xiaomi.com/v1/trace/message/status";
 const timeout = 5000;
