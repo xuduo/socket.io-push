@@ -109,6 +109,19 @@
         document.getElementById("content").innerHTML = canvas;
 
 
+        setInterval(function () {
+            $.ajax({
+                type: "GET",
+                url: "https://" + window.location.hostname + ":" + $.cookie("api_port") + "/api/topicOnline",
+                data: {
+                    topic: "drawTopic"
+                }, // serializes the form's elements.
+                success: function (data) {
+                    $("#title").html("Online:" + data.count);
+                }
+            });
+        }, 2000);
+
         var pushClient = new PushClient("https://" + window.location.hostname + ":" + $.cookie("proxy_port"), {transports: ['polling', 'websocket']});
         pushClient.subscribeTopic("drawTopic");
 
@@ -122,7 +135,6 @@
                 lines = {};
                 newCanvas();
                 dots = 0;
-                $("#title").html("Dots:" + dots);
                 return;
             }
             var line = lines[data.id];
@@ -132,7 +144,7 @@
             }
             line.push(data);
             dots++;
-            $("#title").html("Dots:" + dots);
+            //$("#title").html("Dots:" + dots);
             draw();
         });
 
@@ -200,8 +212,8 @@
             }, // serializes the form's elements.
             success: function (data) {
             }
-        })
-        ;
+        });
+
 
     }
     // prototype to	start drawing on touch using canvas moveTo and lineTo

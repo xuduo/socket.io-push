@@ -2,13 +2,13 @@ let request = require('request');
 var Redis = require('ioredis');
 var redis = new Redis();
 var io = require('socket.io');
-var topicOnline = require('../lib/stats/topicOnline.js')(redis, io, 'Ys7Gh2NwDY9Dqti92ZwxJh8ymQL4mmZ2 ', ['topic:', 'message']);
-var topicOnline1 = require('../lib/stats/topicOnline.js')(redis, io, 'Ys7Gh2NwDY9Dqti92ZwxJh8ymQL4mmZ3 ', ['topic:', 'message']);
+var topicOnline = require('../lib/stats/topicOnline.js')(redis, io, 'Ys7Gh2NwDY9Dqti92ZwxJh8ymQL4mmZ2 ', {'topic:':"devices"});
+var topicOnline1 = require('../lib/stats/topicOnline.js')(redis, io, 'Ys7Gh2NwDY9Dqti92ZwxJh8ymQL4mmZ3 ', {'topic:':"count"});
 let defSetting = require('./defaultSetting');
 var chai = require('chai');
 var expect = chai.expect;
 
-describe('api topicOnline', () =>{
+describe('api topicOnline', () => {
 
     before(() => {
         global.apiServer = defSetting.getDefaultApiServer();
@@ -19,7 +19,7 @@ describe('api topicOnline', () =>{
         apiServer.close();
     });
 
-    var data = {"topic:Test1": {length: 3}, "testTopic2": {length: 4}};
+    var data = {"topic:Test1": {length: 3}, "topic:Test2": {length: 4}};
 
     it('Test topicOnline', (done) => {
         topicOnline.writeTopicOnline(data);
@@ -29,7 +29,7 @@ describe('api topicOnline', () =>{
                 expect(result).to.be.equal(6);
                 topicOnline.getTopicOnline('xxxx', (result) => {
                     expect(result).to.be.equal(0);
-                    topicOnline.getTopicOnline('testTopic2', (result) => {
+                    topicOnline.getTopicOnline('topic:Test2', (result) => {
                         expect(result).to.be.equal(8);
                         done();
                     });

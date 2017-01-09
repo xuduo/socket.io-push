@@ -2,7 +2,7 @@ module.exports = (redis, commitThreshHold) => {
     return new RedisIncrBuffer(redis, commitThreshHold);
 };
 
-const expire = 30 * 24 * 60 * 60;
+const expire = 7 * 24 * 60 * 60;
 
 class RedisIncrBuffer {
 

@@ -19,8 +19,8 @@ class TopicOnline {
         }
         this.filters['noti'] = "count";
         this.interval = 10000;
-        this.timeValidWithIn = 20000;
-        this.expire = 3600 * 24;
+        this.timeValidWithIn = this.interval * 2;
+        this.expire = this.interval * 2;
         if (io) {
             this.io = io;
             setInterval(() => {
@@ -37,8 +37,9 @@ class TopicOnline {
             return false;
         }
         for (const prefix in this.filters) {
-            topic.startsWith(prefix);
-            return this.filters[prefix];
+            if (topic.startsWith(prefix)) {
+                return this.filters[prefix];
+            }
         }
         return false;
     }
@@ -61,7 +62,7 @@ class TopicOnline {
                     }
                     const redisKey = "stats#topicOnline#" + key;
                     this.redis.hset(redisKey, this.id, JSON.stringify(json));
-                    this.redis.expire(redisKey, this.expire);
+                    this.redis.pexpire(redisKey, this.expire);
                 }
             }
         }
