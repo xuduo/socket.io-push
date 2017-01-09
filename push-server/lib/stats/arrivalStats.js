@@ -46,7 +46,7 @@ class ArrivalStats {
 
     setArrivalList(type, msgId) {
         const listKey = getArrivalListKey(type);
-        this.redis.lpush(listKey, msgId);
+        this.redis.rpush(listKey, msgId);
         this.redis.ltrim(listKey, this.maxrecordKeep, -1);
     }
 
@@ -146,7 +146,7 @@ class ArrivalStats {
             if (android.target > 0) {
                 packet.android = android;
             }
-            
+
             if (this.xiaomiProvider) {
                 this.xiaomiProvider.trace(packet, ()=> {
                     callback(packet);
