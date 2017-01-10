@@ -10,7 +10,8 @@ describe('arrivalStatsTest', () => {
         global.apiUrl = defSetting.getDefaultApiUrl();
         global.arrivalStats = proxyServer.arrivalStats;
         global.topicOnline = arrivalStats.topicOnline;
-        arrivalStats.redis.del('stats#packetlist#noti');
+        arrivalStats.redis.del('stats:arrivalList:noti');
+        arrivalStats.redis.del('stats:arrival:42');
     });
 
     after(() => {
