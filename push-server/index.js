@@ -68,27 +68,29 @@ if (cluster.isMaster) {
     };
 
     if (proxy.instances > 0) {
+        const lb =  proxy.load_balancer == "ip_hash" ? hashUtil.getByHash : rr;
         let proxy_workers = [];
         for (let i = 0; i < proxy.instances; i++) {
             proxy_workers.push(spawn({processType: 'proxy'}, proxy_workers));
         }
         if (proxy.http_port) {
-            createNetServer(proxy_workers, hashUtil.getByHash, proxy.http_port, proxy.host);
+            createNetServer(proxy_workers, lb, proxy.http_port, proxy.host);
         }
         if (proxy.https_port && proxy.https_key && proxy.https_cert) {
-            createNetServer(proxy_workers, hashUtil.getByHash, proxy.https_port, proxy.host);
+            createNetServer(proxy_workers, lb, proxy.https_port, proxy.host);
         }
     }
     if (api.instances > 0) {
+        const lb =  api.load_balancer == "ip_hash" ? hashUtil.getByHash : rr;
         let api_workers = [];
         for (let i = 0; i < api.instances; i++) {
             api_workers.push(spawn({processType: 'api'}, api_workers));
         }
         if (api.http_port) {
-            createNetServer(api_workers, rr, api.http_port, api.host);
+            createNetServer(api_workers, lb, api.http_port, api.host);
         }
         if (api.https_port && api.https_key && api.https_cert) {
-            createNetServer(api_workers, rr, api.https_port, api.host);
+            createNetServer(api_workers, lb, api.https_port, api.host);
         }
     }
     if (admin.instances > 0) {
@@ -168,7 +170,6 @@ if (cluster.isMaster) {
             });
         }
     }
-
 }
 
 function createNetServer(workers, lb, port, host) {

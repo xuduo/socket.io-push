@@ -10,6 +10,7 @@ config.https_cert = process.cwd() + "/cert/https/cert.pem";
 //config.host = "localhost"; //无此选项, 表示listen所有interface
 
 config.instances = 3;
+config.load_balancer = "ip_hash";// "round_robin" or "ip_hash" 如果要支持pooling协议,必须选ip_hash
 
 config.pingTimeout = 25000; //  心跳timeout
 config.pingInterval = 90000; // 心跳间隔
