@@ -199,6 +199,9 @@
     function sendDot(x, y, endline) {
         var canvas = document.getElementById('canvas');
         console.log(color.substring(1));
+        if (y / canvas.height > 1) {
+            return;
+        }
         $.ajax({
             type: "POST",
             url: "https://" + window.location.hostname + ":" + $.cookie("api_port") + "/api/push",
