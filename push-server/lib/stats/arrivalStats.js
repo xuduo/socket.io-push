@@ -128,9 +128,11 @@ class ArrivalStats {
             packet.timeValid = new Date(parseInt(packet.timeStart) + parseInt(packet.ttl)).toLocaleString();
             packet.timeStart = new Date(parseInt(packet.timeStart)).toLocaleString();
             let apn = {};
-            apn.target = parseInt(packet.target_apn);
-            apn.arrive = parseInt(packet.arrive_apn);
-            apn.arrivalRate = apn.target != 0 ? apn.arrive / apn.target : 0;
+            apn.target = parseInt(packet.target_apn || 0);
+            apn.arrive = parseInt(packet.arrive_apn || 0);
+            apn.click = parseInt(packet.click_apn || 0);
+            apn.arrivalRate = apn.target != 0 ? (apn.arrive * 100 / apn.target).toFixed(2) + '%' : 0;
+            apn.clickRate = apn.target != 0 ? (apn.click * 100 / apn.target).toFixed(2) + '%' : 0;
             delete packet.target_apn;
             delete packet.arrive_apn;
             if (apn.target > 0) {
@@ -138,9 +140,11 @@ class ArrivalStats {
             }
 
             let android = {};
-            android.target = parseInt(packet.target_android);
-            android.arrive = parseInt(packet.arrive_android);
-            android.arrivalRate = android.target != 0 ? android.arrive / android.target : 0;
+            android.target = parseInt(packet.target_android || 0);
+            android.arrive = parseInt(packet.arrive_android || 0);
+            android.click = parseInt(packet.click_android || 0);
+            android.arrivalRate = android.target != 0 ? (android.arrive * 100 / android.target).toFixed(2) + '%' : 0;
+            android.clickRate = android.target != 0 ? (android.click * 100 / android.target).toFixed(2) + '%' : 0;
             delete packet.target_android;
             delete packet.arrive_android;
             if (android.target > 0) {
