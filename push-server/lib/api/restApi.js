@@ -201,12 +201,12 @@ class RestApi {
 
         router.all('/stats/arrival/info', (req, res, next) => {
             const packetId = req.p.id;
-            if(packetId){
+            if (packetId) {
                 arrivalStats.getArrivalInfo(packetId, (packet) => {
                     res.json(packet);
                     return next();
                 });
-            }else{
+            } else {
                 res.json({});
                 return next();
             }
@@ -326,7 +326,62 @@ class RestApi {
                 return next();
             }
         });
-
+        router.all('/userInfo', (req, res, next) => {
+            const getUserInfoByPushId = (pushId, uid, callback) => {
+                const result = {};
+                result.pushId = pushId;
+                apiRouter.notificationService.getTokenDataByPushId(pushId, (token) => {
+                    if (token) {
+                        result.token = token;
+                    } else {
+                        result.token = '';
+                    }
+                    if (uid) {
+                        result.uid = uid;
+                        callback(result);
+                    } else {
+                        uidStore.getUidByPushId(pushId, (uid) => {
+                            if (uid) {
+                                result.uid = uid;
+                            } else {
+                                result.uid = '';
+                            }
+                            callback(result);
+                        });
+                    }
+                });
+            };
+            if (!req.p.pushId && !req.p.uid) {
+                res.statusCode = 400;
+                res.json({code: 'error', message: 'pushId or uid is required'});
+                return next();
+            } else {
+                if (req.p.pushId) {
+                    getUserInfoByPushId(req.p.pushId, null, (info) => {
+                        res.json(info);
+                        return next();
+                    })
+                }else if (req.p.uid) {
+                    uidStore.getPushIdByUid(req.p.uid, (pushids) => {
+                        if (pushids) {
+                            const userInfos = [];
+                            async.each(pushids, (pushId, asynccb) => {
+                                getUserInfoByPushId(pushId, req.p.uid, (info) => {
+                                    userInfos.push(info);
+                                    asynccb();
+                                });
+                            }, () => {
+                                res.json(userInfos);
+                                return next();
+                            })
+                        }else{
+                            res.json([]);
+                            return next();
+                        }
+                    });
+                }
+            }
+        });
         router.all('/redis/del', (req, res, next) => {
             redis.del(req.p.key);
             res.json({code: "success", key: req.p.key});

@@ -19,7 +19,11 @@ class NotificationService {
         this.redis.get("pushIdToToken#" + pushId, (err, reply) => {
             let token;
             if (reply) {
-                token = JSON.parse(reply);
+                try {
+                    token = JSON.parse(reply);
+                } catch (e) {
+                    logger.error('error token format: ' + reply);
+                }
             }
             callback(token);
         });
@@ -39,7 +43,7 @@ class NotificationService {
                     mapTypeToToken[token.type] = tokenList;
                 } else {
                     logger.debug("send notification in socket.io, connection %s", pushId);
-                    sendViaTtlService ++;
+                    sendViaTtlService++;
                     if (notification.android.title) {
                         this.ttlService.addTTL(pushId, 'noti', timeToLive, notification, true);
                         this.ttlService.emitPacket(pushId, 'noti', notification);
