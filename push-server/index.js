@@ -60,15 +60,13 @@ if (cluster.isMaster) {
         return worker;
     };
 
-    let lastIndexNumber = 0;
-
-    let rr = (workers) => {
-        if (++lastIndexNumber == workers.length) lastIndexNumber = 0;
-        return workers[lastIndexNumber];
-    };
-
     if (proxy.instances > 0) {
-        const lb =  proxy.load_balancer == "ip_hash" ? hashUtil.getByHash : rr;
+        let lastIndexNumber = 0;
+        const rr = (workers) => {
+            if (++lastIndexNumber >= workers.length) lastIndexNumber = 0;
+            return workers[lastIndexNumber];
+        };
+        const lb = proxy.load_balancer == "round_robin" ? rr : hashUtil.getByHash;
         let proxy_workers = [];
         for (let i = 0; i < proxy.instances; i++) {
             proxy_workers.push(spawn({processType: 'proxy'}, proxy_workers));
@@ -81,7 +79,12 @@ if (cluster.isMaster) {
         }
     }
     if (api.instances > 0) {
-        const lb =  api.load_balancer == "ip_hash" ? hashUtil.getByHash : rr;
+        let lastIndexNumber = 0;
+        const rr = (workers) => {
+            if (++lastIndexNumber >= workers.length) lastIndexNumber = 0;
+            return workers[lastIndexNumber];
+        };
+        const lb = api.load_balancer == "ip_hash" ? hashUtil.getByHash : rr;
         let api_workers = [];
         for (let i = 0; i < api.instances; i++) {
             api_workers.push(spawn({processType: 'api'}, api_workers));
@@ -175,6 +178,10 @@ if (cluster.isMaster) {
 function createNetServer(workers, lb, port, host) {
     const server = net.createServer({pauseOnConnect: true}, (socket) => {
         let worker = lb(workers, socket.remoteAddress);
+        if (!worker) {
+            logger.error("worker is null! ", workers, port, host, socket.remoteAddress);
+            return;
+        }
         worker.send('s:conn', socket);
     });
     if (host) {
