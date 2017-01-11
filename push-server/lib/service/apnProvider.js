@@ -75,19 +75,26 @@ class ApnProvider {
 
     callLocal(notification, bundleId, tokens, timeToLive, callback) {
         const apnConnection = this.apnConnections[bundleId];
+        const result = {};
+        result.id = notification.id;
+        result.bundleId = bundleId;
+        result.success = 0;
         if (!apnConnection) {
             logger.error("bundleId not supported", bundleId);
+            result.msg = 'bundleId not supported';
+            callback(result);
             return;
         }
         if (!tokens || tokens.length == 0) {
             logger.error("tokens empty ", bundleId);
+            result.msg = 'tokens empty';
+            callback(result);
             return;
         }
         const note = this.toApnNotification(notification, timeToLive);
         note.topic = bundleId;
         logger.debug("callLocal ", bundleId, notification.id, tokens.length);
         apnConnection.send(note, tokens).then((response) => {
-            let successCount = 0;
             const errorToken = [];
             let errorCount = 0;
             if (response.failed) {
@@ -95,7 +102,7 @@ class ApnProvider {
             }
             if (response.sent && response.sent.length > 0) {
                 logger.debug("send success ", bundleId, notification.id, tokens.length, errorCount);
-                successCount = response.sent.length;
+                result.success = response.sent.length;
             }
             if (errorCount > 0) {
                 for (const failed of response.failed) {
@@ -109,13 +116,9 @@ class ApnProvider {
                     logger.error("apn failed %s %s %j", notification.id, error, failed.device);
                 }
             }
-            callback({
-                id: notification.id,
-                bundleId: bundleId,
-                success: successCount,
-                total: tokens.length,
-                errorTokens: errorToken
-            });
+            result.total = tokens.length;
+            result.errorTokens = errorToken;
+            callback(result);
         });
     }
 

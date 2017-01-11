@@ -90,10 +90,10 @@ class TopicOnline {
     }
 
     getTopicDevices(topic, callback) {
-        const devices = [];
         this.redis.hgetall("stats#topicOnline#" + topic, (err, result) => {
             const json = {topic: topic};
             if (result) {
+                const devices = [];
                 const delKey = [];
                 for (const key in result) {
                     const data = JSON.parse(result[key]);
