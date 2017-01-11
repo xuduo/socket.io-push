@@ -4,6 +4,7 @@ module.exports = (apnConfigs, apnApiUrls, redis, arrivalStats, tokenTTL, tokenSe
 
 const logger = require('winston-proxy')('ApnProvider');
 const apn = require('apn');
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const request = require('request');
 
 class ApnProvider {
