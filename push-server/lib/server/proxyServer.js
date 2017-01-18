@@ -128,8 +128,9 @@ class ProxyServer {
                     data.type = "apn";
                 }
                 if (data.apnToken) {
-                    data.token = data.apnToken;
+                    data.token = data.apnToken.replace('<', '').replace('>','').replace(' ','');
                     delete data.apnToken;
+                    logger.debug('---------- token: ', data.token);
                 }
                 tokenService.setToken(data);
             };
