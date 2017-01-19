@@ -128,9 +128,11 @@ class ProxyServer {
                     data.type = "apn";
                 }
                 if (data.apnToken) {
-                    data.token = data.apnToken.replace('<', '').replace('>','').replace(' ','');
+                    data.token = data.apnToken;
                     delete data.apnToken;
-                    logger.debug('---------- token: ', data.token);
+                }
+                if (data.type == "apn") {
+                    data.token = data.token.replace(/[<> ]/g, ''); //replace all
                 }
                 tokenService.setToken(data);
             };

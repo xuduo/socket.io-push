@@ -22,17 +22,17 @@ describe('apn send one', function () {
 
     it('test send one', function (done) {
         pushClient.on('connect', function () {
-            pushClient.socket.emit("token", {token: "eeee", bundleId: "com.xuduo.pushtest", type: "apn"});
+            pushClient.socket.emit("token", {apnToken: "eeee", bundleId: "com.xuduo.pushtest", type: "apn"});
+            pushClient2.socket.emit("token", {apnToken: "<ee xxe e>", bundleId: "com.xuduo.pushtest", type: "apn"});
+
             var data = {
                 "apn": {alert: "wwww"}
-            }
+            };
             var str = JSON.stringify(data);
 
-            pushClient.on('notification', function () {
+            pushClient.on('noti', function () {
                 expect("do not receive").to.be.false
             });
-
-
             request({
                 url: apiUrl + '/api/notification',
                 method: "post",
@@ -40,7 +40,7 @@ describe('apn send one', function () {
                     'Accept': 'application/json'
                 },
                 form: {
-                    pushId: [pushClient.pushId, pushClient2.pushId],
+                    pushId: [pushClient.pushId],
                     notification: str
                 }
             }, (error, response, body) => {
@@ -50,6 +50,9 @@ describe('apn send one', function () {
                 setTimeout(()=> {
                     global.apiServer.notificationService.getTokenDataByPushId(pushClient.pushId, (data)=> {
                         expect(data).to.be.undefined;
+                    });
+                    global.apiServer.notificationService.getTokenDataByPushId(pushClient2.pushId, (data)=> {
+                        expect(data.token).to.be.equal("eexxee");
                         done();
                     });
                 }, 4000);
