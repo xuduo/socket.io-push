@@ -303,8 +303,10 @@ class RestApi {
             if (req.p.pushId) {
                 const pushId = req.p.pushId;
                 connectService.isConnected(pushId, (connected) => {
-                    res.json({pushId: pushId, connected: connected});
-                    return next();
+                    uidStore.getUidByPushId(pushId, (uid) => {
+                        res.json({pushId: pushId, uid: uid || '', connected: connected})
+                        return next();
+                    });
                 })
             } else if (req.p.uid) {
                 uidStore.getPlatformByUid(req.p.uid, (reply) => {
@@ -326,61 +328,13 @@ class RestApi {
                 return next();
             }
         });
-        router.all('/userInfo', (req, res, next) => {
-            const getUserInfoByPushId = (pushId, uid, callback) => {
-                const result = {};
-                result.pushId = pushId;
-                apiRouter.notificationService.getTokenDataByPushId(pushId, (token) => {
-                    if (token) {
-                        result.token = token;
-                    } else {
-                        result.token = '';
-                    }
-                    if (uid) {
-                        result.uid = uid;
-                        callback(result);
-                    } else {
-                        uidStore.getUidByPushId(pushId, (uid) => {
-                            if (uid) {
-                                result.uid = uid;
-                            } else {
-                                result.uid = '';
-                            }
-                            callback(result);
-                        });
-                    }
-                });
-            };
-            if (!req.p.pushId && !req.p.uid) {
-                res.statusCode = 400;
-                res.json({code: 'error', message: 'pushId or uid is required'});
+        router.all('/token', (req, res, next) => {
+            const pushId = req.p.pushId;
+            apiRouter.notificationService.getTokenDataByPushId(pushId, (token) => {
+                logger.debug('---- token: ' + token);
+                res.json({pushId: pushId, token: token || ''});
                 return next();
-            } else {
-                if (req.p.pushId) {
-                    getUserInfoByPushId(req.p.pushId, null, (info) => {
-                        res.json(info);
-                        return next();
-                    })
-                }else if (req.p.uid) {
-                    uidStore.getPushIdByUid(req.p.uid, (pushids) => {
-                        if (pushids) {
-                            const userInfos = [];
-                            async.each(pushids, (pushId, asynccb) => {
-                                getUserInfoByPushId(pushId, req.p.uid, (info) => {
-                                    userInfos.push(info);
-                                    asynccb();
-                                });
-                            }, () => {
-                                res.json(userInfos);
-                                return next();
-                            })
-                        }else{
-                            res.json([]);
-                            return next();
-                        }
-                    });
-                }
-            }
+            });
         });
         router.all('/redis/del', (req, res, next) => {
             redis.del(req.p.key);
