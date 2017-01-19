@@ -50,10 +50,11 @@ describe('apn send one', function () {
                 setTimeout(()=> {
                     global.apiServer.notificationService.getTokenDataByPushId(pushClient.pushId, (data)=> {
                         expect(data).to.be.undefined;
-                    });
-                    global.apiServer.notificationService.getTokenDataByPushId(pushClient2.pushId, (data)=> {
-                        expect(data.token).to.be.equal("eexxee");
-                        done();
+                        global.apiServer.notificationService.getTokenDataByPushId(pushClient2.pushId, (data2)=> {
+                            console.log('======pushId=====' + pushClient2.pushId + ' data: ' + data2);
+                            expect(data2.token).to.be.equal("eexxee");
+                            done();
+                        });
                     });
                 }, 4000);
 
