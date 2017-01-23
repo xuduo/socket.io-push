@@ -44,10 +44,8 @@ class NotificationService {
                 } else {
                     logger.debug("send notification in socket.io, connection %s", pushId);
                     sendViaTtlService++;
-                    if (notification.android.title) {
-                        this.ttlService.addTTL(pushId, 'noti', timeToLive, notification, true);
-                        this.ttlService.emitPacket(pushId, 'noti', notification);
-                    }
+                    this.ttlService.addTTL(pushId, 'noti', timeToLive, notification, true);
+                    this.ttlService.emitPacket(pushId, 'noti', notification);
                 }
                 callback();
             });
