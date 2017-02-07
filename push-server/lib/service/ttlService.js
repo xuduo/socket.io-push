@@ -4,7 +4,7 @@ module.exports = (io, redis, protocolVersion, stats, arrivalStats) => {
 
 const logger = require('winston-proxy')('TTLService');
 const randomstring = require("randomstring");
-const maxTllPacketPerTopic = -50;
+const maxTllPacketPerTopic = -10;
 
 class TTLService {
 
