@@ -165,7 +165,7 @@ class Stats {
 
     getSessionCount(callback) {
         this.redis.hgetall('stats#sessionCount', (err, results) => {
-            const onlineKeys = ["total", "ios", "android", "pc", "browser"];
+            const onlineKeys = ["total", "ios", "android", "browser"];
             const currentTimestamp = Date.now();
             const processCount = [];
             let packetAverage1 = 0;

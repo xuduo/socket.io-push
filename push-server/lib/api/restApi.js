@@ -184,6 +184,15 @@ class RestApi {
             return next();
         });
 
+        router.all('/heap',(req, res, next) => {
+            const v8 = require('v8');
+            res.json({code: "success",
+                heapStatistics: v8.getHeapStatistics(),
+                heapSpaceStatistics: v8.getHeapSpaceStatistics()
+            });
+            return next();
+        });
+
         router.all('/stats/base', (req, res, next) => {
             stats.getSessionCount((count) => {
                 res.json(count);
@@ -336,6 +345,7 @@ class RestApi {
                 return next();
             });
         });
+
         router.all('/redis/del', (req, res, next) => {
             redis.del(req.p.key);
             res.json({code: "success", key: req.p.key});
