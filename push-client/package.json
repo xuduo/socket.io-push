@@ -1,6 +1,6 @@
 {
   "name": "socket.io-push-client",
-  "version": "0.0.197",
+  "version": "0.0.198",
   "description": "socket.io-push client by xuduo",
   "main": "index.js",
   "repository": {
@@ -8,7 +8,7 @@
     "url": "git@github.com:xuduo/socket.io-push.git"
   },
   "dependencies": {
-    "socket.io-client": "1.4.8",
+    "socket.io-client": "1.7.2",
     "wxapp-socket-io": "1.0.0"
   }
 }

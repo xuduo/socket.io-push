@@ -1,6 +1,6 @@
 {
   "name": "socket.io-push",
-  "version": "0.0.311",
+  "version": "0.0.312",
   "description": "socket.io-push server by xuduo",
   "main": "index.js",
   "bin": {
@@ -26,8 +26,8 @@
     "winston-proxy": "~0.0.9"
   },
   "devDependencies": {
-    "socket.io-client": "1.4.8",
-    "socket.io-push-client": "0.0.197",
+    "socket.io-client": "1.7.2",
+    "socket.io-push-client": "0.0.198",
     "expect.js": "0.3.1",
     "chai-spies": "^0.7.1",
     "mocha": "*",
