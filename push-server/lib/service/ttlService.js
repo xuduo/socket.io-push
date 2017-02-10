@@ -20,22 +20,22 @@ class TTLService {
         this.getPackets(socket.pushId, lastPacketId, socket, true);
     }
 
-    addTTL(topic, event, timeToLive, packet, unicast) {
-        if (!packet.id) {
-            packet.id = randomstring.generate(12);
-        }
-        timeToLive = timeToLive || 0;
-        logger.debug("addPacket %s %s %s", topic, event, timeToLive);
-        packet.ttl = 1;
-        packet.topic = topic;
-        if (unicast) {
-            packet.unicast = 1;
-        }
-        var data = JSON.parse(JSON.stringify(packet));
-        data.timestampValid = Date.now() + timeToLive;
-        data.event = event;
-        var listKey = "ttl#packet#" + topic;
+    addTTL(topic, event, timeToLive = 0, packet, unicast) {
         if (timeToLive > 0) {
+            if (!packet.id) {
+                packet.id = randomstring.generate(12);
+            }
+            logger.debug("addPacket %s %s %s", topic, event, timeToLive);
+            packet.ttl = 1;
+            packet.topic = topic;
+            if (unicast) {
+                packet.unicast = 1;
+            }
+            var data = JSON.parse(JSON.stringify(packet));
+            data.timestampValid = Date.now() + timeToLive;
+            data.event = event;
+
+            var listKey = "ttl#packet#" + topic;
             this.redis.pttl(listKey, (err, oldTtl) => {
                 logger.debug("addPacket key %s ,id %s, %d , %d", listKey, packet.id, oldTtl, timeToLive);
                 this.redis.rpush(listKey, JSON.stringify(data));

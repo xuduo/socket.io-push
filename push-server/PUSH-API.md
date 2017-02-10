@@ -11,7 +11,9 @@
 
 //推送给abc,def两个客户端.透传数据为字符串hello(hello),到topic=/topic/test
 
-http://yourip:11001/api/push?pushAll=true&json=hello&topic=/topic/test
+http://localhost:11001/api/push?json=hello&topic=/topic/test
+
+curl http://localhost:11001/api/push -H "Content-Type: application/json" -X POST -d '{"topic":"chatRoom" , "json":{ "message": "curl_test_message", "nickName": "curl_tester", "type": "chat_message"}}'
 
 --- 以下参数3选一,指定推送对象
 
