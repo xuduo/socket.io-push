@@ -1,6 +1,7 @@
 socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?branch=master)](https://travis-ci.org/xuduo/socket.io-push) [![Coverage Status](https://coveralls.io/repos/github/xuduo/socket.io-push/badge.svg?branch=master&a=1)](https://coveralls.io/github/xuduo/socket.io-push?branch=master&a=1)
 =======================
-基于socket.io协议实现的类似小米,极光,个推的系统.
+基于socket.io协议实现的类似小米,极光,个推的系统. 
+[视频介绍](http://www.bilibili.com/video/av8531451/)
 
 
 [![NPM](https://nodei.co/npm/socket.io-push.png?compact=true)](https://npmjs.org/package/socket.io-push)
@@ -9,6 +10,8 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * 透明集成了小米,华为push
 * 同机房情况, 建立长连接->上报pushId->调用api->收到push, 只需要20多毫秒
 * 支持浏览器, 微信小程序
+* 支持Unity3D (原生调用代理）
+
 
 ###性能
 * 可以部署70台(实测)或者更多机器, 支持百万以上同时在线
