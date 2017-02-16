@@ -114,17 +114,14 @@ class ArrivalStats {
 
     getArrivalInfo(id, callback) {
         const key = getArrivalInfoKey(id);
-        this.redis.hgetall(key, (err, reply) => {
-            if (err) {
+        this.redis.hgetall(key, (err, packet) => {
+            if (err || !packet || !packet.timeStart) {
                 logger.error('fail to read packet info, key:%s, reaon:%s', key, err);
-                callback();
+                callback({});
                 return;
             }
-            const packet = {};
-            logger.debug('reply: ', id, reply);
-            for (const key in reply) {
-                packet[key] = reply[key];
-            }
+            logger.debug('getArrivalInfo: ', id, packet);
+
             packet.timeValid = new Date(parseInt(packet.timeStart) + parseInt(packet.ttl)).toLocaleString();
             packet.timeStart = new Date(parseInt(packet.timeStart)).toLocaleString();
             let apn = {};
@@ -135,6 +132,8 @@ class ArrivalStats {
             apn.clickRate = apn.target != 0 ? (apn.click * 100 / apn.target).toFixed(2) + '%' : 0;
             delete packet.target_apn;
             delete packet.arrive_apn;
+            delete packet.click_apn;
+
             if (apn.target > 0) {
                 packet.apn = apn;
             }
@@ -147,6 +146,8 @@ class ArrivalStats {
             android.clickRate = android.target != 0 ? (android.click * 100 / android.target).toFixed(2) + '%' : 0;
             delete packet.target_android;
             delete packet.arrive_android;
+            delete packet.click_android;
+
             if (android.target > 0) {
                 packet.android = android;
             }
