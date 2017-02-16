@@ -27,7 +27,7 @@ class ArrivalStats {
         if (incr > 0) {
             this.redis.ttl(packetInfoKey, (err, ttl) => {
                 if (!err && ttl > 0) {
-                    logger.debug('send packet, packet:%s, count: ', msgId, incr);
+                    logger.debug('hincrby, packet:%s, count: ', msgId, incr);
                     this.redis.hincrby(packetInfoKey, key, incr);
                 }
             });

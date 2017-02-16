@@ -210,6 +210,7 @@ class ApnProvider {
         } else {
             note.payload = {};
         }
+        note.payload.noti = {id: notification.id};
         return note;
     }
 
