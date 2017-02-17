@@ -94,12 +94,12 @@ describe('notification', function () {
             expect(data.title).to.be.equal(title);
             expect(data.message).to.be.equal(message);
             expect(data.payload.ppp).to.be.equal(123);
-            setTimeout(()=>{
-                apiServer.arrivalStats.getArrivalInfo(data.id, (result)=>{
+            setTimeout(()=> {
+                apiServer.arrivalStats.getArrivalInfo(data.id, (result)=> {
                     expect(result.android.arrive).to.be.equal(2);
                     done();
                 });
-            },100);
+            }, 100);
         }
         pushClient.on('notification', notificationCallback);
 
@@ -114,6 +114,33 @@ describe('notification', function () {
         }, (error, response, body) => {
             expect(JSON.parse(body).code).to.be.equal("success");
         });
+    });
+
+
+    it('notification to no apn token', function (done) {
+
+        global.proxyServer.tokenService.setApnNoToken("qwerty");
+
+        var title = 'hello',
+            message = 'hello world';
+        var data = {
+            "android": {"title": title, "message": message},
+            "apn": {"message": "test"}
+        }
+        var str = JSON.stringify(data);
+
+        request({
+            url: apiUrl + '/api/notification',
+            method: "post",
+            form: {
+                pushId: "qwerty",
+                notification: str
+            }
+        }, (error, response, body) => {
+            expect(JSON.parse(body).code).to.be.equal("success");
+            done();
+        });
+
     });
 
 

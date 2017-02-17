@@ -59,7 +59,9 @@ class ProxyServer {
                         socket.platform = data.platform.toLowerCase();
                     }
 
-                    tokenService.setApnNoToken(data.platform);
+                    if (socket.platform == "ios") {
+                        tokenService.setApnNoToken(socket.platform);
+                    }
 
                     stats.addPlatformSession(socket.platform);
 

@@ -148,7 +148,7 @@ class ArrivalStats {
             delete packet.arrive_android;
             delete packet.click_android;
 
-            if (android.target > 0) {
+            if (android.target > 0 || android.arrive > 0) {
                 packet.android = android;
             }
 
