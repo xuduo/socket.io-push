@@ -2,21 +2,21 @@
 
 ##HTTP传参方式
 
-三种皆可
+支持以下三种传参方式
 
-1. HTTP GET 如 curl 
+1.HTTP GET 如 curl 
 ```bash
 #curl 例子
 curl http://localhost:11001/api/test?a=1&b=2
 ```
 
-2. HTTP POST (FORM) 
+2.HTTP POST (FORM) 
 ```bash
 #curl 例子
 curl -X POST -F 'a=1' -F 'b=2' http://localhost:11001/api/test
 ```
 
-3. HTTP POST (JSON) 
+3.HTTP POST (JSON) 
 ```bash
 #curl 例子
 curl -H "Content-Type: application/json" -X POST -d '{"a":"1" , "b":"2"}' http://localhost:11001/api/test
@@ -47,8 +47,8 @@ json ->  以下类型三选一,透传给客户端的数据,客户端会在onPush
 
          json array  [1, {"content":"test string"}]
 
-         一般业务建议使用json数组(省流量)
-
+         建议使用json数组,第0为表示推送类型URI, 省流量, 可通过前面几个字符判断uri，而不解析整串json
+         
          第一个int或string来表示推送类型,第二个参数表示该类型的透传数据
 
 timeToLive -> int, 毫秒, 表示当时用户不在线, 消息服务器保存多久
@@ -59,8 +59,6 @@ curl -H "Content-Type: application/json" -X POST -d '{"topic":"chatRoom" , "json
 ```
 
 ## /api/notification 状态栏通知api
-
-http://yourip:11001/api/notification?pushId=true&notification=%7B%20%22android%22%3A%7B%22title%22%3A%22title%22%2C%22message%22%3A%22message%22%7D%2C%22apn%22%3A%7B%22alert%22%3A%22message%22%20%2C%20%22badge%22%3A5%2C%20%22sound%22%3A%22default%22%2C%20%22payload%22%3A1234%7D%7D
 
 --- 以下参数4选一,指定推送对象
 
@@ -108,6 +106,11 @@ sound(ios) - (apn对应的sound字段) 可选
 
 payload - 发送给应用非显示用的透传信息, 需要是一个json map
 
+
+```bash
+#推送给uid 123,456两个用户
+curl -H "Content-Type: application/json" -X POST -d '{"uid":["123", "456"] , "notification":{"android" : {"title":"title","message":"message" },"apn":{"alert":"message" , "badge":5, "sound":"default" },"payload":{ "abc": 123}}}' http://localhost:11001/api/notification
+```
 
 ## /api/uid/bind 绑定UID和pushId
 
