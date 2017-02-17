@@ -41,15 +41,17 @@ curl -H "Content-Type: application/json" -X POST -d '{"a":"1" , "b":"2"}' http:/
 
 json ->  以下类型三选一,透传给客户端的数据,客户端会在onPush里接收到
 
-         string "test string" (如要使用其他协议,如protobuf,可以使用base64 encoded string)
+string "test string" (如要使用其他协议,如protobuf,可以使用base64 encoded string)
 
-         json map  {"uri":1, content:"test string"}
+json map  {"uri":1, content:"test string"}
 
-         json array  [1, {"content":"test string"}]
+json array  [1, {"content":"test string"}]
 
-         建议使用json数组,第0为表示推送类型URI, 省流量, 可通过前面几个字符判断uri，而不解析整串json
+建议使用json数组,第0为表示推送类型URI, 省流量, 可通过前面几个字符判断uri，而不解析整串json
          
-         第一个int或string来表示推送类型,第二个参数表示该类型的透传数据
+第一个int或string来表示推送类型,第二个参数表示该类型的透传数据
+         
+        
 
 timeToLive -> int, 毫秒, 表示当时用户不在线, 消息服务器保存多久
 
@@ -64,13 +66,9 @@ curl -H "Content-Type: application/json" -X POST -d '{"topic":"chatRoom" , "json
 
 pushAll -> string, true表示推送全网,其它或者留空表示单个推送
 
-pushId -> string[], 如 ["abc","def"] 客户端生成的随机ID,单个或者数组
+pushId -> string[], 如 ["abc","def"] 客户端生成的随机ID,单个或者数组或string, 如 "abc"
 
-          或 string, 如 "abc"
-
-uid -> string[],如 ["123","456"] 通过addPushIdToUid接口绑定的uid
-
-        或 string, 如 "123"
+uid -> string[],如 ["123","456"] 通过addPushIdToUid接口绑定的uid或string, 如 "123"
 
 tag -> string, 如 "tag1", 通过客户端或者服务器接口设置的tag
 
