@@ -119,13 +119,18 @@ class RestApi {
             }
 
             let notification;
-            try {
-                notification = JSON.parse(req.p.notification);
-            } catch (err) {
-                logger.error("notification parse json error ", req.p.notification, err);
-                res.statusCode = 400;
-                res.json({code: "error", message: 'notification format error ' + err + " " + req.p.notification});
-                return next();
+
+            if (typeof req.p.notification == "string") {
+                try {
+                    notification = JSON.parse(req.p.notification);
+                } catch (err) {
+                    logger.error("notification parse json error ", req.p.notification, err);
+                    res.statusCode = 400;
+                    res.json({code: "error", message: 'notification format error ' + err + " " + req.p.notification});
+                    return next();
+                }
+            } else {
+                notification = req.p.notification;
             }
 
             if (!notification.android) {
@@ -184,9 +189,10 @@ class RestApi {
             return next();
         });
 
-        router.all('/heap',(req, res, next) => {
+        router.all('/heap', (req, res, next) => {
             const v8 = require('v8');
-            res.json({code: "success",
+            res.json({
+                code: "success",
                 heapStatistics: v8.getHeapStatistics(),
                 heapSpaceStatistics: v8.getHeapSpaceStatistics()
             });
