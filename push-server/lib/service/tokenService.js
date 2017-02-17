@@ -11,6 +11,14 @@ class TokenService {
         this.tokenTTL = tokenTTL;
     }
 
+    setApnNoToken(platform) {
+        if (platform == "ios") {
+            this.redis.setnx("pushIdToToken#" + oldPushId, JSON.stringify(
+                {type: "apnNoToken"}
+            ));
+        }
+    }
+
     delToken(type, token, bundleId) {
         if (type && token) {
             const tokenToPushIdKey = "tokenToPushId#" + type + "#" + token;

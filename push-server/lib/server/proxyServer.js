@@ -47,15 +47,20 @@ class ProxyServer {
                     logger.debug("on pushId %j socketId", data, socket.id);
                     socket.pushId = data.id;
                     const topics = data.topics;
+
                     if (topics && topics.length > 0) {
                         topics.forEach((topic) => {
                             socket.join(topic);
                         });
                         socket.topics = topics;
                     }
+
                     if (data.platform) {
                         socket.platform = data.platform.toLowerCase();
                     }
+
+                    tokenService.setApnNoToken(data.platform);
+
                     stats.addPlatformSession(socket.platform);
 
                     socket.join(data.id, (err) => {
