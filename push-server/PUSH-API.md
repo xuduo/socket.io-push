@@ -1,5 +1,28 @@
 推送 API
 
+##HTTP传参方式
+
+三种皆可
+
+1. HTTP GET 如 curl 
+```bash
+#curl 例子
+curl http://localhost:11001/api/test?a=1&b=2
+```
+
+2. HTTP POST (FORM) 
+```bash
+#curl 例子
+curl -X POST -F 'a=1' -F 'b=2' http://localhost:11001/api/test
+```
+
+3. HTTP POST (JSON) 
+```bash
+#curl 例子
+curl -H "Content-Type: application/json" -X POST -d '{"a":"1" , "b":"2"}' http://localhost:11001/api/test
+```
+
+##数组类型参数
 
 1. string[]类型, 可以使用http标准的如
    get?uid=123&uid=456 
@@ -8,12 +31,6 @@
 2. string
 
 ## /api/push 应用内透传
-
-//推送给abc,def两个客户端.透传数据为字符串hello(hello),到topic=/topic/test
-
-http://localhost:11001/api/push?json=hello&topic=/topic/test
-
-curl http://localhost:11001/api/push -H "Content-Type: application/json" -X POST -d '{"topic":"chatRoom" , "json":{ "message": "curl_test_message", "nickName": "curl_tester", "type": "chat_message"}}'
 
 --- 以下参数3选一,指定推送对象
 
@@ -35,6 +52,11 @@ json ->  以下类型三选一,透传给客户端的数据,客户端会在onPush
          第一个int或string来表示推送类型,第二个参数表示该类型的透传数据
 
 timeToLive -> int, 毫秒, 表示当时用户不在线, 消息服务器保存多久
+
+```bash
+#推送给topic=chatRoom, 数据为一串json { "message": "curl_test_message", "nickName": "curl_tester", "type": "chat_message"}
+curl -H "Content-Type: application/json" -X POST -d '{"topic":"chatRoom" , "json":{ "message": "curl_test_message", "nickName": "curl_tester", "type": "chat_message"}}' http://localhost:11001/api/push
+```
 
 ## /api/notification 状态栏通知api
 
