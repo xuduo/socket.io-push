@@ -117,10 +117,14 @@ const deleteOutdatedLog = function (dir, days = 7) {
         }
         let now = new Date();
         files.forEach((filename) => {
-            let stat = fs.statSync(dir + '/' + filename);
-            let time_diff = now - stat.mtime;
-            if (time_diff > days * msPerDay) {
-                fs.unlinkSync(dir + '/' + filename);
+            try {
+                let stat = fs.statSync(dir + '/' + filename);
+                let time_diff = now - stat.mtime;
+                if (time_diff > days * msPerDay) {
+                    fs.unlinkSync(dir + '/' + filename);
+                }
+            } catch (ex) {
+                console.log("delete file error ", ex);
             }
         });
     });
