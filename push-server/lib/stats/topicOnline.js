@@ -51,14 +51,13 @@ class TopicOnline {
                 if (type) {
                     const json = {length: data[key].length, time: Date.now()};
                     if (type == 'devices') {
-                        const devices = [];
+                        json.devices = [];
                         for (const socketId in data[key].sockets) {
                             const socket = this.io.sockets.connected[socketId];
                             if (socket) {
-                                devices.push({pushId: socket.pushId, uid: socket.uid, platform: socket.platform});
+                                json.devices.push({pushId: socket.pushId, uid: socket.uid, platform: socket.platform});
                             }
                         }
-                        json.devices = devices;
                     }
                     const redisKey = "stats#topicOnline#" + key;
                     this.redis.hset(redisKey, this.id, JSON.stringify(json));
