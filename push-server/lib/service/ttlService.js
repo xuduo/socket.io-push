@@ -89,6 +89,7 @@ class TTLService {
     }
 
     emitPacket(topic, event, packet) {
+        logger.debug("emitPacket %s %s %j", topic, event, packet);
         this.emitToSocket(this.io.to(topic), event, packet);
     }
 
@@ -98,7 +99,6 @@ class TTLService {
         if (packet.timestamp) {
             packet.timestamp = Date.now();
         }
-        logger.debug("emitPacket %s %j", event, packet);
         if (this.protocolVersion > 1 && event == "push") {
             if (packet.ttl) {
                 socket.emit("p", packet.j, [packet.topic, packet.id, packet.unicast || 0]);

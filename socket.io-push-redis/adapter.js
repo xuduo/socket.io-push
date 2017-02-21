@@ -231,6 +231,18 @@ function adapter(uri, opts, stats) {
         });
     };
 
+    Redis.prototype.doSocketInRoom = function (nsp, roomName, callback) {
+        let room = this.rooms[roomName];
+        if (room && room.length > 0) {
+            for (let socketId in room.sockets) {
+                let socket = nsp.connected[socketId];
+                if (socket) {
+                    callback(socket);
+                }
+            }
+        }
+    }
+
     Redis.uid = uid;
     Redis.pubClient = pub;
     Redis.subClient = sub;

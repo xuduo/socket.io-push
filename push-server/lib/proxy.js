@@ -34,13 +34,13 @@ class Proxy {
             if (config.redis.event) {
                 packetService = require('./service/packetService')(cluster);
             }
-            this.uidStore = require('./redis/uidStore')(cluster);
+            this.uidStore = require('./redis/uidStore')(cluster, this.io);
             this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version, this.stats, this.arrivalStats);
             const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
             this.tokenService = require('./service/tokenService')(cluster, tokenTTL);
 
             this.proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.tokenService, this.uidStore,
-                this.ttlService, this.tagService, this.connectService, this.arrivalStats,config);
+                this.ttlService, this.tagService, this.connectService, this.arrivalStats, config);
         } else {
             console.log('start proxy failed!');
         }

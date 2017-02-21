@@ -207,6 +207,8 @@ describe('pushTest.js', function () {
         var messageCallback = function (data) {
             expect(data.message).to.be.equal('ok');
             if (++rec == 6) {
+                pushClient.unbindUid();
+                pushClient2.unbindUid();
                 done();
             }
         }

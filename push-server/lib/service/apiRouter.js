@@ -55,12 +55,9 @@ class ApiRouter {
             });
         } else if (uids) {
             uids.forEach((id) => {
-                this.uidStore.getPushIdByUid(id, (pushIds)=> {
-                    pushIds.forEach((id) => {
-                        this.ttlService.addTTL(id, pushEvent, timeToLive, pushData, true);
-                        this.ttlService.emitPacket(id, pushEvent, pushData);
-                    });
-                });
+                const topic = "uid:" + id;
+                this.ttlService.addTTL(topic, pushEvent, timeToLive, pushData, true);
+                this.ttlService.emitPacket(topic, pushEvent, pushData);
             });
         } else if (topic) {
             this.ttlService.addTTL(topic, pushEvent, timeToLive, pushData, false);

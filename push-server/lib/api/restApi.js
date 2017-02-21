@@ -242,6 +242,7 @@ class RestApi {
 
         router.all('/uid/bind', (req, res, next) => {
             uidStore.bindUid(req.p.pushId, req.p.uid, this.parseNumber(req.p.timeToLive), req.p.platform, this.parseNumber(req.p.platformLimit));
+            uidStore.publishBindUid(req.p.pushId, req.p.uid);
             res.json({code: "success"});
             return next();
         });
@@ -252,11 +253,13 @@ class RestApi {
             if (pushIds) {
                 pushIds.forEach((pushId) => {
                     uidStore.removePushId(pushId, true);
+                    uidStore.publishUnbindUid(pushId, null);
                 });
                 res.json({code: "success"});
             } else if (uids) {
                 uids.forEach((uid) => {
                     uidStore.removeUid(uid);
+                    uidStore.publishUnbindUid(null, uid);
                 });
                 res.json({code: "success"});
             } else {

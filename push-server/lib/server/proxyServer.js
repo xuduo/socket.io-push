@@ -42,6 +42,24 @@ class ProxyServer {
                 oldPacket.call(socket, packet, preEncoded);
             };
 
+            socket.authJoin = (topic, callback) => {
+                if (topic.startsWith("uid:")) {
+                    logger.info("topic.startsWith(uid:) skip");
+                    return;
+                }
+                socket.join(topic, callback);
+            };
+
+            socket.setUid = (uid) => {
+                if (uid) {
+                    socket.uid = uid;
+                    socket.join("uid:" + uid);
+                } else if (socket.uid) {
+                    socket.leave("uid:" + socket.uid);
+                    socket.uid = uid;
+                }
+            };
+
             socket.on('pushId', (data) => {
                 if (data.id && data.id.length >= 10) {
                     logger.debug("on pushId %j socketId", data, socket.id);
@@ -65,7 +83,7 @@ class ProxyServer {
 
                     stats.addPlatformSession(socket.platform);
 
-                    socket.join(data.id, (err) => {
+                    socket.authJoin(data.id, (err) => {
                         if (err) {
                             logger.error("join pushId room fail %s", err);
                             return;
@@ -78,7 +96,7 @@ class ProxyServer {
                                 }
                                 if (uid) {
                                     reply.uid = uid;
-                                    socket.uid = uid;
+                                    socket.setUid(uid);
                                 }
                                 connectService.connect(socket, (ret) => {
                                     if (ret) {
@@ -117,7 +135,7 @@ class ProxyServer {
                 logger.debug("on subscribeTopic %j, pushId %s", data, socket.pushId);
                 const topic = data.topic;
                 ttlService.getPackets(topic, data.lastPacketId, socket);
-                socket.join(topic);
+                socket.authJoin(topic);
             });
 
             socket.on('unsubscribeTopic', (data) => {
@@ -169,8 +187,9 @@ class ProxyServer {
                     logger.debug("bindUid %s %j", socket.pushId, data);
                     if (socket.pushId && data) {
                         config.bindUid(data, (uid)=> {
+                            socket.join("uid:" + uid);
                             if (uid) {
-                                socket.uid = uid;
+                                socket.setUid(uid);
                                 uidStore.bindUid(socket.pushId, data.uid, 0, socket.platform, 0);
                             }
                         });
