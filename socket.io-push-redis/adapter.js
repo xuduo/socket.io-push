@@ -88,6 +88,7 @@ function adapter(uri, opts, stats) {
 
         if (!channel.toString().startsWith(prefix)) {
             logger.debug('skip parse channel %s', prefix);
+            return;
         }
 
         const args = msgpack.decode(msg);
