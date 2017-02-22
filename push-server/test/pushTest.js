@@ -206,10 +206,23 @@ describe('pushTest.js', function () {
         var json = '{ "message":"ok"}';
         var messageCallback = function (data) {
             expect(data.message).to.be.equal('ok');
-            if (++rec == 6) {
+            expect(++rec).to.be.lessThan(7);
+            if (rec == 6) {
                 pushClient.unbindUid();
                 pushClient2.unbindUid();
-                done();
+                request({
+                    url: apiUrl + '/api/push',
+                    method: "post",
+                    form: {
+                        uid: JSON.stringify([1, 2]),
+                        json: json
+                    }
+                }, (error, response, body) => {
+                    expect(JSON.parse(body).code).to.be.equal("success");
+                    setTimeout(()=> {
+                        done();
+                    }, 100);
+                });
             }
         }
 
@@ -304,7 +317,7 @@ describe('pushTest.js', function () {
             url: apiUrl + '/api/push',
             method: "post",
             form: {
-                pushId : "",
+                pushId: "",
                 topic: 'message',
                 json: json
             }

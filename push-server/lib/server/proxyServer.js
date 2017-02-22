@@ -175,6 +175,7 @@ class ProxyServer {
             });
 
             socket.on('unbindUid', () => {
+                socket.setUid(null);
                 if (socket.pushId) {
                     logger.debug('unbindUid pushId %s ', socket.pushId);
                     uidStore.removePushId(socket.pushId, true);
