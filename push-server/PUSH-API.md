@@ -112,7 +112,7 @@ curl -H "Content-Type: application/json" -X POST -d '{"uid":["123", "456"] , "no
 
 返回值
 ```json
-{ code : "success", id : "abcdefg"}
+{ "code" : "success", "id" : "abcdefg"}
 ```
 
 ## /api/uid/bind 绑定UID和pushId
@@ -177,4 +177,43 @@ pushId=123 或者　uid=123
 
 --- 参数 
 
-id=xxxxxx 调用notification接口时返回的id
+id=xxxxxx 调用notification接口时返回的id, 目前不提供华为推送查询功能
+```javascript
+{
+    "notification": "{\"message\":\"少时诵诗书所所所所所所所\",\"title\":\"ME\",\"payload\":{\"payload\":\"{\\\"msgClientId\\\":\\\"58b3c7a497e4693c887eaf82\\\",\\\"msg\\\":\\\"少时诵诗书所所所所所所所\\\",\\\"msgTime\\\":1488177060864,\\\"dataType\\\":\\\"s_op_msg\\\",\\\"startTime\\\":1488177060864}\"}}",
+    "ttl": "1200000",
+    "timeStart": "2/27/2017, 2:31:01 PM",
+    "id": "667g7ub61Ps6",
+    "timeValid": "2/27/2017, 2:51:01 PM",
+    "apn": { //ios 统计
+      "target": 71,
+      "arrive": 71,
+      "click": 0,
+      "arrivalRate": "100.00%",
+      "clickRate": "0.00%"
+    },
+    "android": { //android 统计，除去小米华为
+      "target": 23,
+      "arrive": 22,
+      "click": 0,
+      "arrivalRate": "95.65%",
+      "clickRate": "0.00%"
+    },
+    "xiaomi": { //小米 统计
+      "create_time": "2017-02-27 14:31:01",
+      "invalid_target": 0,
+      "raw_counter": 7,
+      "click_rate": "0%",
+      "delivered": 4,
+      "click": 0,
+      "device_condition_unmatch": 0,
+      "create_timestamp": 1488177061247,
+      "time_to_live": "1201s",
+      "msg_type": "Topic",
+      "delivery_rate": "57%",
+      "id": "tcm06b40488177061247Uo",
+      "resolved": 7,
+      "app_not_register": 0
+    }
+  }
+```
