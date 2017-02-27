@@ -110,6 +110,11 @@ payload - 发送给应用非显示用的透传信息, 需要是一个json map
 curl -H "Content-Type: application/json" -X POST -d '{"uid":["123", "456"] , "notification":{"android" : {"title":"title","message":"message" },"apn":{"alert":"message" , "badge":5, "sound":"default" },"payload":{ "abc": 123}}}' http://localhost:11001/api/notification
 ```
 
+返回值
+```json
+{ code : "success", id : "abcdefg"}
+```
+
 ## /api/uid/bind 绑定UID和pushId
 
 http://yourip:11001/api/uid/bind?pushId=abc&uid=123&platform=ios
