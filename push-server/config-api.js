@@ -32,8 +32,11 @@ config.apns = [
     {
         production: false,
         bundleId: "com.xuduo.pushtest2",
-        cert: process.cwd() + "/cert/com.xuduo.pushtest2/cert.pem",
-        key: process.cwd() + "/cert/com.xuduo.pushtest2/key.pem"
+        token: {
+            key: process.cwd() + "/cert/com.xuduo.pushtest.p8",
+            keyId: "E75AZZM4Z8",
+            teamId: "PVE2WH4PE2"
+        }
     }
 ];
 
