@@ -19,7 +19,7 @@ class Api {
         this.arrivalStats = require('./stats/arrivalStats')(cluster, topicOnline);
         this.uidStore = require('./redis/uidStore')(cluster);
         this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version, this.stats, this.arrivalStats);
-        const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
+        const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30 * 6;
         this.notificationService = require('./service/notificationService')(config.apns, cluster, this.ttlService, tokenTTL, this.arrivalStats);
 
         const apiThreshold = require('./api/apiThreshold')(cluster, config.topicThreshold);
