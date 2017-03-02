@@ -210,7 +210,11 @@ class ApnProvider {
         } else {
             note.payload = {};
         }
-        note.payload.noti = {id: notification.id};
+        try {
+            note.payload.noti = {id: notification.id};
+        } catch (e) {
+            logger.error("payload is not json", e);
+        }
         return note;
     }
 
