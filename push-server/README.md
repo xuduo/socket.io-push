@@ -5,6 +5,7 @@ push-server 5分钟搭建指南
 ##install 
 
 * 安装nodejs环境, 推荐6.0以上, LTS版本
+* 如果使用苹果apns推送，由于node-http2兼容性问题 node版本必须是6.2.2
 
 https://nodejs.org/en/download/package-manager/
 

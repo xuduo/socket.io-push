@@ -1,6 +1,6 @@
 {
   "name": "socket.io-push",
-  "version": "0.0.324",
+  "version": "0.0.326",
   "description": "socket.io-push server by xuduo",
   "main": "index.js",
   "bin": {
@@ -12,7 +12,7 @@
     "url": "git@github.com:xuduo/socket.io-push.git"
   },
   "dependencies": {
-    "apn": "https://github.com/cmdkoh/node-apn/archive/fix_Getting_app_write_error_%23449_part4.tar.gz",
+    "apn": "2.1.3",
     "async": "0.9.0",
     "body-parser": "1.15.2",
     "express": "~4.14.0",
