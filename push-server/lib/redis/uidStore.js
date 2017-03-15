@@ -14,7 +14,7 @@ class UidStore {
                 if (channel == 'cmd:bindUid') {
                     let json = JSON.parse(message);
                     io.nsps['/'].adapter.doSocketInRoom(io.nsps['/'], json.pushId, (socket)=> {
-                        logger.debug("redis bindUid join ", json, socket);
+                        logger.debug("redis bindUid join ", json);
                         socket.setUid(json.uid);
                     });
                 } else if (channel == 'cmd:unbindUid') {
