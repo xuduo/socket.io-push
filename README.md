@@ -3,22 +3,31 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 基于socket.io协议实现的类似小米,极光,个推的系统. 
 [视频介绍](http://www.bilibili.com/video/av8531451/)
 
-
 [![NPM](https://nodei.co/npm/socket.io-push.png?compact=true)](https://npmjs.org/package/socket.io-push)
 
-###特点
-* 透明集成了小米,华为push
-* 同机房情况, 建立长连接->上报pushId->调用api->收到push, 只需要20多毫秒
+### 为什么做这个东西？
+
+我们Java后端开发，以提供HTTP API的方式，做了几个简单的增删改查式的APP，但是在开发一款直播类APP的时候遇到了问题
+
+* 直播间内的公屏，礼物广播，如何以最低延迟发给直播间内的用户？
+* 频道里都有谁在线？ 都是哪些人？
+* 主播断线，或者与主播连麦的人断线了，如何知晓？
+* 如何推送离线系统通知（IOS，Android，小米，华为）？
+
+
+参考其他一些团队的解决方案，大多是用c++写长连接服务器，甚至用Java的netty。开发维护成本太高，所以就有了这套推送系统，我们服务器依旧使用HTTP提供服务，下行推送，也只需要调用一个简单的HTTP接口，如 http://localhost:11001/api/push?topic=abc&json=hello 向abc这个直播间发送一条透传。
+
+
+### 特点
+* 透明集成了小米, 华为push，第三方推送由于政策问题，无法做到
 * 支持浏览器, 微信小程序
-* 支持Unity3D (原生调用代理）
+* 支持Unity3D (完成度很低）
+* 与业务服务同机房部署，第三方服务无法比拟
 
-
-###性能
+### 性能
 * 可以部署70台(实测)或者更多机器, 支持百万以上同时在线
-* 单机广播速度可以达到[10w条/秒](bench-mark.md)
-* 同机房, 全流程, 20毫秒, 成功率近100%
-* 跨机房, 全流程, 60毫秒, 成功率99.9%
-* 手机端统计推送延迟, 260毫秒
+* 单机广播速度可以达到[10W条/秒](bench-mark.md)，如果只使用系统通知功能，单机支撑一个10W左右日活的APP，平均1W以上同时在线，几乎不占机器负载
+* 从推送接口调用，到客户端收到回包给服务器，RTT只有280m(线上平均延迟)
 
 ### Quick Start
 * [5分钟搭建一个单机服务器](push-server)
