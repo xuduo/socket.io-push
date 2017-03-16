@@ -44,12 +44,12 @@ push-server -f
 
 # 默认地址
 
-* 管理后台 [https://localhost:12001]https://localhost:12001
+* 管理后台 [https://localhost:12001](https://localhost:12001)
 
-* 客户端SDK连接HTTP地址: [http://localhost:10001]http://localhost:10001
+* 客户端SDK连接HTTP地址: [http://localhost:10001](http://localhost:10001)
 
-* 客户端SDK连接HTTPS地址: [https://localhost:10443]https://localhost:10443
+* 客户端SDK连接HTTPS地址: [https://localhost:10443](https://localhost:10443)
 
-* API HTTP地址: [http://localhost:11001]http://localhost:11001/
+* API HTTP地址: [http://localhost:11001](http://localhost:11001/)
 
-* API HTTPS地址: [https://localhost:11443]https://localhost:11443
+* API HTTPS地址: [https://localhost:11443](https://localhost:11443)
