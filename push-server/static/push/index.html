@@ -37,29 +37,7 @@
 </head>
 <body>
 <script type="text/javascript">
-    var pushAll = false;
-    function change() {
-        var radio = document.getElementsByName("type");
-        var radioLength = radio.length;
-        for (var i = 0; i < radioLength; i++) {
-            if (radio[i].checked) {
-                var radioValue = radio[i].value;
-
-                if (radioValue == "yes") {
-                    pushAll = true;
-                    $("#pushIdDiv").hide();
-                    $("#pushUidDiv").hide();
-                }
-                else if (radioValue == "no") {
-                    pushAll = false;
-                    $("#pushIdDiv").show();
-                    $("#pushUidDiv").show();
-                }
-            }
-        }
-    }
     window.onload = function () {
-        change();
     }
 
 </script>
@@ -68,30 +46,16 @@
 
 <form id="myDiv">
     <table cellspacing="10" cellpadding="0" width="400">
-        <tr align=left>
-            <td width="100" align=right>topic :</td>
-            <td width="300" colspan="3"><input id="topic" name="topic" type="text"></td>
-        </tr>
 
         <tr align=left>
-            <td width="100" align=right>data</td>
+            <td width="100" align=right>json</td>
             <td width="300" colspan="3"><textarea id="data" name="data" cols="40" rows="4"
                                                   placeholder="内容输入框" value=""></textarea></td>
         </tr>
 
-
         <tr align=left>
-            <td width="100" align=right><font size="2">pushAll</font>
-            </td>
-
-            <td width="100" align="right"><input name="type" type="radio" value="yes"
-                                                 onchange="change();"/>是
-            </td>
-
-            <td width="100" align="right"><input name="type" type="radio" value="no" checked=true
-                                                 onchange="change();"/>否
-            </td>
-
+            <td width="100" align=right>topic :</td>
+            <td width="300" colspan="3"><input id="topic" name="topic" type="text"></td>
         </tr>
 
         <tr align=left id="pushIdDiv">
@@ -120,10 +84,6 @@
 
         <tr align=left style="display:none;">
             <td width="400"><input id="notification" name="notification" type="hidden"></td>
-        </tr>
-
-        <tr align=left style="display:none;">
-            <td width="400"><input id="pushAll" name="pushAll" type="hidden"></td>
         </tr>
 
         <tr align=right>
