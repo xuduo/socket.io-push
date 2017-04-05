@@ -38,6 +38,7 @@ curl -H "Content-Type: application/json" -X POST -d '{"a":"1" , "b":"2"}' http:/
 - pushId -> string[] 或 string，客户端生成的随机ID
 - uid -> string[] 或 string， 通过addPushIdToUid接口绑定的uid
 
+---
 
 json ->  以下类型三选一,透传给客户端的数据,客户端会在onPush里接收到
 
@@ -51,9 +52,13 @@ json array  [1, {"content":"test string"}]
          
 第一个int或string来表示推送类型,第二个参数表示该类型的透传数据
          
-        
+---        
 
 timeToLive -> int, 毫秒, 表示当时用户不在线, 消息服务器保存多久
+
+---
+
+调用示例
 
 ```bash
 #推送给topic=chatRoom, 数据为一串json { "message": "curl_test_message", "nickName": "curl_tester", "type": "chat_message"}
@@ -74,7 +79,7 @@ tag -> string, 如 "tag1", 通过客户端或者服务器接口设置的tag
 
 ---
 
-timeToLive -> int, 毫秒, 表示当时用户不在线, 消息服务器保存多久 , 小米, 苹果, 华为, push-sever均支持
+timeToLive -> int, 毫秒, 表示当时用户不在线, 消息服务器保存多久 , 小米, 苹果, 华为, push-sever均支持.  可选, 默认为0
 
 ---
 
@@ -104,6 +109,9 @@ sound(ios) - (apn对应的sound字段) 可选
 
 payload - 发送给应用非显示用的透传信息, 需要是一个json map
 
+---
+
+调用示例
 
 ```bash
 #推送给uid 123,456两个用户
