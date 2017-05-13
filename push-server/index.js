@@ -48,7 +48,7 @@ if (cluster.isMaster) {
             if (workerPool) {
                 let index = workerPool.indexOf(worker);
                 workerPool[index] = newWorker;
-                logger.debug('respwan new worker(%s), workers: %s, pid: %s', newWorker.id,
+                logger.info('respwan new worker(%s), workers: %s, pid: %s', newWorker.id,
                     workerPool.map((worker) => {
                         return worker.id
                     }),
@@ -168,7 +168,7 @@ if (cluster.isMaster) {
                 servers[socket.localPort].emit('connection', socket);
                 socket.resume();
                 socket.setTimeout(socketTimeout, ()=> {
-                    logger.info("socket timeout ", socket.remoteAddress, socket.remotePort, socket.localPort);
+                    logger.debug("socket timeout ", socket.remoteAddress, socket.remotePort, socket.localPort);
                 });
             });
         }
@@ -182,6 +182,7 @@ function createNetServer(workers, lb, port, host) {
             logger.error("worker is null! ", workers, port, host, socket.remoteAddress);
             return;
         }
+        logger.debug('connection on master to worker ', worker.id,port, host, socket.remoteAddress);
         worker.send('s:conn', socket);
     });
     if (host) {

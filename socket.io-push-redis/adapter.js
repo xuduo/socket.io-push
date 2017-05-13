@@ -161,7 +161,6 @@ function adapter(uri, opts, stats) {
             return;
         }
         sub.subscribe(channel, function (err) {
-            logger.info("subscribe ", channel);
             if (err) {
                 logger.error('subscribe error %s', channel);
                 self.emit('error', err);

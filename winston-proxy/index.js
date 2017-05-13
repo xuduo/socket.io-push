@@ -6,7 +6,7 @@ const mkdirp = require('mkdirp');
 const uuid = require('node-uuid');
 
 function readableFormatter(args) {
-    return new Date().toLocaleString() + " work:" + workId + " "
+    return new Date().toLocaleString() + " " + workId + " "
         + args.level.substring(0, 1).toUpperCase() + "/" + args.meta.module + " " + (args.message ? args.message : '');
 }
 
@@ -139,11 +139,16 @@ function init() {
     }
     opts.level = opts.level || 'debug';
     try {
-        workId = require('cluster').worker.id;
+        const cluster = require('cluster');
+        if (cluster.isMater) {
+            workId = 'master';
+        } else {
+            workId = cluster.worker.id;
+            workId = 'worker:' + (workId < 10 ? '0' + workId : workId);
+        }
     } catch (ex) {
-        workId = 1;
+        workId = 'master';
     }
-    workId = workId < 10 ? '0' + workId : workId;
     logger = createLogger(opts);
 }
 

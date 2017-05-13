@@ -1,6 +1,6 @@
 {
   "name": "socket.io-push",
-  "version": "0.0.333",
+  "version": "0.0.335-prof",
   "description": "socket.io-push server by xuduo",
   "main": "index.js",
   "bin": {
@@ -21,10 +21,10 @@
     "request": "2.67.0",
     "restify": "4.0.3",
     "socket.io": "1.7.2",
-    "socket.io-push-redis": "1.0.2",
+    "socket.io-push-redis": "1.0.3",
     "spdy": "^3.4.4",
     "superagent": "^1.8.0",
-    "winston-proxy": "1.0.0",
+    "winston-proxy": "1.0.2",
     "ncp": "2.0.0"
   },
   "devDependencies": {
