@@ -1,6 +1,5 @@
 var request = require('request');
 var chai = require('chai');
-var randomstring = require("randomstring");
 var expect = chai.expect;
 var defSetting = require('./defaultSetting');
 

@@ -187,11 +187,11 @@ class ProxyServer {
                 socket.on('bindUid', (data) => {
                     logger.debug("bindUid %s %j", socket.pushId, data);
                     if (socket.pushId && data) {
-                        config.bindUid(data, (uid)=> {
+                        config.bindUid(data, (uid) => {
                             socket.join("uid:" + uid);
                             if (uid) {
                                 socket.setUid(uid);
-                                uidStore.bindUid(socket.pushId, data.uid, 0, socket.platform, 0);
+                                uidStore.bindUid(socket.pushId, data.uid, socket.platform, 0);
                             }
                         });
                     }
@@ -201,11 +201,11 @@ class ProxyServer {
             socket.on('notificationReply', (data) => {
                 logger.debug("notificationReply ", data);
                 stats.onNotificationReply(data.timestamp);
-                arrivalStats.addArrivalInfo(data.id, 'arrive_android', 1);
+                arrivalStats.addArrivalInfo(data.id, {arrive_android: 1});
             });
 
             socket.on('notificationClick', (data) => {
-                arrivalStats.addArrivalInfo(data.id, 'click_' + (data.type || "android"), 1);
+                arrivalStats.addArrivalInfo(data.id, {['click_' + (data.type || "android")]: 1});
             });
 
             stats.addSession(socket);

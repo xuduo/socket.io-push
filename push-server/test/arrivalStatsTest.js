@@ -1,6 +1,7 @@
 var chai = require('chai');
 var expect = chai.expect;
 var defSetting = require('./defaultSetting');
+var randomstring = require("randomstring");
 
 describe('arrivalStatsTest', () => {
 
@@ -8,10 +9,8 @@ describe('arrivalStatsTest', () => {
         global.proxyServer = defSetting.getDefaultProxyServer();
         global.apiServer = defSetting.getDefaultApiServer();
         global.apiUrl = defSetting.getDefaultApiUrl();
-        global.arrivalStats = proxyServer.arrivalStats;
+        global.arrivalStats = apiServer.arrivalStats;
         global.topicOnline = arrivalStats.topicOnline;
-        arrivalStats.redis.del('stats:arrivalList:noti');
-        arrivalStats.redis.del('stats:arrival:42');
     });
 
     after(() => {
@@ -20,7 +19,7 @@ describe('arrivalStatsTest', () => {
     });
 
     it('arrivalRate test', (done) => {
-        const packetId = '42';
+        const packetId = randomstring.generate(12);
         let packet = {
             id: packetId,
             android: {
@@ -31,14 +30,13 @@ describe('arrivalStatsTest', () => {
         let topicOnlineData = {'noti': {length: 99}};
         topicOnline.writeTopicOnline(topicOnlineData);
         arrivalStats.addPushAll(packet, 1000);
-        setTimeout(()=> {
-            arrivalStats.addArrivalInfo(packetId, 'arrive_android', 98);
-            arrivalStats.addArrivalInfo(packetId, 'target_android', 1);
-            arrivalStats.addArrivalInfo(packetId, 'arrive_android', 1);
-            arrivalStats.addArrivalInfo('errorPacket', 1);
+        setTimeout(() => {
+            arrivalStats.addArrivalInfo(packetId, {arrive_android: 98});
+            arrivalStats.addArrivalInfo(packetId, {target_android: 1});
+            arrivalStats.addArrivalInfo(packetId, {arrive_android: 1});
         }, 500);
-        setTimeout(()=> {
-            arrivalStats.getRateStatusByType('noti', (stats) => {
+        setTimeout(() => {
+            arrivalStats.getRateStatusByType('pushAll', (stats) => {
                 const item = stats[0];
                 console.log(item);
                 expect(item.id).to.be.equal(packetId);

@@ -3,7 +3,7 @@ var chai = require('chai');
 var expect = chai.expect;
 var defSetting = require('./defaultSetting');
 
-describe('push test', function () {
+describe('pushTest', function () {
 
     before(function () {
         global.proxyServer = defSetting.getDefaultProxyServer();
@@ -19,37 +19,37 @@ describe('push test', function () {
     function delayCallback(callback) {
         setTimeout(()=> {
             callback(null, null);
-        }, 100);
+        }, 200);
     }
 
-    it('bind uid', function (done) {
+    it('bindUid', function (done) {
         async.series({
             "bind uid to a": (callback) => {
-                apiServer.uidStore.bindUid("a", "100", 1000000, "ios", 1);
+                apiServer.uidStore.bindUid("a", "100", "ios", 1);
                 delayCallback(callback);
             },
             "bind uid to b": (callback) => {
-                apiServer.uidStore.bindUid("b", "100", 1000000, "ios", 1);
+                apiServer.uidStore.bindUid("b", "100", "ios", 1);
                 delayCallback(callback);
             },
             "test uid bind result - test1": (callback) => {
                 apiServer.uidStore.getPushIdByUid("100", function (pushIds) {
                     expect(pushIds).to.be.deep.equal(["b"]);
-                    apiServer.uidStore.bindUid("c", "100", 1000000, "ios", 2);
+                    apiServer.uidStore.bindUid("c", "100", "ios", 2);
                     delayCallback(callback);
                 });
             },
             "test uid bind result - test2": (callback) => {
                 apiServer.uidStore.getPushIdByUid("100", function (pushIds) {
                     expect(pushIds).to.be.deep.equal(["b", "c"]);
-                    apiServer.uidStore.bindUid("d", "100", 1000000, "ios", 2);
+                    apiServer.uidStore.bindUid("d", "100", "ios", 2);
                     delayCallback(callback);
                 });
             },
             "test uid bind result - test3": (callback) => {
                 apiServer.uidStore.getPushIdByUid("100", function (pushIds) {
                     expect(pushIds).to.be.deep.equal(["c", "d"]);
-                    apiServer.uidStore.bindUid("e", "100", 1000000, "ios", 4);
+                    apiServer.uidStore.bindUid("e", "100", "ios", 4);
                     delayCallback(callback);
                 });
             },
@@ -93,7 +93,7 @@ describe('push test', function () {
                 apiServer.uidStore.getPushIdByUid("1000", function (pushIds) {
                     expect(pushIds).to.be.empty;
                     apiServer.uidStore.getUidByPushId("a", function (uid) {
-                        expect(uid).to.be.null;
+                        expect(uid).to.not.exist;
                         delayCallback(callback);
                     });
                 });

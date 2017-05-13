@@ -1,9 +1,8 @@
 let request = require('request');
-var Redis = require('ioredis');
-var redis = new Redis();
 var io = require('socket.io');
-var topicOnline = require('../lib/stats/topicOnline.js')(redis, io, 'Ys7Gh2NwDY9Dqti92ZwxJh8ymQL4mmZ2 ', {'topic:':"devices"});
-var topicOnline1 = require('../lib/stats/topicOnline.js')(redis, io, 'Ys7Gh2NwDY9Dqti92ZwxJh8ymQL4mmZ3 ', {'topic:':"count"});
+const mongo = require('../lib/mongo/mongo')(require('../config-api').mongo);
+var topicOnline = require('../lib/stats/topicOnline.js')(mongo, io, 'Ys7Gh2NwDY9Dqti92ZwxJh8ymQL4mmZ2 ', {'topic:': "devices"});
+var topicOnline1 = require('../lib/stats/topicOnline.js')(mongo, io, 'Ys7Gh2NwDY9Dqti92ZwxJh8ymQL4mmZ3 ', {'topic:': "count"});
 let defSetting = require('./defaultSetting');
 var chai = require('chai');
 var expect = chai.expect;
@@ -48,13 +47,16 @@ describe('api topicOnline', () => {
     });
 
     it('Test topicOnline data timeOut', (done) => {
-        topicOnline.timeValidWithIn = 500;
+        topicOnline.timeValidWithIn = 0;
+        topicOnline.writeTopicOnline(data);
+        topicOnline1.timeValidWithIn = 0;
+        topicOnline1.writeTopicOnline(data);
         setTimeout(() => {
             topicOnline.getTopicOnline('topic:Test1', (result) => {
                 expect(result).to.be.equal(0);
                 done();
             });
-        }, 1000);
+        }, 200);
     });
 
     it('topic onelie restapi', (done) => {

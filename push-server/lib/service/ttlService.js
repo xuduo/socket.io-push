@@ -1,5 +1,5 @@
-module.exports = (io, redis, protocolVersion, stats, arrivalStats) => {
-    return new TTLService(io, redis, protocolVersion, stats, arrivalStats);
+module.exports = (io, mongo, protocolVersion, stats, arrivalStats) => {
+    return new TTLService(io, mongo, protocolVersion, stats, arrivalStats);
 };
 
 const logger = require('winston-proxy')('TTLService');
@@ -8,8 +8,8 @@ const maxTllPacketPerTopic = -10;
 
 class TTLService {
 
-    constructor(io, redis, protocolVersion, stats, arrivalStats) {
-        this.redis = redis;
+    constructor(io, mongo, protocolVersion, stats, arrivalStats) {
+        this.mongo = mongo;
         this.io = io;
         this.protocolVersion = protocolVersion || 1;
         this.stats = stats;
@@ -34,54 +34,56 @@ class TTLService {
             var data = JSON.parse(JSON.stringify(packet));
             data.timestampValid = Date.now() + timeToLive;
             data.event = event;
-
-            var listKey = "ttl#packet#" + topic;
-            this.redis.pttl(listKey, (err, oldTtl) => {
-                logger.debug("addPacket key %s ,id %s, %d , %d", listKey, packet.id, oldTtl, timeToLive);
-                this.redis.rpush(listKey, JSON.stringify(data));
-                this.redis.ltrim(listKey, maxTllPacketPerTopic, -1);
-                if (timeToLive > oldTtl) {
-                    logger.debug("pexpire ", listKey);
-                    this.redis.pexpire(listKey, timeToLive);
+            this.mongo.ttl.findByIdAndUpdate(topic, {
+                $push: {"packets": JSON.stringify(data), $slice: maxTllPacketPerTopic},
+            }, {upsert: true}, (err, doc) => {
+                if (!err && doc) {
+                    if (!doc.expireAt || doc.expireAt < data.timeToLive) {
+                        doc.expireAt = data.timeToLive;
+                        doc.save();
+                        logger.debug("update ttl", doc);
+                    }
                 }
             });
+
         }
     }
 
     getPackets(topic, lastId, socket, unicast) {
         if (lastId) {
-            var listKey = "ttl#packet#" + topic;
-            this.redis.lrange(listKey, 0, -1, (err, list) => {
-                if (list && list.length > 0) {
-                    var lastFound = false;
-                    var now = Date.now();
-
-                    list.forEach((packet) => {
-                        var jsonPacket = JSON.parse(packet);
+            this.mongo.ttl.findById(topic, (err, ttl) => {
+                if (!err && ttl) {
+                    const list = ttl.packets;
+                    if (list && list.length > 0) {
+                        var lastFound = false;
                         var now = Date.now();
-                        if (jsonPacket.id == lastId) {
-                            lastFound = true;
-                            logger.debug("lastFound %s %s", topic, lastId);
-                        } else if (lastFound == true && jsonPacket.timestampValid > now) {
-                            logger.debug("call emitPacket %s %s", jsonPacket.id, lastId);
-                            this.emitToSocket(socket, jsonPacket.event, jsonPacket);
-                            this.arrivalStats.addArrivalInfo(jsonPacket.id, 'target_android', 1);
-                        }
-                    });
 
-                    if (unicast) {
-                        this.redis.del("ttl#packet#" + topic);
-                    }
-
-                    if (!lastFound) {
-                        logger.debug('topic %s lastId %s not found send all packets', topic, lastId);
                         list.forEach((packet) => {
                             var jsonPacket = JSON.parse(packet);
-                            if (jsonPacket.timestampValid > now) {
+                            if (jsonPacket.id == lastId) {
+                                lastFound = true;
+                                logger.debug("lastFound %s %s", topic, lastId);
+                            } else if (lastFound == true && jsonPacket.timestampValid > now) {
+                                logger.debug("call emitPacket %s %s", jsonPacket.id, lastId);
                                 this.emitToSocket(socket, jsonPacket.event, jsonPacket);
-                                this.arrivalStats.addArrivalInfo(jsonPacket.id, 'target_android', 1);
+                                this.arrivalStats.addArrivalInfo(jsonPacket.id, {target_android: 1});
                             }
                         });
+
+                        if (unicast) {
+                            this.mongo.ttl.findByIdAndRemove(topic);
+                        }
+
+                        if (!lastFound) {
+                            logger.debug('topic %s lastId %s not found send all packets', topic, lastId);
+                            list.forEach((packet) => {
+                                var jsonPacket = JSON.parse(packet);
+                                if (jsonPacket.timestampValid > now) {
+                                    this.emitToSocket(socket, jsonPacket.event, jsonPacket);
+                                    this.arrivalStats.addArrivalInfo(jsonPacket.id, {target_android: 1});
+                                }
+                            });
+                        }
                     }
                 }
             });
