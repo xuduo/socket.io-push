@@ -17,7 +17,7 @@ class ApnProvider {
         this.apnApiUrls = require("../util/infiniteArray")(apnApiUrls);
         this.tokenTTL = tokenTTL;
 
-        this.sentCallback = (result)=> {
+        this.sentCallback = (result) => {
             if (result.errorTokens) {
                 logger.debug("sentCallback errorTokens", result.errorTokens, result.bundleId);
                 for (const token of result.errorTokens) {
@@ -25,8 +25,8 @@ class ApnProvider {
                 }
             }
             logger.debug("sentCallback ", result);
-            arrivalStats.addArrivalInfo(result.id, "target_apn", result.total);
-            arrivalStats.addArrivalInfo(result.id, "arrive_apn", result.success);
+            arrivalStats.addArrivalInfo(result.id, {target_apn: result.total});
+            arrivalStats.addArrivalInfo(result.id, {arrive_apn: result.success});
         };
 
         apnConfigs.forEach((apnConfig, index) => {

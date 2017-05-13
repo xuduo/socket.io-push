@@ -26,6 +26,10 @@ config.topicOnlineFilter = {chatRoom: "devices", drawTopic: "count"};
 
 config.packetDropThreshold = 0;
 
+config.mongo = {
+    default: "mongodb://localhost/socketiopush"
+};
+
 /**
  * 数组表示hash切片,可以配置多个redis实例,分担流量/cpu负载
  * pubs 广播pub redis,二维数组 第一级表示redis分组 第二季表示hash切片

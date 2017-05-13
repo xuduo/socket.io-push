@@ -32,7 +32,7 @@ class ApiRouter {
             });
         } else if (tag) {
             let batch = [];
-            this.tagService.scanPushIdByTag(tag, this.maxPushIds, (pushId) => {
+            this.tagService.scanPushIdByTag(tag, (pushId) => {
                 batch.push(pushId);
                 if (batch.length == this.maxPushIds) {
                     this.sendNotificationByPushIds(notification, batch, timeToLive);

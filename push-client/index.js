@@ -56,8 +56,8 @@ function PushClient(url, opt) {
     clientId++;
     var self = this;
     this.topics = {};
-    this.socket = require('socket.io-client')(url, opt);
-    //this.socket = require('wxapp-socket-io')(url, opt);
+    //this.socket = require('socket.io-client')(url, opt);
+    this.socket = require('wxapp-socket-io')(url, opt);
     this.initStorage();
 
     if (opt.pushId) {

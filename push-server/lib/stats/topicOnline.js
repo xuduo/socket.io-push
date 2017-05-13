@@ -1,18 +1,19 @@
-module.exports = (redis, io, id, filterTopics) => {
-    return new TopicOnline(redis, io, id, filterTopics);
+module.exports = (mongo, io, id, filterTopics) => {
+    return new TopicOnline(mongo, io, id, filterTopics);
 };
+const logger = require('winston-proxy')('TopicOnline');
 
 class TopicOnline {
 
-    constructor(redis, io, id, filterTopics) {
-        this.redis = redis;
+    constructor(mongo, io, id, filterTopics) {
+        this.mongo = mongo;
         this.id = id;
         if (!filterTopics) {
             this.filters = {};
         } else if (filterTopics.isArray) {
             this.filters = {};
             for (const prefix of filterTopics) {
-                this.filters[prefix] = "devices";
+                this.filters[prefix] = "count";
             }
         } else {
             this.filters = filterTopics;
@@ -45,23 +46,27 @@ class TopicOnline {
     }
 
     writeTopicOnline(data) {
+        const expireAt = Date.now() + this.timeValidWithIn;
         for (const key in data) {
             if (data[key].length > 0) {
                 const type = this.filterTopic(key);
                 if (type) {
-                    const json = {length: data[key].length, time: Date.now()};
+                    const json = {count: data[key].length, expireAt};
                     if (type == 'devices') {
                         json.devices = [];
                         for (const socketId in data[key].sockets) {
                             const socket = this.io.sockets.connected[socketId];
                             if (socket) {
-                                json.devices.push({pushId: socket.pushId, uid: socket.uid, platform: socket.platform});
+                                data.devices.push({pushId: socket.pushId, uid: socket.uid, platform: socket.platform});
                             }
                         }
                     }
-                    const redisKey = "stats#topicOnline#" + key;
-                    this.redis.hset(redisKey, this.id, JSON.stringify(json));
-                    this.redis.pexpire(redisKey, this.expire);
+                    this.mongo.topicOnline.update(
+                        {_id: {serverId: this.id, topic: key}},
+                        json,
+                        {upsert: true}, (err, doc) => {
+                            logger.debug('topicOnline.update ', err, json, doc);
+                        });
                 }
             }
         }
@@ -69,19 +74,13 @@ class TopicOnline {
 
     getTopicOnline(topic, callback) {
         let count = 0;
-        this.redis.hgetall("stats#topicOnline#" + topic, (err, result) => {
-            if (result) {
-                const delKey = [];
-                for (const key in result) {
-                    const data = JSON.parse(result[key]);
-                    if ((data.time + this.timeValidWithIn) < Date.now()) {
-                        delKey.push(key);
-                    } else {
-                        count = count + data.length;
+        this.mongo.topicOnline.find({'_id.topic': topic}).select('-devices').exec((err, docs) => {
+            if (!err && docs) {
+                for (const doc of docs) {
+                    if (doc.expireAt.getTime() > Date.now()) {
+                        count = count + doc.count;
+                        logger.debug('topicOnline.find ', doc, new Date(), count);
                     }
-                }
-                if (delKey.length > 0) {
-                    this.redis.hdel("stats#topicOnline#" + topic, delKey);
                 }
             }
             callback(count);
@@ -89,33 +88,16 @@ class TopicOnline {
     }
 
     getTopicDevices(topic, callback) {
-        this.redis.hgetall("stats#topicOnline#" + topic, (err, result) => {
-            const json = {topic: topic};
-            if (result) {
-                const devices = [];
-                const delKey = [];
-                for (const key in result) {
-                    const data = JSON.parse(result[key]);
-                    if ((data.time + this.timeValidWithIn) < Date.now()) {
-                        delKey.push(key);
-                    } else if (data.devices) {
-                        for (const device of data.devices) {
-                            if (device.platform) {
-                                let pCount = json[device.platform];
-                                if (!pCount) {
-                                    pCount = 0;
-                                }
-                                pCount = pCount + 1;
-                                json[device.platform] = pCount;
-                            }
+        const json = {topic: topic, devices: [], total: 0};
+        this.mongo.topicOnline.find({'_id.topic': topic}, (err, docs) => {
+            if (!err && docs) {
+                for (const doc of docs) {
+                    if (doc.expireAt.getTime() > Date.now()) {
+                        for (const device of doc.devices) {
+                            json.devices.push(device);
                         }
-                        Array.prototype.push.apply(devices, data.devices);
                     }
-                }
-                json.total = devices.length;
-                json.devices = devices;
-                if (delKey.length > 0) {
-                    this.redis.hdel("stats#topicOnline#" + topic, delKey);
+                    json.total = json.devices.length;
                 }
             }
             callback(json);

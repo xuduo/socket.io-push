@@ -8,17 +8,17 @@ class Api {
 
         console.log(`start api on port  http:${config.http_port} https:${config.https_port}  #${process.pid}`);
         const cluster = require('socket.io-push-redis/cluster')(config.redis);
-
+        this.mongo = require('./mongo/mongo')(config.mongo);
         this.io = require('socket.io-push-redis/emitter')(cluster);
 
-        this.tagService = require('./service/tagService')(cluster);
+        this.tagService = require('./service/tagService')(this.mongo);
         this.connectService = require('./service/connectService')(cluster);
         const redisIncrBuffer = require('./stats/redisIncrBuffer')(cluster, config.statsCommitThreshold);
         this.stats = require('./stats/stats')(cluster, 0, redisIncrBuffer);
-        const topicOnline = require('./stats/topicOnline')(cluster);
-        this.arrivalStats = require('./stats/arrivalStats')(cluster, topicOnline);
-        this.uidStore = require('./redis/uidStore')(cluster);
-        this.ttlService = require('./service/ttlService')(this.io, cluster, config.ttl_protocol_version, this.stats, this.arrivalStats);
+        const topicOnline = require('./stats/topicOnline')(this.mongo);
+        this.arrivalStats = require('./stats/arrivalStats')(this.mongo, topicOnline);
+        this.uidStore = require('./redis/uidStore')(cluster, this.mongo);
+        this.ttlService = require('./service/ttlService')(this.io, this.mongo, config.ttl_protocol_version, this.stats, this.arrivalStats);
         const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30 * 6;
         this.notificationService = require('./service/notificationService')(config.apns, cluster, this.ttlService, tokenTTL, this.arrivalStats);
 

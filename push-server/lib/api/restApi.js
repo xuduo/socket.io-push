@@ -241,7 +241,7 @@ class RestApi {
         });
 
         router.all('/uid/bind', (req, res, next) => {
-            uidStore.bindUid(req.p.pushId, req.p.uid, this.parseNumber(req.p.timeToLive), req.p.platform, this.parseNumber(req.p.platformLimit));
+            uidStore.bindUid(req.p.pushId, req.p.uid, req.p.platform, this.parseNumber(req.p.platformLimit));
             uidStore.publishBindUid(req.p.pushId, req.p.uid);
             res.json({code: "success"});
             return next();

@@ -86,7 +86,7 @@ class XiaomiProvider {
             const result = JSON.parse(body);
             logger.debug("response result ", result);
             if (result.data && result.data.id) {
-                this.arrivalStats.setArrivalInfo(notificationId, "xiaomi_msg_id", result.data.id);
+                this.arrivalStats.addArrivalInfo(notificationId, {}, {xiaomi_msg_id: result.data.id});
             }
             if (result.code == 0 || result.code == 20301) {
                 return true;
@@ -108,7 +108,7 @@ class XiaomiProvider {
                     const result = JSON.parse(body);
                     if (result.data && result.data.data) {
                         delete packetInfo.xiaomi_msg_id;
-                        if(result.data.data.resolved > 0){
+                        if (result.data.data.resolved > 0) {
                             packetInfo.xiaomi = result.data.data;
                         }
                     }
