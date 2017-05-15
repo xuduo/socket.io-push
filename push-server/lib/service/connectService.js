@@ -1,59 +1,64 @@
-module.exports = (redis) => {
-    return new ConnectService(redis);
+module.exports = (mongo) => {
+  return new ConnectService(mongo);
 };
 
 const logger = require('winston-proxy')('ConnectService');
 
 class ConnectService {
-    constructor(redis) {
-        this.redis = redis;
-    }
+  constructor(mongo) {
+    this.mongo = mongo;
+  }
 
-    isConnected(pushId, callback) {
-        this.redis.get("pushIdSocketId#" + pushId, (err, socketId) => {
-            if (socketId) {
-                callback(true, socketId);
-            } else {
-                callback(false);
-            }
-        })
-    }
+  isConnected(pushId, callback) {
+    this.mongo.device.findById(pushId, (err, doc) => {
+      if (!err && doc && doc.socketId) {
+        callback(true, doc.socketId);
+      } else {
+        callback(false);
+      }
+    });
+  }
 
-    bindPushId(pushId, socketId, callback) {
-        const key = "pushIdSocketId#" + pushId;
-        this.redis.set(key, socketId);
-        this.redis.expire(key, 30 * 24 * 3600);
-        if (callback) {
-            callback();
-        }
-    }
+  bindPushId(pushId, socketId, callback) {
+    this.mongo.device.update({
+      _id: pushId
+    }, {
+      socketId
+    }, {
+      upsert: true
+    }, (err, doc) => {
+      if (callback) {
+        callback();
+      }
+    });
+  }
 
-    unbindPushId(pushId, callback) {
-        this.redis.del("pushIdSocketId#" + pushId);
-        if (callback) {
-            callback();
-        }
+  unbindPushId(pushId, callback) {
+    this.redis.del("pushIdSocketId#" + pushId);
+    if (callback) {
+      callback();
     }
+  }
 
-    disconnect(socket, callback) {
-        this.isConnected(socket.pushId, (connectedOrNot, socketId) => {
-            if(connectedOrNot && socketId == socket.id){
-                this.unbindPushId(socket.pushId);
-                callback(true);
-            }else{
-                callback(false);
-            }
-        })
-    }
+  disconnect(socket, callback) {
+    this.isConnected(socket.pushId, (connectedOrNot, socketId) => {
+      if (connectedOrNot && socketId == socket.id) {
+        this.unbindPushId(socket.pushId);
+        callback(true);
+      } else {
+        callback(false);
+      }
+    })
+  }
 
-    connect(socket, callback){
-        this.isConnected(socket.pushId, (connectedOrNot, socketId) => {
-            this.bindPushId(socket.pushId, socket.id);
-            if(connectedOrNot){
-                callback(false);
-            }else{
-                callback(true);
-            }
-        })
-    }
+  connect(socket, callback) {
+    this.isConnected(socket.pushId, (connectedOrNot, socketId) => {
+      this.bindPushId(socket.pushId, socket.id);
+      if (connectedOrNot) {
+        callback(false);
+      } else {
+        callback(true);
+      }
+    })
+  }
 }
