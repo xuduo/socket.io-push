@@ -1,5 +1,5 @@
-module.exports = (url) => {
-  return new Mongo(url);
+module.exports = (prefix, url) => {
+  return new Mongo(prefix, url);
 };
 
 let mongoose = require('mongoose');
@@ -7,7 +7,7 @@ mongoose.Promise = Promise;
 
 class Mongo {
 
-  constructor(urls) {
+  constructor(prefix = '', urls) {
     this.deviceConnection = mongoose.createConnection(urls.device || urls.default);
     const deviceSchema = mongoose.Schema({
       _id: String,
@@ -25,12 +25,8 @@ class Mongo {
         type: String,
         index: true
       },
-      token: {
-        type: String
-      },
-      package_name: {
-        type: String
-      }
+      token: String,
+      package_name: String
     });
     deviceSchema.index({
       uid: 1,
@@ -49,8 +45,8 @@ class Mongo {
       package_name: 1,
       type: 1
     });
-    this.deviceConnection.model('Device', deviceSchema);
-    this.device = this.deviceConnection.model('Device');
+    this.deviceConnection.model(prefix + '_device', deviceSchema);
+    this.device = this.deviceConnection.model(prefix + '_device');
 
     this.tagConnection = mongoose.createConnection(urls.tag || urls.default);
     const tagSchema = mongoose.Schema({
@@ -65,8 +61,8 @@ class Mongo {
     tagSchema.index({
       '_id.pushId': 1
     });
-    this.tagConnection.model('Tag', tagSchema);
-    this.tag = this.tagConnection.model('Tag');
+    this.tagConnection.model(prefix + '_tag', tagSchema);
+    this.tag = this.tagConnection.model(prefix + '_tag');
 
     this.ttlConnection = mongoose.createConnection(urls.ttl || urls.default);
     const ttlSchema = mongoose.Schema({
@@ -85,8 +81,8 @@ class Mongo {
     }, {
       expireAfterSeconds: 0
     });
-    this.ttlConnection.model('TTL', ttlSchema);
-    this.ttl = this.ttlConnection.model('TTL');
+    this.ttlConnection.model(prefix + '_ttl', ttlSchema);
+    this.ttl = this.ttlConnection.model(prefix + '_ttl');
 
     this.statsConnection = mongoose.createConnection(urls.stats || urls.default);
     const arrivalSchema = mongoose.Schema({
@@ -103,45 +99,17 @@ class Mongo {
         type: Date,
         index: true
       },
-      android_click: {
-        type: Number
-      },
-      target_android: {
-        type: Number
-      },
-      arrive_android: {
-        type: Number
-      },
-      apn_click: {
-        type: Number
-      },
-      target_apn: {
-        type: Number
-      },
-      arrive_apn: {
-        type: Number
-      },
-      huawei_click: {
-        type: Number
-      },
-      target_huawei: {
-        type: Number
-      },
-      arrive_huawei: {
-        type: Number
-      },
-      xiaomi_click: {
-        type: Number
-      },
-      target_xiaomi: {
-        type: Number
-      },
-      arrive_xiaomi: {
-        type: Number
-      },
-      xiaomi_msg_id: {
-        type: String
-      },
+      android_click: Number,
+      target_android: Number,
+      arrive_android: Number,
+      apn_click: Number,
+      target_apn: Number,
+      arrive_apn: Number,
+      huawei_click: Number,
+      target_huawei: Number,
+      arrive_huawei: Number,
+      xiaomi_click: Number,
+      xiaomi_msg_id: String,
       type: {
         type: String,
         index: true
@@ -152,23 +120,21 @@ class Mongo {
     }, {
       expireAfterSeconds: 0
     });
-    this.statsConnection.model('Arrival', arrivalSchema);
-    this.arrival = this.statsConnection.model('Arrival');
+    this.statsConnection.model(prefix + '_arrival', arrivalSchema);
+    this.arrival = this.statsConnection.model(prefix + '_arrival');
 
     const topicOnlineSchema = mongoose.Schema({
       _id: {
         serverId: String,
         topic: String
       },
-      expireAt: {
-        type: Date
-      },
-      count: {
-        type: Number
-      },
-      devices: {
-        type: [String]
-      }
+      expireAt: Date,
+      count: Number,
+      devices: [{
+        pushId: String,
+        uid: String,
+        platform: String
+      }]
     });
     topicOnlineSchema.index({
       '_id.topic': 1
@@ -178,8 +144,59 @@ class Mongo {
     }, {
       expireAfterSeconds: 0
     });
-    this.statsConnection.model('TopicOnline', topicOnlineSchema);
-    this.topicOnline = this.statsConnection.model('TopicOnline');
+    this.statsConnection.model(prefix + '_topic_online', topicOnlineSchema);
+    this.topicOnline = this.statsConnection.model(prefix + '_topic_online');
+
+    const sessionSchema = mongoose.Schema({
+      _id: String,
+      expireAt: Date,
+      sessionCount: {
+        total: Number,
+        ios: Number,
+        android: Number,
+        browser: Number
+      },
+      packetAverage10s: Number,
+      packetDrop: Number,
+      packetDropThreshold: Number
+    });
+    sessionSchema.index({
+      "expireAt": 1
+    }, {
+      expireAfterSeconds: 0
+    });
+    this.statsConnection.model(prefix + '_session', sessionSchema);
+    this.session = this.statsConnection.model(prefix + '_session');
+
+    const statSchema = mongoose.Schema({
+      _id: {
+        timestamp: Date,
+        key: String
+      },
+      expireAt: Date,
+      totalCount: Number,
+      successCount: Number,
+      totalLatency: Number,
+      errorCount: Number
+    });
+
+    statSchema.index({
+      "expireAt": 1
+    }, {
+      expireAfterSeconds: 0
+    });
+
+    statSchema.index({
+      '_id.timestamp': 1
+    });
+
+    statSchema.index({
+      '_id.key': 1
+    });
+
+    this.statsConnection.model(prefix + '_stat', statSchema);
+    this.stat = this.statsConnection.model(prefix + '_stat');
+
   }
 
   close() {

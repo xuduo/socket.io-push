@@ -7,7 +7,7 @@ class Proxy {
   constructor(ioServer, config) {
     this.httpServer = ioServer.hs;
     this.httpsServer = ioServer.hss;
-    this.mongo = require('./mongo/mongo')(config.mongo);
+    this.mongo = require('./mongo/mongo')(config.prefix, config.mongo);
     this.io = ioServer;
     console.log(`start proxy on port  ${config.http_port} ${config.https_port} #${process.pid}`);
     if (this.io) {
@@ -19,14 +19,14 @@ class Proxy {
       if (nodeCluster.worker) {
         id = nodeCluster.worker.id;
       }
-      const redisIncreBuffer = require('./stats/redisIncrBuffer')(cluster, config.statsCommitThreshold);
-      this.stats = require('./stats/stats')(cluster, id, redisIncreBuffer, config.packetDropThreshold);
+      const redisIncreBuffer = require('./stats/redisIncrBuffer')(this.mongo, config.statsCommitThreshold);
+      this.stats = require('./stats/stats')(this.mongo, id, redisIncreBuffer, config.packetDropThreshold);
       this.topicOnline = require('./stats/topicOnline')(this.mongo, this.io, this.stats.id, config.topicOnlineFilter);
       this.arrivalStats = require('./stats/arrivalStats')(this.mongo);
       const socketIoRedis = require('socket.io-push-redis/adapter')({
         pubClient: cluster,
         subClient: cluster,
-        key: 'io'
+        key: config.prefix
       }, null, this.stats);
 
       this.io.adapter(socketIoRedis);
@@ -35,7 +35,7 @@ class Proxy {
       if (config.redis.event) {
         packetService = require('./service/packetService')(cluster);
       }
-      this.uidStore = require('./redis/uidStore')(cluster, this.mongo, this.io);
+      this.uidStore = require('./redis/uidStore')(config.prefix, cluster, this.mongo, this.io);
       this.ttlService = require('./service/ttlService')(this.io, this.mongo, config.ttl_protocol_version, this.stats, this.arrivalStats);
       const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
       this.tokenService = require('./service/tokenService')(this.mongo, tokenTTL);

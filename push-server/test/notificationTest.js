@@ -64,7 +64,6 @@ describe('notification', function() {
 
     pushClient.on('notification', notificationCallback);
 
-
     request({
       url: apiUrl + '/api/notification',
       method: "post",

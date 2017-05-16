@@ -1,51 +1,57 @@
-module.exports = (redis, commitThreshHold) => {
-    return new RedisIncrBuffer(redis, commitThreshHold);
+module.exports = (mongo, commitThreshHold) => {
+  return new RedisIncrBuffer(mongo, commitThreshHold);
 };
 
-const expire = 7 * 24 * 60 * 60;
+const expire = 7 * 24 * 60 * 60 * 1000;
+const mSecPerHour = 60 * 60 * 1000;
 
 class RedisIncrBuffer {
 
-    constructor(redis, commitThreshHold) {
-        this.redis = redis;
-        this.map = {};
-        this.timestamp = Date.now();
-        let commitThresHold = commitThreshHold || 20 * 1000;
-        setInterval(() => {
-            this.commit();
-        }, commitThresHold);
-    }
+  constructor(mongo, commitThreshHold) {
+    this.mongo = mongo;
+    this.map = {};
+    let commitThresHold = commitThreshHold || 20 * 1000;
+    setInterval(() => {
+      this.commit();
+    }, commitThresHold);
+  }
 
-    incrby(key, by) {
-        const currentIncr = this.map[key] || 0;
-        this.map[key] = currentIncr + by;
-    }
-
-    set(key, value) {
-        this.redis.set(key, value);
-        this.redis.expire(key, expire);
-        this.saveQueryDataKeys(key);
-    }
-
-    saveQueryDataKeys(key) {
-        const index = key.indexOf("#totalCount");
-        if (index != -1) {
-            const str = key.substring("stats#".length, index);
-            this.redis.hset("queryDataKeys", str, Date.now())
+  incr(key, by) {
+    const currentIncr = this.map[key] || 0;
+    if (!this.map[key]) {
+      this.map[key] = by;
+    } else {
+      for (const field in by) {
+        if (!this.map[key][field]) {
+          this.map[key][field] = 0;
         }
+        this.map[key][field] += by[field];
+      }
     }
+  }
 
-    commit() {
-        for (const key in this.map) {
-            const count = this.map[key];
-            this.redis.incrby(key, count, (err, result)=> {
-                if (result == count) {
-                    this.redis.expire(key, expire);
-                }
-            });
-            this.saveQueryDataKeys(key);
+  strip(timestamp, interval = mSecPerHour) {
+    return Math.floor(timestamp / interval) * interval;
+  }
+
+  commit() {
+    const timestamp = this.strip(Date.now());
+    const expireAt = timestamp + expire;
+    for (const key in this.map) {
+      this.mongo.stat.update({
+        _id: {
+          key,
+          timestamp
         }
-        this.map = {};
+      }, {
+        $inc: this.map[key],
+        $set: {
+          expireAt
+        }
+      }, {
+        upsert: true
+      });
     }
-
+    this.map = {};
+  }
 }

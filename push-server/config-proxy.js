@@ -5,12 +5,14 @@ var config = {};
 config.http_port = 10001;
 // https端口,不配置不启用https，　证书＆密钥位置： cert/https/*.pem ;
 config.https_port = 10443;
-config.https_key = process.cwd() + "/cert/https/key.pem";
-config.https_cert = process.cwd() + "/cert/https/cert.pem";
-//config.host = "localhost"; //无此选项, 表示listen所有interface
+config.https_key = process.cwd() + '/cert/https/key.pem';
+config.https_cert = process.cwd() + '/cert/https/cert.pem';
+//config.host = 'localhost'; //无此选项, 表示listen所有interface
+
+config.prefix = 'test'; // 数据库表名/redis pub/sub prefix，用于多个系统公用redis和mongo的情况
 
 config.instances = 3;
-config.load_balancer = "ip_hash";// "round_robin" or "ip_hash" 如果要支持pooling协议,必须选ip_hash
+config.load_balancer = 'ip_hash'; // 'round_robin' or 'ip_hash' 如果要支持pooling协议,必须选ip_hash
 
 config.pingTimeout = 25000; //  心跳timeout
 config.pingInterval = 90000; // 心跳间隔
@@ -18,16 +20,19 @@ config.disconnect_delay = 10000; //disconnect事件延迟处理
 
 config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei timeToLive
 
-config.statsCommitThreshold = 0;//ms,统计缓存commit间隔, 生产环境建议10秒以上
+config.statsCommitThreshold = 0; //ms,统计缓存commit间隔, 生产环境建议10秒以上
 
-config.topicOnlineFilter = {chatRoom: "devices", drawTopic: "count"};
+config.topicOnlineFilter = {
+  chatRoom: 'devices',
+  drawTopic: 'count'
+};
 //在线统计功能, 以chatRoom开头的topic会进行统计在线, 并提供查询接口
 // devices -- 统计设备列表 count -- 只统计总数
 
 config.packetDropThreshold = 0;
 
 config.mongo = {
-    default: "mongodb://localhost/socketiopush"
+  default: 'mongodb://localhost/socketiopush'
 };
 
 /**
@@ -39,25 +44,18 @@ config.mongo = {
  * event 客户端断线,连接事件pub的redis.功能可能以后会改,不推荐使用
  */
 config.redis = {
-    sub: [
-        {host: "127.0.0.1", port: 6379}
-    ],
-    write: [
-        {host: "127.0.0.1", port: 6379}
-    ],
-    read: [
-        {host: "127.0.0.1", port: 6379}
-    ],
-    event: [
-        {
-            host: "127.0.0.1",
-            port: 6379
-        }
-    ]
+  sub: [{
+    host: '127.0.0.1',
+    port: 6379
+  }],
+  event: [{
+    host: '127.0.0.1',
+    port: 6379
+  }]
 };
 
 config.bindUid = (data, callback) => {
-    callback(data.uid);
+  callback(data.uid);
 };
 
 module.exports = config;
