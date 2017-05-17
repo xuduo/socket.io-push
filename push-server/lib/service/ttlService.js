@@ -1,5 +1,5 @@
-module.exports = (io, mongo, protocolVersion, stats, arrivalStats) => {
-  return new TTLService(io, mongo, protocolVersion, stats, arrivalStats);
+module.exports = (io, mongo, stats, arrivalStats) => {
+  return new TTLService(io, mongo, stats, arrivalStats);
 };
 
 const logger = require('winston-proxy')('TTLService');
@@ -8,10 +8,9 @@ const maxTllPacketPerTopic = -10;
 
 class TTLService {
 
-  constructor(io, mongo, protocolVersion, stats, arrivalStats) {
+  constructor(io, mongo, stats, arrivalStats) {
     this.mongo = mongo;
     this.io = io;
-    this.protocolVersion = protocolVersion || 1;
     this.stats = stats;
     this.arrivalStats = arrivalStats;
   }
@@ -80,7 +79,9 @@ class TTLService {
             });
 
             if (unicast) {
-              this.mongo.ttl.findByIdAndRemove(topic);
+              this.mongo.ttl.remove({
+                _id: topic
+              });
             }
 
             if (!lastFound) {
@@ -112,7 +113,7 @@ class TTLService {
     if (packet.timestamp) {
       packet.timestamp = Date.now();
     }
-    if (this.protocolVersion > 1 && event == "push") {
+    if (event == "push") {
       if (packet.ttl) {
         socket.emit("p", packet.j, [packet.topic, packet.id, packet.unicast || 0]);
       } else {

@@ -26,7 +26,7 @@ class TokenService {
 
   delToken(type, token, bundleId) {
     if (type && token) {
-      this.mongo.device.findOneAndRemove({
+      this.mongo.device.remove({
         token,
         type,
         package_name: bundleId
@@ -35,8 +35,9 @@ class TokenService {
   }
 
   setToken(data) {
-    this.mongo.device.findByIdAndUpdate(data.pushId, {
-      _id: data.pushId,
+    this.mongo.device.update({
+      _id: data.pushId
+    }, {
       type: data.type,
       token: data.token,
       package_name: data.package_name || data.bundleId,
@@ -44,7 +45,7 @@ class TokenService {
     }, {
       upsert: true
     }, (err, doc) => {
-      logger.debug("setToken ", doc, err);
+      logger.debug("setToken mongo ", doc, err);
     });
   }
 }

@@ -38,6 +38,15 @@ config.apns = [{
       keyId: 'E75AZZM4Z8',
       teamId: 'PVE2WH4PE2'
     }
+  },
+  {
+    production: false,
+    bundleId: 'com.xuduopushtest',
+    token: {
+      key: process.cwd() + '/cert/com.xuduopushtest.p8',
+      keyId: "TA7E8SBDZA",
+      teamId: "RA5DTC26D2"
+    }
   }
 ];
 
@@ -92,8 +101,6 @@ config.redis = {
     }]
   ]
 };
-
-config.ttl_protocol_version = 2; //默认1, 推荐使用2,省流量
 
 config.routerMaxPushIds = 1000;
 
