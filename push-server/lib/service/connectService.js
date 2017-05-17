@@ -34,10 +34,17 @@ class ConnectService {
   }
 
   unbindPushId(pushId, callback) {
-    this.redis.del("pushIdSocketId#" + pushId);
-    if (callback) {
-      callback();
-    }
+    this.mongo.device.update({
+      _id: pushId
+    }, {
+      $set: {
+        socketId: null
+      }
+    }, (err, doc) => {
+      if (callback) {
+        callback();
+      }
+    });
   }
 
   disconnect(socket, callback) {

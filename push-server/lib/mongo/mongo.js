@@ -89,9 +89,6 @@ class Mongo {
       _id: {
         type: String
       },
-      packets: {
-        type: [String]
-      },
       expireAt: {
         type: Date
       },
@@ -99,6 +96,7 @@ class Mongo {
         type: Date,
         index: true
       },
+      notification: String,
       android_click: Number,
       target_android: Number,
       arrive_android: Number,

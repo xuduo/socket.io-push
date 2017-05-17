@@ -257,14 +257,9 @@ class RestApi {
       }
 
     });
-    router.all('/stats/arrival/pushAll', (req, res, next) => {
-      arrivalStats.getRateStatusByType('noti', (result) => {
-        res.json(result);
-        return next();
-      })
-    });
-    router.all('/stats/arrival/pushMany', (req, res, next) => {
-      arrivalStats.getRateStatusByType('group', (result) => {
+
+    router.all('/stats/arrival/:type', (req, res, next) => {
+      arrivalStats.getRateStatusByType(req.params.type, (result) => {
         res.json(result);
         return next();
       })

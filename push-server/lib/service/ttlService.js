@@ -44,7 +44,7 @@ class TTLService {
       }, (err, doc) => {
         if (!err && doc) {
           if (!doc.expireAt || doc.expireAt < data.timeToLive) {
-            doc.expireAt = data.timeToLive;
+            doc.expireAt = Date.now() + data.timeToLive;
             doc.save();
           }
         }

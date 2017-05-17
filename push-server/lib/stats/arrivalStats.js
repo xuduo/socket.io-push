@@ -22,10 +22,12 @@ class ArrivalStats {
     if (Object.keys(set).length > 0) {
       data['$set'] = set;
     }
-    this.mongo.arrival.findByIdAndUpdate(msgId, data, {
+    this.mongo.arrival.update({
+      _id: msgId
+    }, data, {
       upsert: true
     }, (err, doc) => {
-      logger.debug('addArrivalInfo ', data, doc, err);
+      logger.debug('addArrivalInfo ', msgId, data, doc, err);
     });
   }
 
@@ -88,7 +90,6 @@ class ArrivalStats {
   }
 
   calculateArrivalInfo(packet, callback) {
-    logger.debug('calculateArrivalInfo: ', packet);
 
     packet.timeValid = new Date(parseInt(packet.timeStart) + parseInt(packet.ttl)).toLocaleString();
     packet.timeStart = new Date(parseInt(packet.timeStart)).toLocaleString();
