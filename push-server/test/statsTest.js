@@ -10,7 +10,6 @@ describe('statsTest', function() {
     global.apiServer = defSetting.getDefaultApiServer();
     global.apiUrl = defSetting.getDefaultApiUrl();
     global.stats = proxyServer.stats;
-    stats.redisIncrBuffer.commitThreshold = 0;
     global.pushClient = defSetting.getDefaultPushClient();
     stats.mongo.session.remove({}, done);
   });
@@ -57,10 +56,13 @@ describe('statsTest', function() {
   });
 
   it('find toClientPacket > 0', function(done) {
-    stats.find("toClientPacket", function(data) {
-      expect(data.totalCount).to.greaterThan(0);
-      done();
-    });
+    stats.redisIncrBuffer.commit();
+    setTimeout(() => {
+      stats.find("toClientPacket", function(data) {
+        expect(data.totalCount).to.greaterThan(0);
+        done();
+      });
+    }, 50);
   });
 
   it('find', function(done) {
