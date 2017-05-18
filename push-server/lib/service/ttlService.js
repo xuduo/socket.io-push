@@ -34,6 +34,9 @@ class TTLService {
       data.timestampValid = Date.now() + timeToLive;
       data.event = event;
       this.mongo.ttl.findByIdAndUpdate(topic, {
+        $setOnInsert: {
+          expireAt: data.timestampValid
+        },
         $push: {
           "packets": JSON.stringify(data),
           $slice: maxTllPacketPerTopic
@@ -42,8 +45,8 @@ class TTLService {
         upsert: true
       }, (err, doc) => {
         if (!err && doc) {
-          if (!doc.expireAt || doc.expireAt < data.timeToLive) {
-            doc.expireAt = Date.now() + data.timeToLive;
+          if (!doc.expireAt || doc.expireAt < data.timestampValid) {
+            doc.expireAt = data.timestampValid;
             doc.save();
           }
         }

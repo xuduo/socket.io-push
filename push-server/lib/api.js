@@ -20,7 +20,7 @@ class Api {
     const topicOnline = require('./stats/topicOnline')(this.mongo);
     this.arrivalStats = require('./stats/arrivalStats')(this.mongo, topicOnline);
     this.uidStore = require('./redis/uidStore')(config.prefix, cluster, this.mongo);
-    this.ttlService = require('./service/ttlService')(this.io, this.mongo, config.ttl_protocol_version, this.stats, this.arrivalStats);
+    this.ttlService = require('./service/ttlService')(this.io, this.mongo, this.stats, this.arrivalStats);
     const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30 * 6;
     this.notificationService = require('./service/notificationService')(config.apns, this.mongo, this.ttlService, tokenTTL, this.arrivalStats);
 

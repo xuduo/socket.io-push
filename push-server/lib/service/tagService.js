@@ -28,7 +28,7 @@ class TagService {
   }
 
   removeTag(pushId, tag) {
-    this.mongo.tag.deleteMany({
+    this.mongo.tag.remove({
       _id: {
         pushId,
         tag

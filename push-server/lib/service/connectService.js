@@ -37,8 +37,8 @@ class ConnectService {
     this.mongo.device.update({
       _id: pushId
     }, {
-      $set: {
-        socketId: null
+      $unset: {
+        socketId: 1
       }
     }, (err, doc) => {
       if (callback) {
