@@ -69,15 +69,15 @@ config.xiaomi = {
 //api调用鉴权,可选
 const ipList = ['127.0.0.1'];
 
-config.apiAuth = function(path, req, logger) {
-  var ip = req.connection.remoteAddress;
+config.apiAuth = function(opts, callback) {
+  var ip = opts.req.connection.remoteAddress;
   if (ip.length >= 15) ip = ip.slice(7);
-  logger.info('%s caller ip %s %s %s %s', path, ip, ipList.indexOf(ip) != -1, req.p.tag, req.p.pushAll);
-  if (req.p.pushAll == 'true' || req.p.tag) {
+  opts.logger.info('%s caller ip %s', opts.req.originalUrl, ip);
+  if (opts.req.p.pushAll == 'true' || opts.req.p.tag) {
     console.log(' check auth ' + ipList.indexOf(ip) != -1);
-    return ipList.indexOf(ip) != -1;
+    callback(ipList.indexOf(ip) != -1);
   } else {
-    return true;
+    callback(true);
   }
 };
 

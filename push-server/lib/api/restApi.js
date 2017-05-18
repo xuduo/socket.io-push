@@ -4,10 +4,13 @@ module.exports = (httpServer, spdyServer, apiRouter, topicOnline, stats, config,
 const express = require('express');
 const logger = require('winston-proxy')('RestApi');
 const async = require('async');
+const request = require('request');
 
 class RestApi {
 
-  constructor(httpServer, spdyServer, apiRouter, topicOnline, stats, config, apnService, apiAuth, uidStore, connectService, arrivalStats) {
+  constructor(httpServer, spdyServer, apiRouter, topicOnline, stats, config, apnService, apiAuth = (opts, callback) => {
+    callback(true)
+  }, uidStore, connectService, arrivalStats) {
     this.apiAuth = apiAuth;
     this.apiRouter = apiRouter;
 
@@ -26,7 +29,23 @@ class RestApi {
         req.p[param] = req.query[param];
       }
       res.set("Access-Control-Allow-Origin", "*");
-      return next();
+
+      this.apiAuth({
+        req,
+        logger,
+        request
+      }, (pass, message) => {
+        if (!pass) {
+          logger.error("api denied ", req.originalUrl, req.connection.remoteAddress);
+          res.statusCode = 401;
+          res.json({
+            code: "error",
+            message: message || 'apiAuth check fail'
+          });
+        }
+        return next();
+      });
+
     });
 
     if (httpServer) {
@@ -41,16 +60,6 @@ class RestApi {
     app.use("/api", router);
 
     router.all('/push', (req, res, next) => {
-      if (this.apiAuth && !this.apiAuth("/api/push", req, logger)) {
-        logger.error("push denied %j %j", req.p, req.headers);
-        res.statusCode = 400;
-        res.json({
-          code: "error",
-          message: 'not authorized'
-        });
-        return next();
-      }
-
       if (!req.p.topic && !req.p.pushId && !req.p.uid) {
         res.statusCode = 400;
         res.json({
@@ -109,19 +118,12 @@ class RestApi {
         code: "success"
       });
       return next();
+
     });
 
     router.all('/notification', (req, res, next) => {
-      logger.info("handleNotification %j", req.p);
-      if (this.apiAuth && !this.apiAuth("/api/notification", req, logger)) {
-        logger.error("notification denied %j %j", req.p, req.headers);
-        res.statusCode = 400;
-        res.json({
-          code: "error",
-          message: 'not authorized'
-        });
-        return next();
-      }
+      logger.info("handleNotification %j", req.connection.remoteAddress, req.p);
+
       if (!req.p.notification) {
         res.statusCode = 400;
         res.json({
@@ -152,6 +154,7 @@ class RestApi {
       if (!notification.android) {
         notification.android = {};
       }
+
       if (notification.payload) {
         notification.android.payload = notification.payload;
         delete notification.payload;
