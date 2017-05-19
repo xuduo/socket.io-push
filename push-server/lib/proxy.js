@@ -37,8 +37,7 @@ class Proxy {
       }
       this.uidStore = require('./redis/uidStore')(config.prefix, cluster, this.mongo, this.io);
       this.ttlService = require('./service/ttlService')(this.io, this.mongo, this.stats, this.arrivalStats);
-      const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30;
-      this.tokenService = require('./service/tokenService')(this.mongo, tokenTTL);
+      this.tokenService = require('./service/tokenService')(this.mongo);
 
       this.proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.tokenService, this.uidStore,
         this.ttlService, this.tagService, this.connectService, this.arrivalStats, config);

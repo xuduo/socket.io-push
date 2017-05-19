@@ -1,14 +1,13 @@
-module.exports = (mongo, tokenTTL) => {
-  return new TokenService(mongo, tokenTTL);
+module.exports = (mongo) => {
+  return new TokenService(mongo);
 };
 
 const logger = require('winston-proxy')('TokenService');
 
 class TokenService {
 
-  constructor(mongo, tokenTTL) {
+  constructor(mongo) {
     this.mongo = mongo;
-    this.tokenTTL = tokenTTL;
   }
 
   setApnNoToken(pushId) {

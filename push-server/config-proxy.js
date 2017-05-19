@@ -18,8 +18,6 @@ config.pingTimeout = 25000; //  心跳timeout
 config.pingInterval = 90000; // 心跳间隔
 config.disconnect_delay = 10000; //disconnect事件延迟处理
 
-config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei timeToLive
-
 config.statsCommitThreshold = 0; //ms,统计缓存commit间隔, 生产环境建议10秒以上
 
 config.topicOnlineFilter = {

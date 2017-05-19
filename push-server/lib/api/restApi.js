@@ -41,6 +41,7 @@ class RestApi {
             code: "error",
             message: message || 'apiAuth check fail'
           });
+          next(new Error('api denied  '));
         } else {
           next();
         }

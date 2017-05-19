@@ -21,14 +21,14 @@ class Api {
     this.arrivalStats = require('./stats/arrivalStats')(this.mongo, topicOnline);
     this.uidStore = require('./redis/uidStore')(config.prefix, cluster, this.mongo);
     this.ttlService = require('./service/ttlService')(this.io, this.mongo, this.stats, this.arrivalStats);
-    const tokenTTL = config.tokenTTL || 1000 * 3600 * 24 * 30 * 6;
-    this.notificationService = require('./service/notificationService')(config.apns, this.mongo, this.ttlService, tokenTTL, this.arrivalStats);
+
+    this.notificationService = require('./service/notificationService')(config.apns, this.mongo, this.ttlService, this.arrivalStats);
 
     const providerFactory = require('./service/notificationProviderFactory')();
     this.notificationService.providerFactory = providerFactory;
     if (config.apns != undefined) {
-      this.tokenService = require('./service/tokenService')(this.mongo, tokenTTL);
-      this.apnService = require('./service/apnProvider')(config.apns, config.apnApiUrls, this.mongo, this.arrivalStats, tokenTTL, this.tokenService);
+      this.tokenService = require('./service/tokenService')(this.mongo);
+      this.apnService = require('./service/apnProvider')(config.apns, config.apnApiUrls, this.mongo, this.arrivalStats, this.tokenService);
       providerFactory.addProvider(this.apnService);
     }
     if (config.huawei) {

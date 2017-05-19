@@ -14,8 +14,6 @@ config.socketTimeout = 60 * 1000;
 config.https_key = process.cwd() + '/cert/https/key.pem';
 config.https_cert = process.cwd() + '/cert/https/cert.pem';
 
-config.tokenTTL = 1000 * 3600 * 24 * 30; // apn/xiaomi/huawei timeToLive
-
 config.statsCommitThreshold = 0; //ms,统计缓存commit间隔, 生产环境建议10秒以上
 
 config.topicThreshold = {};
