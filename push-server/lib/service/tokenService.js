@@ -26,10 +26,16 @@ class TokenService {
 
   delToken(type, token, bundleId) {
     if (type && token) {
-      this.mongo.device.remove({
+      this.mongo.device.update({
         token,
         type,
         package_name: bundleId
+      }, {
+        $unset: {
+          token: 1,
+          type: 1,
+          package_name: 1
+        }
       });
     }
   }

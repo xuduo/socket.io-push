@@ -37,15 +37,14 @@ class RestApi {
       }, (pass, message) => {
         if (!pass) {
           logger.error("api denied ", req.originalUrl, req.connection.remoteAddress);
-          res.statusCode = 401;
-          res.json({
+          res.status(401).json({
             code: "error",
             message: message || 'apiAuth check fail'
           });
+        } else {
+          next();
         }
-        return next();
       });
-
     });
 
     if (httpServer) {

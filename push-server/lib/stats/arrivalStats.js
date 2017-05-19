@@ -31,17 +31,21 @@ class ArrivalStats {
     });
   }
 
+  msgToData(msg, ttl) {
+    return {
+      notification: msg.message || (msg.apn && msg.apn.alert) || (msg.android && msg.android.message),
+      expireAt: Date.now() + this.recordKeepTime,
+      timeStart: Date.now(),
+      ttl
+    };
+  }
+
   addPushAll(msg, ttl) {
     logger.info('addPushAll, packet:%s', msg.id);
     this.topicOnline.getTopicOnline('noti', (count) => {
       logger.info('packet(%s) init count:%d', msg.id, count);
-      const data = {
-        notification: msg.message,
-        expireAt: Date.now() + this.recordKeepTime,
-        timeStart: Date.now(),
-        type: 'pushAll',
-        ttl
-      };
+      const data = this.msgToData(msg, ttl);
+      data.type = 'pushAll';
       this.addArrivalInfo(msg.id, {
         'target_android': count
       }, data);
@@ -49,14 +53,9 @@ class ArrivalStats {
   }
 
   addPushMany(msg, ttl, sentCount) {
-    logger.info('addPushMany, packet: %s', msg.id);
-    const data = {
-      notification: msg.message || (msg.apn && msg.apn.alert) || (msg.android && msg.android.message),
-      expireAt: Date.now() + this.recordKeepTime,
-      timeStart: Date.now(),
-      type: 'pushMany',
-      ttl
-    };
+    logger.info('addPushMany, packet: %s', msg);
+    const data = this.msgToData(msg, ttl);
+    data.type = 'pushMany';
     this.addArrivalInfo(msg.id, {
       'target_android': sentCount
     }, data);
