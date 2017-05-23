@@ -15,6 +15,10 @@ class ArrivalStats {
   }
 
   addArrivalInfo(msgId, inc, set = {}) {
+    if (!msgId) {
+      logger.error('addArrivalInfo no msgId', inc, set);
+      return;
+    }
     const data = {};
     if (Object.keys(inc).length > 0) {
       data['$inc'] = inc;

@@ -64,6 +64,11 @@ config.xiaomi = {
   app_secret: 'ynJJ6b+MkCLyw1cdrg/72w=='
 };
 
+config.umeng = {
+  appKey: '59229cabf29d982ebd000b4b',
+  masterSecret: 'bjgv1ttgt2herpgqxrvmsupazzsumobq'
+};
+
 //api调用鉴权,可选
 const ipList = ['127.0.0.1'];
 

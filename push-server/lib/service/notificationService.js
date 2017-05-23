@@ -38,7 +38,8 @@ class NotificationService {
           const tokenList = mapTypeToToken[token.type] || [];
           tokenList.push(token);
           mapTypeToToken[token.type] = tokenList;
-        } else {
+        }
+        if (!token || token.type == 'umeng') {
           logger.debug("send notification in socket.io, connection %s", pushId);
           sendViaTtlService++;
           this.ttlService.addTTL(pushId, 'noti', timeToLive, notification, true);

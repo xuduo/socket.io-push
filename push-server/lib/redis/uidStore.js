@@ -158,7 +158,6 @@ class UidStore {
       uid: uid
     }, (err, devices) => {
       const platforms = {};
-      logger.debug('getUidByPushId %s %s', pushId, devices);
       if (!err && devices) {
         devices.forEach((device) => {
           platforms[device.id] = device.platform;

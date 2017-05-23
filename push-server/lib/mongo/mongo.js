@@ -108,6 +108,8 @@ class Mongo {
       arrive_huawei: Number,
       xiaomi_click: Number,
       xiaomi_msg_id: String,
+      umeng_click: Number,
+      umeng_task_id: String,
       type: {
         type: String,
         index: true
