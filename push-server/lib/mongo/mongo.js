@@ -97,9 +97,11 @@ class Mongo {
         index: true
       },
       notification: String,
+      ttl: Number,
       android_click: Number,
       target_android: Number,
       arrive_android: Number,
+      arrive_umeng: Number,
       apn_click: Number,
       target_apn: Number,
       arrive_apn: Number,

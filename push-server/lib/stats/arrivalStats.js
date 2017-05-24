@@ -93,43 +93,37 @@ class ArrivalStats {
   }
 
   calculateArrivalInfo(packet, callback) {
-
-    packet.timeValid = new Date(parseInt(packet.timeStart) + parseInt(packet.ttl)).toLocaleString();
-    packet.timeStart = new Date(parseInt(packet.timeStart)).toLocaleString();
     let apn = {};
     apn.target = parseInt(packet.target_apn || 0);
     apn.arrive = parseInt(packet.arrive_apn || 0);
     apn.click = parseInt(packet.click_apn || 0);
     apn.arrivalRate = apn.target != 0 ? (apn.arrive * 100 / apn.target).toFixed(2) + '%' : 0;
     apn.clickRate = apn.target != 0 ? (apn.click * 100 / apn.target).toFixed(2) + '%' : 0;
-    delete packet.target_apn;
-    delete packet.arrive_apn;
-    delete packet.click_apn;
 
-    if (apn.target > 0) {
-      packet.apn = apn;
-    }
 
     let android = {};
     android.target = parseInt(packet.target_android || 0);
     android.arrive = parseInt(packet.arrive_android || 0);
+    android.arrive_umeng = parseInt(packet.arrive_umeng || 0);
     android.click = parseInt(packet.click_android || 0);
     android.arrivalRate = android.target != 0 ? (android.arrive * 100 / android.target).toFixed(2) + '%' : 0;
     android.clickRate = android.target != 0 ? (android.click * 100 / android.target).toFixed(2) + '%' : 0;
-    delete packet.target_android;
-    delete packet.arrive_android;
-    delete packet.click_android;
 
-    if (android.target > 0 || android.arrive > 0) {
-      packet.android = android;
-    }
+    const result = {
+      android,
+      apn,
+      timeValid: new Date(packet.timeStart.getTime() + (packet.ttl || 0)).toLocaleString(),
+      timeStart: packet.timeStart.toLocaleString()
+    };
+
+    logger.debug('calculateArrivalInfo ', result);
 
     if (this.xiaomiProvider) {
-      this.xiaomiProvider.trace(packet, () => {
-        callback(packet);
+      this.xiaomiProvider.trace(result, (traced) => {
+        callback(traced);
       });
     } else {
-      callback(packet);
+      callback(result);
     }
   }
 
@@ -138,6 +132,9 @@ class ArrivalStats {
       logger.debug('getArrivalInfo: ', id, doc);
       if (!err && doc) {
         this.calculateArrivalInfo(doc, callback);
+      } else {
+        logger.debug('getArrivalInfo error: ', id, doc);
+        callback({});
       }
     });
   }

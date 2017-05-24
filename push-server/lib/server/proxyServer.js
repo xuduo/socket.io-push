@@ -208,6 +208,13 @@ class ProxyServer {
         });
       });
 
+      socket.on('umengReply', (data) => {
+        logger.debug("umengReply ", data);
+        arrivalStats.addArrivalInfo(data.id, {
+          arrive_umeng: 1
+        });
+      });
+
       socket.on('notificationClick', (data) => {
         if (!data.type || data.type == 'umeng') {
           data.type = 'android'
