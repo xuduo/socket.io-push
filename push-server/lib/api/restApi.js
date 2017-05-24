@@ -15,12 +15,21 @@ class RestApi {
     this.apiRouter = apiRouter;
 
     const app = express();
+    app.disable('etag');
     var bodyParser = require('body-parser');
     app.use("/api", bodyParser.urlencoded({ // to support URL-encoded bodies
       extended: true
     }));
     app.use("/api", bodyParser.json());
     app.use("/api", (req, res, next) => {
+      req.timestamp = Date.now();
+      const path = req.path;
+      req.on('end', () => {
+        if (res.statusCode == 200) {
+          stats.addApiSuccess(path, Date.now() - req.timestamp);
+        }
+      });
+      stats.addApiCall(path);
       req.p = {};
       for (const param in req.body) {
         req.p[param] = req.body[param];
@@ -36,7 +45,7 @@ class RestApi {
         request
       }, (pass, message) => {
         if (!pass) {
-          logger.error("api denied ", req.originalUrl, req.connection.remoteAddress);
+          logger.error("api denied ", req.path, req.connection.remoteAddress);
           res.status(401).json({
             code: "error",
             message: message || 'apiAuth check fail'

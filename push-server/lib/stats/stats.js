@@ -134,22 +134,44 @@ class Stats {
     });
   }
 
+  addApiCall(path, latency) {
+    this.redisIncrBuffer.incr('call:' + path, {
+      totalCount: 1
+    });
+  }
+
+  addApiSuccess(path, latency) {
+    this.redisIncrBuffer.incr('call:' + path, {
+      successCount: 1,
+      totalLatency: latency
+    });
+  }
+
+  addPushById(count = 1) {
+    this.redisIncrBuffer.incr('pushById', {
+      totalCount: count
+    });
+  }
+
+  addPushId(type) {
+    this.redisIncrBuffer.incr('api_' + type, {
+      totalCount: count
+    });
+  }
+
   addPushTotal(count, type) {
-    const timestamp = Date.now();
     this.redisIncrBuffer.incr('notification_' + type, {
       totalCount: count
     });
   }
 
   addPushSuccess(count, type) {
-    const timestamp = Date.now();
     this.redisIncrBuffer.incr('notification_' + type, {
       successCount: count
     });
   }
 
   addPushError(count, errorCode, type) {
-    const timestamp = Date.now();
     this.redisIncrBuffer.incr('notification_error_' + type + '_' + errorCode, {
       totalCount: count
     });
@@ -174,10 +196,9 @@ class Stats {
     logger.debug('onNotificationReply %s', latency);
     if (latency < 10000) {
       this.redisIncrBuffer.incr("noti", {
-        totalCount: 1,
-        totalCount: latency
+        totalSuccess: 1,
+        totalLatency: latency
       });
-      logger.debug("onNotificationReply %d", latency);
     }
   }
 
@@ -193,30 +214,38 @@ class Stats {
     this.mongo.stat.find({
       '_id.key': key
     }).sort({
-      timestamp: -1
+      timestamp: 1
     }).limit(7 * 24).exec((err, docs) => {
       let totalCount = 0;
       let totalSuccess = 0;
       let avgLatency = 0;
       let successRate = 0;
-      let countPerSecond = 0;
       let errorCount = 0;
       let totalLatency = 0;
+      let start = 0;
+      let end = 0;
       if (!err && docs) {
         for (const stat of docs) {
+          if (start == 0) {
+            start = stat._id.timestamp;
+          }
+          end = stat._id.timestamp;
           totalCount += stat.totalCount || 0;
           totalSuccess += stat.successCount || 0;
           totalLatency += stat.totalLatency || 0;
           errorCount += stat.errorCount || 0;
         }
       }
-      avgLatency = Math.round(totalLatency / totalSuccess) || 0;
+      const countPerSecond = (totalCount || totalSuccess) * 1000 / (end - start + (Date.now() % (3600 * 1000)));
+      const countPerMinute = (totalCount || totalSuccess) * 60 * 1000 / (end - start + (Date.now() % (3600 * 1000)));
+      avgLatency = Math.round(totalLatency / (totalSuccess || totalCount)) || 0;
       callback({
-        "totalCount": totalCount,
-        "totalSuccess": totalSuccess,
-        "avgLatency": avgLatency,
-        "successRate": successRate,
-        "countPerSecond": countPerSecond,
+        totalCount,
+        totalSuccess,
+        avgLatency,
+        successRate,
+        countPerSecond,
+        countPerMinute,
         "chartData": [],
         'stats': docs
       });

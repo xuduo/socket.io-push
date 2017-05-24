@@ -2,8 +2,8 @@ module.exports = (mongo, commitThreshHold) => {
   return new RedisIncrBuffer(mongo, commitThreshHold);
 };
 
-const expire = 7 * 24 * 60 * 60 * 1000;
 const mSecPerHour = 60 * 60 * 1000;
+const expire = 30 * 24 * mSecPerHour;
 
 class RedisIncrBuffer {
 
@@ -37,6 +37,7 @@ class RedisIncrBuffer {
   commit() {
     const timestamp = this.strip(Date.now());
     const expireAt = timestamp + expire;
+
     for (const key in this.map) {
       this.mongo.stat.update({
         _id: {
@@ -50,6 +51,8 @@ class RedisIncrBuffer {
         }
       }, {
         upsert: true
+      }, (err, doc) => {
+
       });
     }
     this.map = {};

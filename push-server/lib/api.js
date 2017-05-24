@@ -45,7 +45,7 @@ class Api {
       providerFactory.addProvider(this.umengProvider);
       this.arrivalStats.umengProvider = this.umengProvider;
     }
-    this.apiRouter = require('./service/apiRouter')(this.uidStore, this.notificationService, this.ttlService, this.tagService, config.routerMaxPushIds, config.routerApiUrls);
+    this.apiRouter = require('./service/apiRouter')(this.uidStore, this.notificationService, this.ttlService, this.tagService, config.routerMaxPushIds, config.routerApiUrls, this.stats);
     this.restApi = require('./api/restApi')(httpServer, spdyServer, this.apiRouter, topicOnline, this.stats, config, this.apnService, config.apiAuth, this.uidStore, this.connectService, this.arrivalStats, this.tagService);
   }
 

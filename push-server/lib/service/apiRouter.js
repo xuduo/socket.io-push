@@ -1,5 +1,5 @@
-module.exports = (uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls) => {
-  return new ApiRouter(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls);
+module.exports = (uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls, stats) => {
+  return new ApiRouter(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls, stats);
 };
 
 const logger = require('winston-proxy')('ApiRouter');
@@ -9,8 +9,9 @@ const randomstring = require("randomstring");
 
 class ApiRouter {
 
-  constructor(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls) {
+  constructor(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls, stats) {
     this.uidStore = uidStore;
+    this.stats = stats;
     this.notificationService = notificationService;
     this.ttlService = ttlService;
     this.tagService = tagService;
@@ -69,6 +70,7 @@ class ApiRouter {
     if (pushIds.length == 0) {
       return;
     }
+    this.stats.addPushById(pushIds.length);
     if (pushIds.length >= this.maxPushIds && this.remoteUrls.hasNext()) {
       logger.info("sendNotification to remote api ", this.maxPushIds, pushIds.length);
       let batch = [];

@@ -139,7 +139,7 @@
     function loadData() {
         $.ajax({
             type: 'GET',
-            url: $.cookie("api_url") + '/api/stats/chart',
+            url: "https://" + window.location.hostname + ":" + $.cookie("api_port") + '/api/stats/chart',
             data: {key: $("#key").val()},
             dataType: 'json',
             success: function (data) {
@@ -161,7 +161,7 @@
 
         $.ajax({
             type: 'GET',
-            url: $.cookie("api_url") + '/api/stats/base',
+            url: "https://" + window.location.hostname + ":" + $.cookie("api_port") + '/api/stats/base',
             success: function (data) {
                 $("#sessionCount").text(data.sessionCount);
                 $("#iosSessionCount").text(data.ios);
@@ -173,7 +173,7 @@
     function loadQueryDataKeys() {
         $.ajax({
             type: 'GET',
-            url: $.cookie("api_url") + '/api/stats/getQueryDataKeys',
+            url: "https://" + window.location.hostname + ":" + $.cookie("api_port") + '/api/stats/getQueryDataKeys',
             success: function (data) {
                 var result = data.result;
                 for (var i = 0; i < result.length; i++) {
