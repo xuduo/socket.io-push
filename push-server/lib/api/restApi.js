@@ -1,5 +1,5 @@
-module.exports = (httpServer, spdyServer, apiRouter, topicOnline, stats, config, apnService, apiAuth, uidStore, connectService, arrivalStats) => {
-  return new RestApi(httpServer, spdyServer, apiRouter, topicOnline, stats, config, apnService, apiAuth, uidStore, connectService, arrivalStats);
+module.exports = (httpServer, spdyServer, apiRouter, topicOnline, stats, config, apnService, apiAuth, uidStore, connectService, arrivalStats, tagService) => {
+  return new RestApi(httpServer, spdyServer, apiRouter, topicOnline, stats, config, apnService, apiAuth, uidStore, connectService, arrivalStats, tagService);
 };
 const express = require('express');
 const logger = require('winston-proxy')('RestApi');
@@ -10,7 +10,7 @@ class RestApi {
 
   constructor(httpServer, spdyServer, apiRouter, topicOnline, stats, config, apnService, apiAuth = (opts, callback) => {
     callback(true)
-  }, uidStore, connectService, arrivalStats) {
+  }, uidStore, connectService, arrivalStats, tagService) {
     this.apiAuth = apiAuth;
     this.apiRouter = apiRouter;
 
@@ -399,6 +399,56 @@ class RestApi {
         return next();
       }
     });
+
+    router.all('/tag/get', (req, res, next) => {
+      const pushId = req.p.pushId;
+      const uid = req.p.uid;
+      if (pushId) {
+        tagService.getTagsByPushId(pushId, (tags) => {
+          res.json(tags);
+          return next();
+        });
+      } else if (uid) {
+        uidStore.getPushIdByUid(uid, (pushIds) => {
+          const result = [];
+          async.each(pushIds, (pushId, callback) => {
+            tagService.getTagsByPushId(pushId, (tags) => {
+              result.push({
+                pushId,
+                tags
+              });
+              callback();
+            })
+          }, () => {
+            res.json(result);
+            return next();
+          });
+        });
+      } else {
+        res.statusCode = 400;
+        res.json({
+          code: 'error',
+          message: 'pushId or uid is required'
+        });
+        return next();
+      }
+    });
+
+    //兼容旧接口
+    router.all('/redis/get', (req, res, next) => {
+      const index = req.p.key.indexOf('#');
+      const pushId = req.p.key.substring(index, req.p.key.length);
+      connectService.isConnected(pushId, (connected) => {
+        if (connected) {
+          res.json({
+            value: 1
+          });
+        } else {
+          res.json({});
+        }
+      })
+    });
+
     router.all('/token', (req, res, next) => {
       const pushId = req.p.pushId;
       apiRouter.notificationService.getTokenDataByPushId(pushId, (token) => {
