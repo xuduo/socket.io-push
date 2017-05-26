@@ -18,7 +18,7 @@ class ProxyServer {
         if (socket.pushId) {
           let disconnectDelay = 0;
           if (reason != 'ping timeout' && config.disconnect_delay) {
-            disconnectDelay = config.disconnect_delay;
+            disconnectDelay = config.disconnect_delay || 10000;
           }
           setTimeout(() => {
             connectService.disconnect(socket, (ret) => {
