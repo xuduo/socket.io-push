@@ -22,14 +22,8 @@ class RestApi {
     }));
     app.use("/api", bodyParser.json());
     app.use("/api", (req, res, next) => {
-      req.timestamp = Date.now();
-      const path = req.path;
-      req.on('end', () => {
-        if (res.statusCode == 200) {
-          stats.addApiSuccess(path, Date.now() - req.timestamp);
-        }
-      });
-      stats.addApiCall(path);
+      res.set("Access-Control-Allow-Origin", "*");
+      stats.addApiCall(req.path);
       req.p = {};
       for (const param in req.body) {
         req.p[param] = req.body[param];
@@ -37,7 +31,6 @@ class RestApi {
       for (const param in req.query) {
         req.p[param] = req.query[param];
       }
-      res.set("Access-Control-Allow-Origin", "*");
 
       this.apiAuth({
         req,
@@ -131,7 +124,6 @@ class RestApi {
     });
 
     router.all('/notification', (req, res, next) => {
-      logger.info("handleNotification %j", req.connection.remoteAddress, req.p);
 
       if (!req.p.notification) {
         res.statusCode = 400;
@@ -203,6 +195,7 @@ class RestApi {
       }
 
       const id = apiRouter.notification(notification, req.p.pushAll == 'true', pushIds, uids, req.p.tag, this.parseNumber(req.p.timeToLive));
+      logger.info("handleNotification %s %j ,id: %s", req.connection.remoteAddress, req.p, id);
       res.json({
         code: "success",
         id: id
@@ -362,36 +355,17 @@ class RestApi {
       });
     });
 
-    router.all('/isConnected', (req, res, next) => {
+    const handleQueryDevice = (req, res, next) => {
       if (req.p.pushId) {
         const pushId = req.p.pushId;
-        connectService.isConnected(pushId, (connected) => {
-          uidStore.getUidByPushId(pushId, (uid) => {
-            res.json({
-              pushId: pushId,
-              uid: uid || '',
-              connected: connected
-            })
-            return next();
-          });
-        })
+        uidStore.getDeviceByPushId(pushId, (device) => {
+          res.json(device);
+          return next();
+        });
       } else if (req.p.uid) {
-        uidStore.getPlatformByUid(req.p.uid, (reply) => {
-          let pushIds = Object.keys(reply);
-          let result = [];
-          async.each(pushIds, (pushId, callback) => {
-            connectService.isConnected(pushId, (connected) => {
-              result.push({
-                pushId: pushId,
-                platform: reply[pushId].split(',')[0],
-                connected: connected
-              });
-              callback();
-            })
-          }, () => {
-            res.json(result);
-            return next();
-          });
+        uidStore.getDevicesByUid(req.p.uid, (devices) => {
+          res.json(devices);
+          return next();
         });
       } else {
         res.statusCode = 400;
@@ -401,7 +375,10 @@ class RestApi {
         });
         return next();
       }
-    });
+    };
+
+    router.all('/isConnected', handleQueryDevice);
+    router.all('/device/get', handleQueryDevice);
 
     router.all('/tag/get', (req, res, next) => {
       const pushId = req.p.pushId;

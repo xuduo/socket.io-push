@@ -110,11 +110,18 @@ class ArrivalStats {
     android.clickRate = android.target != 0 ? (android.click * 100 / android.target).toFixed(2) + '%' : 0;
 
     const result = {
-      android,
-      apn,
+      id: packet.id,
+      notificaton: packet.notificaton,
       timeValid: new Date(packet.timeStart.getTime() + (packet.ttl || 0)).toLocaleString(),
-      timeStart: packet.timeStart.toLocaleString()
+      timeStart: packet.timeStart.toLocaleString(),
+      ttl: packet.ttl
     };
+    if (android.target > 0) {
+      result.android = android;
+    }
+    if (apn.target > 0) {
+      result.apn = apn;
+    }
 
     logger.debug('calculateArrivalInfo ', result);
 

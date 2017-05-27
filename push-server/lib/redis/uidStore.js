@@ -91,8 +91,6 @@ class UidStore {
         }
       }
     });
-
-
   }
 
   removePushId(pushId) {
@@ -143,7 +141,7 @@ class UidStore {
       uid: uid
     }, (err, devices) => {
       const pushIds = [];
-      logger.debug('getPushIdByUid %s %s', uid, devices);
+      logger.debug('getPushIdByUid %s %s %s', uid, err, devices);
       if (!err && devices) {
         devices.forEach((device) => {
           pushIds.push(device.id);
@@ -153,17 +151,25 @@ class UidStore {
     });
   }
 
-  getPlatformByUid(uid, callback) {
+  getDevicesByUid(uid, callback) {
     this.mongo.device.find({
       uid: uid
     }, (err, devices) => {
-      const platforms = {};
-      if (!err && devices) {
-        devices.forEach((device) => {
-          platforms[device.id] = device.platform;
-        });
+      const result = [];
+      for (const device of devices) {
+        device = device.toObject();
+        device.connected = Boolean(device.socketId);
+        result.push(result);
       }
-      callback(platforms);
+      callback(devices);
+    });
+  }
+
+  getDeviceByPushId(pushId, callback) {
+    this.mongo.device.findById(pushId, (err, device) => {
+      device = device.toObject();
+      device.connected = Boolean(device.socketId);
+      callback(device);
     });
   }
 
