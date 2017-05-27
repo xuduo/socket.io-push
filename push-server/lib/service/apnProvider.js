@@ -119,7 +119,7 @@ class ApnProvider {
           if ((error == "BadDeviceToken" || error == "Unregistered" || error == "DeviceTokenNotForTopic") && failed.device) {
             errorToken.push(failed.device);
           }
-          logger.error("apn failed %s %s %j", notification.id, error, failed.device);
+          logger.error("apn failed ", notification.id, error, bundleId, failed.device);
         }
       }
       result.total = tokens.length;

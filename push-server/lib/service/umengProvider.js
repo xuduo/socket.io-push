@@ -140,10 +140,10 @@ class UmengProvider {
             packetInfo.umeng = result.data;
           }
         } catch (e) {}
-        callback();
+        callback(packetInfo);
       })
     } else {
-      callback();
+      callback(packetInfo);
     }
   }
 }

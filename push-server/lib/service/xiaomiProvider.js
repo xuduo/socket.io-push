@@ -125,6 +125,5 @@ class XiaomiProvider {
     } else {
       callback(packetInfo);
     }
-
   }
 }

@@ -7,11 +7,19 @@ const async = require('async');
 
 class ArrivalStats {
 
-  constructor(mongo, topicOnline, xiaomiProvider) {
+  constructor(mongo, topicOnline, xiaomiProvider, umengProvider) {
     this.mongo = mongo;
     this.topicOnline = topicOnline;
     this.recordKeepTime = 30 * 24 * 3600 * 1000;
-    this.xiaomiProvider = xiaomiProvider;
+
+    const dummy = {
+      trace: (packet, callback) => {
+        callback();
+      }
+    };
+
+    this.xiaomiProvider = xiaomiProvider || dummy;
+    this.umengProvider = umengProvider || dummy;
   }
 
   addArrivalInfo(msgId, inc, set = {}) {
@@ -93,29 +101,24 @@ class ArrivalStats {
   }
 
   calculateArrivalInfo(packet, callback) {
+    const result = packet.toObject();
+
     let apn = {};
-    apn.target = parseInt(packet.target_apn || 0);
-    apn.arrive = parseInt(packet.arrive_apn || 0);
-    apn.click = parseInt(packet.click_apn || 0);
+    apn.target = parseInt(result.target_apn || 0);
+    apn.arrive = parseInt(result.arrive_apn || 0);
+    apn.click = parseInt(result.click_apn || 0);
     apn.arrivalRate = apn.target != 0 ? (apn.arrive * 100 / apn.target).toFixed(2) + '%' : 0;
     apn.clickRate = apn.target != 0 ? (apn.click * 100 / apn.target).toFixed(2) + '%' : 0;
 
 
     let android = {};
-    android.target = parseInt(packet.target_android || 0);
-    android.arrive = parseInt(packet.arrive_android || 0);
-    android.arrive_umeng = parseInt(packet.arrive_umeng || 0);
-    android.click = parseInt(packet.click_android || 0);
-    android.arrivalRate = android.target != 0 ? (android.arrive * 100 / android.target).toFixed(2) + '%' : 0;
-    android.clickRate = android.target != 0 ? (android.click * 100 / android.target).toFixed(2) + '%' : 0;
+    android.target = parseInt(result.target_android || 0);
+    android.arrive = parseInt(result.arrive_android || 0);
+    android.arrive_umeng = parseInt(result.arrive_umeng || 0);
+    android.click = parseInt(result.click_android || 0);
+    android.arrivalRate = android.target != 0 ? (result.arrive * 100 / result.target).toFixed(2) + '%' : 0;
+    android.clickRate = android.target != 0 ? (result.click * 100 / result.target).toFixed(2) + '%' : 0;
 
-    const result = {
-      id: packet.id,
-      notificaton: packet.notificaton,
-      timeValid: new Date(packet.timeStart.getTime() + (packet.ttl || 0)).toLocaleString(),
-      timeStart: packet.timeStart.toLocaleString(),
-      ttl: packet.ttl
-    };
     if (android.target > 0) {
       result.android = android;
     }
@@ -123,15 +126,16 @@ class ArrivalStats {
       result.apn = apn;
     }
 
-    logger.debug('calculateArrivalInfo ', result);
+    result.timeValid = new Date(packet.timeStart.getTime() + (packet.ttl || 0)).toLocaleString();
+    result.timeStart = packet.timeStart.toLocaleString();
 
-    if (this.xiaomiProvider) {
-      this.xiaomiProvider.trace(result, (traced) => {
-        callback(traced);
-      });
-    } else {
-      callback(result);
-    }
+    result.id = result._id;
+    delete result._id;
+
+    this.xiaomiProvider.trace(result, (traced) => {
+      this.umengProvider.trace(traced, callback);
+    });
+
   }
 
   getArrivalInfo(id, callback) {
