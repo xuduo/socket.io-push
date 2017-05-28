@@ -7,7 +7,7 @@ const async = require('async');
 
 class ArrivalStats {
 
-  constructor(mongo, topicOnline, xiaomiProvider, umengProvider) {
+  constructor(mongo, topicOnline) {
     this.mongo = mongo;
     this.topicOnline = topicOnline;
     this.recordKeepTime = 30 * 24 * 3600 * 1000;
@@ -18,8 +18,8 @@ class ArrivalStats {
       }
     };
 
-    this.xiaomiProvider = xiaomiProvider || dummy;
-    this.umengProvider = umengProvider || dummy;
+    this.xiaomiProvider = dummy;
+    this.umengProvider = dummy;
   }
 
   addArrivalInfo(msgId, inc, set = {}) {

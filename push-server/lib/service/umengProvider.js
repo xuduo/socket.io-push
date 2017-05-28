@@ -23,15 +23,15 @@ class UmengProvider {
     this.type = "umeng";
   }
 
-  sign(params) {
-    return md5(`POST${sendUrl}${params}${this.masterSecret}`)
+  sign(url, params) {
+    return md5(`POST${url}${params}${this.masterSecret}`)
   }
 
   sendMany(notification, tokenDataList, timeToLive, callback) {
     if (notification.android.title) {
       const params = this.getPostData(notification, tokenDataList, timeToLive);
       const body = JSON.stringify(params);
-      const sign = this.sign(body);
+      const sign = this.sign(sendUrl, body);
       request.post({
         url: sendUrl + '?sign=' + sign,
         body: body,
@@ -50,7 +50,7 @@ class UmengProvider {
     if (notification.android.title) {
       const params = this.getPostData(notification, 'pushAll', timeToLive);
       const body = JSON.stringify(params);
-      const sign = this.sign(body);
+      const sign = this.sign(sendUrl, body);
       request.post({
         url: sendUrl + '?sign=' + sign,
         body: body,
@@ -121,18 +121,18 @@ class UmengProvider {
   trace(packetInfo, callback) {
     if (packetInfo.umeng_task_id) {
       const params = {
-        "appkey": this.appkey, // 必填
+        "appkey": this.appKey, // 必填
         "timestamp": Date.now(), // 必填
         "task_id": packetInfo.umeng_task_id // 必填 消息发送时，从返回消息中获取的task_id
       };
       const body = JSON.stringify(params);
-      const sign = this.sign(body);
+      const sign = this.sign(traceUrl, body);
       request.post({
-        url: sendUrl + '?sign=' + sign,
+        url: traceUrl + '?sign=' + sign,
         body: body,
         timeout: timeout
       }, (error, response, body) => {
-        logger.info("trace result", error, response && response.statusCode, body);
+        logger.debug("trace result", error, response && response.statusCode, body);
         try {
           const result = JSON.parse(body);
           if (result.data) {
