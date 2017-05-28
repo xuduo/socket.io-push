@@ -69,8 +69,8 @@ class Mongo {
       _id: {
         type: String
       },
-      packets: {
-        type: [String]
+      packetsMixed: {
+        type: [mongoose.Schema.Types.Mixed]
       },
       expireAt: {
         type: Date

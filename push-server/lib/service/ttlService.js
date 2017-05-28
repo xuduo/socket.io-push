@@ -30,23 +30,22 @@ class TTLService {
       if (unicast) {
         packet.unicast = 1;
       }
-      var data = JSON.parse(JSON.stringify(packet));
-      data.timestampValid = Date.now() + timeToLive;
-      data.event = event;
+      packet.timestampValid = Date.now() + timeToLive;
+      packet.event = event;
       this.mongo.ttl.findByIdAndUpdate(topic, {
         $setOnInsert: {
-          expireAt: data.timestampValid
+          expireAt: packet.timestampValid
         },
         $push: {
-          "packets": JSON.stringify(data),
+          packetsMixed: packet,
           $slice: maxTllPacketPerTopic
         },
       }, {
         upsert: true
       }, (err, doc) => {
         if (!err && doc) {
-          if (!doc.expireAt || doc.expireAt < data.timestampValid) {
-            doc.expireAt = data.timestampValid;
+          if (!doc.expireAt || doc.expireAt < packet.timestampValid) {
+            doc.expireAt = packet.timestampValid;
             doc.save();
           }
         }
@@ -62,20 +61,19 @@ class TTLService {
     if (lastId) {
       this.mongo.ttl.findById(topic, (err, ttl) => {
         if (!err && ttl) {
-          const list = ttl.packets;
+          const list = ttl.packetsMixed;
           if (list && list.length > 0) {
             var lastFound = false;
             var now = Date.now();
 
             list.forEach((packet) => {
-              var jsonPacket = JSON.parse(packet);
-              if (jsonPacket.id == lastId) {
+              if (packet.id == lastId) {
                 lastFound = true;
                 logger.debug("lastFound %s %s", topic, lastId);
-              } else if (lastFound == true && jsonPacket.timestampValid > now) {
-                logger.debug("call emitPacket %s %s", jsonPacket.id, lastId);
-                this.emitToSocket(socket, jsonPacket.event, jsonPacket);
-                this.arrivalStats.addArrivalInfo(jsonPacket.id, {
+              } else if (lastFound == true && packet.timestampValid > now) {
+                logger.debug("call emitPacket %s %s", packet.id, lastId);
+                this.emitToSocket(socket, packet.event, packet);
+                this.arrivalStats.addArrivalInfo(packet.id, {
                   target_android: 1
                 });
               }
@@ -90,10 +88,9 @@ class TTLService {
             if (!lastFound) {
               logger.debug('topic %s lastId %s not found send all packets', topic, lastId);
               list.forEach((packet) => {
-                var jsonPacket = JSON.parse(packet);
-                if (jsonPacket.timestampValid > now) {
-                  this.emitToSocket(socket, jsonPacket.event, jsonPacket);
-                  this.arrivalStats.addArrivalInfo(jsonPacket.id, {
+                if (packet.timestampValid > now) {
+                  this.emitToSocket(socket, packet.event, packet);
+                  this.arrivalStats.addArrivalInfo(packet.id, {
                     target_android: 1
                   });
                 }
