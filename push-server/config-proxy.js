@@ -30,7 +30,8 @@ config.topicOnlineFilter = {
 config.packetDropThreshold = 0;
 
 config.mongo = {
-  default: 'mongodb://localhost/socketiopush'
+  default: 'mongodb://localhost/socketiopush',
+  arrival: 'mongodb://localhost/socketiopush_arrival'
 };
 
 /**

@@ -20,10 +20,12 @@ class TokenService {
       updateTime: Date.now()
     }, {
       upsert: true
+    }, (err, doc) => {
+      logger.debug('setApnNoToken ', err, doc);
     });
   }
 
-  delToken(type, token, bundleId) {
+  delApnToken(type, token, bundleId) {
     if (type && token) {
       this.mongo.device.update({
         token,
@@ -32,9 +34,13 @@ class TokenService {
       }, {
         $unset: {
           token: 1,
-          type: 1,
           package_name: 1
+        },
+        $set: {
+          type: 'apnNoToken'
         }
+      }, (err, doc) => {
+        logger.debug('delete errorToken', err, doc, token);
       });
     }
   }

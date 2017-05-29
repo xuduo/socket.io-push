@@ -85,7 +85,8 @@ config.apiAuth = function(opts, callback) {
 };
 
 config.mongo = {
-  default: 'mongodb://localhost/socketiopush'
+  default: 'mongodb://localhost/socketiopush',
+  arrival: 'mongodb://localhost/socketiopush_arrival'
 };
 
 /**
@@ -113,7 +114,7 @@ config.routerApiUrls = [
 
 config.apnApiUrls = [
   'http://localhost:13001',
-  'http://localhost:13443'
-]; // 香港代理,用于apn推送
+  'https://localhost:13443'
+]; // 香港/国外代理,用于apn推送
 
 module.exports = config;

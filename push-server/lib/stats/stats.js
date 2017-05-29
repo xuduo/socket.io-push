@@ -182,6 +182,21 @@ class Stats {
       count = 1;
     }
     this.sessionCount.total += count;
+    socket.on('stats', (data) => {
+      logger.debug("on stats %j", data.requestStats);
+      const timestamp = Date.now();
+      const totalCount = 0;
+      if (data.requestStats && data.requestStats.length) {
+        for (let i = 0; i < data.requestStats.length; i++) {
+          const requestStat = data.requestStats[i];
+          this.redisIncrBuffer.incr(requestStat.path, {
+            totalCount: requestStat.totalCount,
+            successCount: requestStat.successCount,
+            totalLatency: requestStat.totalLatency
+          });
+        }
+      }
+    });
   }
 
   removeSession(count) {

@@ -20,7 +20,7 @@ class ApnProvider {
       if (result.errorTokens) {
         logger.debug("sentCallback errorTokens", result.errorTokens, result.bundleId);
         for (const token of result.errorTokens) {
-          tokenService.delToken(this.type, token, result.bundleId);
+          tokenService.delApnToken(this.type, token, result.bundleId);
         }
       }
       logger.debug("sentCallback ", result);

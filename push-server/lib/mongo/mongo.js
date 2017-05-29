@@ -8,7 +8,9 @@ mongoose.Promise = Promise;
 class Mongo {
 
   constructor(prefix = '', urls) {
-    this.deviceConnection = mongoose.createConnection(urls.device || urls.default);
+    this.urls = urls;
+    this.prefix = prefix;
+
     const deviceSchema = mongoose.Schema({
       _id: String,
       uid: {
@@ -45,10 +47,8 @@ class Mongo {
       package_name: 1,
       type: 1
     });
-    this.deviceConnection.model(prefix + '_device', deviceSchema);
-    this.device = this.deviceConnection.model(prefix + '_device');
+    this.device = this.getModel('device', deviceSchema);
 
-    this.tagConnection = mongoose.createConnection(urls.tag || urls.default);
     const tagSchema = mongoose.Schema({
       _id: {
         pushId: String,
@@ -61,8 +61,7 @@ class Mongo {
     tagSchema.index({
       '_id.pushId': 1
     });
-    this.tagConnection.model(prefix + '_tag', tagSchema);
-    this.tag = this.tagConnection.model(prefix + '_tag');
+    this.tag = this.getModel('tag', tagSchema);
 
     this.ttlConnection = mongoose.createConnection(urls.ttl || urls.default);
     const ttlSchema = mongoose.Schema({
@@ -81,10 +80,8 @@ class Mongo {
     }, {
       expireAfterSeconds: 0
     });
-    this.ttlConnection.model(prefix + '_ttl', ttlSchema);
-    this.ttl = this.ttlConnection.model(prefix + '_ttl');
+    this.ttl = this.getModel('ttl', ttlSchema);
 
-    this.statsConnection = mongoose.createConnection(urls.stats || urls.default);
     const arrivalSchema = mongoose.Schema({
       _id: {
         type: String
@@ -122,8 +119,7 @@ class Mongo {
     }, {
       expireAfterSeconds: 0
     });
-    this.statsConnection.model(prefix + '_arrival', arrivalSchema);
-    this.arrival = this.statsConnection.model(prefix + '_arrival');
+    this.arrival = this.getModel('arrival', arrivalSchema);
 
     const topicOnlineSchema = mongoose.Schema({
       _id: {
@@ -146,8 +142,7 @@ class Mongo {
     }, {
       expireAfterSeconds: 0
     });
-    this.statsConnection.model(prefix + '_topic_online', topicOnlineSchema);
-    this.topicOnline = this.statsConnection.model(prefix + '_topic_online');
+    this.topicOnline = this.getModel('topic_online', topicOnlineSchema);
 
     const sessionSchema = mongoose.Schema({
       _id: String,
@@ -167,8 +162,8 @@ class Mongo {
     }, {
       expireAfterSeconds: 0
     });
-    this.statsConnection.model(prefix + '_session', sessionSchema);
-    this.session = this.statsConnection.model(prefix + '_session');
+
+    this.session = this.getModel('session', sessionSchema);
 
     const statSchema = mongoose.Schema({
       _id: {
@@ -196,16 +191,29 @@ class Mongo {
       '_id.key': 1
     });
 
-    this.statsConnection.model(prefix + '_stat', statSchema);
-    this.stat = this.statsConnection.model(prefix + '_stat');
+    this.stat = this.getModel('stat', statSchema);
 
   }
 
+  getModel(path, schema) {
+    if (!this.connections) {
+      this.connections = {};
+      if (this.urls.default) {
+        this.connections[this.urls.default] = mongoose.createConnection(this.urls.default);
+      }
+    }
+    const url = this.urls[path] || this.urls.default;
+    if (!this.connections[url]) {
+      this.connections[url] = mongoose.createConnection(url);
+    }
+    const conenction = this.connections[url];
+    return conenction.model(this.prefix + '_' + path, schema);
+  }
+
   close() {
-    this.deviceConnection.close();
-    this.ttlConnection.close();
-    this.tagConnection.close();
-    this.statsConnection.close();
+    for (const key in this.connections) {
+      this.connections[key].close();
+    }
   }
 
 }

@@ -3,51 +3,59 @@ var chai = require('chai');
 var expect = chai.expect;
 var defSetting = require('./defaultSetting');
 
-describe('apn test', function () {
+describe('apn test', function() {
 
-    before(function () {
-        global.proxyServer = defSetting.getDefaultProxyServer();
-        global.apiServer = defSetting.getDefaultApiServer();
-        global.apiUrl = defSetting.getDefaultApiUrl();
-        global.pushClient = defSetting.getDefaultPushClient();
+  before(function() {
+    global.proxyServer = defSetting.getDefaultProxyServer();
+    global.apiServer = defSetting.getDefaultApiServer();
+    global.apnProxy = defSetting.getDefaultApnProxyServer();
+    global.apiUrl = defSetting.getDefaultApiUrl();
+    global.pushClient = defSetting.getDefaultPushClient();
+  });
+
+  after(function() {
+    global.proxyServer.close();
+    global.apiServer.close();
+    global.apnProxy.close();
+    global.pushClient.disconnect();
+  });
+
+
+  it('test send all', function(done) {
+    pushClient.on('connect', function() {
+      pushClient.socket.emit("token", {
+        token: "ffffff",
+        bundleId: "com.xuduo.pushtest",
+        type: "apn"
+      });
+      var data = {
+        "apn": {
+          alert: "wwww"
+        }
+      }
+      var str = JSON.stringify(data);
+
+      pushClient.on('notification', function() {
+        expect("do not receive").to.be.false
+      });
+
+
+      request({
+        url: apiUrl + '/api/notification',
+        method: "post",
+        headers: {
+          'Accept': 'application/json'
+        },
+        form: {
+          pushAll: 'true',
+          notification: str
+        }
+      }, (error, response, body) => {
+        expect(JSON.parse(body).code).to.be.equal("success");
+        done();
+      });
     });
 
-    after(function () {
-        global.proxyServer.close();
-        global.apiServer.close();
-        global.pushClient.disconnect();
-    });
-
-
-    it('test send all', function (done) {
-        pushClient.on('connect', function () {
-            pushClient.socket.emit("token", {token: "ffffff", bundleId: "com.xuduo.pushtest", type: "apn"});
-            var data = {
-                "apn": {alert: "wwww"}
-            }
-            var str = JSON.stringify(data);
-
-            pushClient.on('notification', function () {
-                expect("do not receive").to.be.false
-            });
-
-
-            request({
-                url: apiUrl + '/api/notification',
-                method: "post",
-                headers: {
-                    'Accept': 'application/json'
-                },
-                form: {
-                    pushAll: 'true',
-                    notification: str
-                }
-            }, (error, response, body) => {
-                expect(JSON.parse(body).code).to.be.equal("success");
-                done();
-            });
-        });
-
-    });
+  });
 
 });
