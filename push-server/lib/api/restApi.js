@@ -5,6 +5,8 @@ const express = require('express');
 const logger = require('winston-proxy')('RestApi');
 const async = require('async');
 const request = require('request');
+const bodyParser = require('body-parser');
+const paramParser = require('../util/paramParser');
 
 class RestApi {
 
@@ -16,7 +18,7 @@ class RestApi {
 
     const app = express();
     app.disable('etag');
-    var bodyParser = require('body-parser');
+
     app.use("/api", bodyParser.urlencoded({ // to support URL-encoded bodies
       extended: true
     }));
@@ -94,8 +96,8 @@ class RestApi {
         }
       }
 
-      const pushIds = this.parseArrayParam(req.p.pushId);
-      const uids = this.parseArrayParam(req.p.uid);
+      const pushIds = paramParser.parseArrayParam(req.p.pushId);
+      const uids = paramParser.parseArrayParam(req.p.uid);
 
       if (!pushIds && !uids && !req.p.topic) {
         res.statusCode = 400;
@@ -106,7 +108,7 @@ class RestApi {
         return next();
       }
 
-      if (this.moreThanOneTrue(pushIds, uids, req.p.topic)) {
+      if (paramParser.moreThanOneTrue(pushIds, uids, req.p.topic)) {
         res.statusCode = 400;
         res.json({
           code: "error",
@@ -115,7 +117,7 @@ class RestApi {
         return next();
       }
 
-      apiRouter.push(pushData, req.p.topic, pushIds, uids, this.parseNumber(req.p.timeToLive));
+      apiRouter.push(pushData, req.p.topic, pushIds, uids, paramParser.parseNumber(req.p.timeToLive));
       res.json({
         code: "success"
       });
@@ -169,8 +171,8 @@ class RestApi {
         delete notification.apn.payload;
       }
 
-      const pushIds = this.parseArrayParam(req.p.pushId);
-      const uids = this.parseArrayParam(req.p.uid);
+      const pushIds = paramParser.parseArrayParam(req.p.pushId);
+      const uids = paramParser.parseArrayParam(req.p.uid);
 
       if (req.p.pushAll == 'true') {
         logger.info('handleNotification pushAll ', req.p);
@@ -185,7 +187,7 @@ class RestApi {
         return next();
       }
 
-      if (this.moreThanOneTrue(req.p.tag, pushIds, uids, req.p.pushAll == 'true')) {
+      if (paramParser.moreThanOneTrue(req.p.tag, pushIds, uids, req.p.pushAll == 'true')) {
         res.statusCode = 400;
         res.json({
           code: "error",
@@ -194,7 +196,7 @@ class RestApi {
         return next();
       }
 
-      const id = apiRouter.notification(notification, req.p.pushAll == 'true', pushIds, uids, req.p.tag, this.parseNumber(req.p.timeToLive));
+      const id = apiRouter.notification(notification, req.p.pushAll == 'true', pushIds, uids, req.p.tag, paramParser.parseNumber(req.p.timeToLive));
       logger.info("handleNotification %s %j ,id: %s", req.connection.remoteAddress, req.p, id);
       res.json({
         code: "success",
@@ -206,7 +208,7 @@ class RestApi {
     router.all('/routeNotification', (req, res, next) => {
       const notification = JSON.parse(req.p.notification);
       const pushIds = JSON.parse(req.p.pushId);
-      const timeToLive = this.parseNumber(req.p.timeToLive);
+      const timeToLive = paramParser.parseNumber(req.p.timeToLive);
       apiRouter.notificationLocal(notification, pushIds, timeToLive);
       res.json({
         code: "success"
@@ -265,7 +267,7 @@ class RestApi {
     });
 
     router.all('/uid/bind', (req, res, next) => {
-      uidStore.bindUid(req.p.pushId, req.p.uid, req.p.platform, this.parseNumber(req.p.platformLimit));
+      uidStore.bindUid(req.p.pushId, req.p.uid, req.p.platform, paramParser.parseNumber(req.p.platformLimit));
       uidStore.publishBindUid(req.p.pushId, req.p.uid);
       res.json({
         code: "success"
@@ -274,8 +276,8 @@ class RestApi {
     });
 
     router.all('/uid/remove', (req, res, next) => {
-      const pushIds = this.parseArrayParam(req.p.pushId);
-      const uids = this.parseArrayParam(req.p.uid);
+      const pushIds = paramParser.parseArrayParam(req.p.pushId);
+      const uids = paramParser.parseArrayParam(req.p.uid);
       if (pushIds) {
         pushIds.forEach((pushId) => {
           uidStore.removePushId(pushId, true);
@@ -313,7 +315,7 @@ class RestApi {
     });
 
     router.all('/apn', (req, res, next) => {
-      apnService.callLocal(JSON.parse(req.p.notification), req.p.bundleId, this.parseArrayParam(req.p.tokens), req.p.pattern, (result) => {
+      apnService.callLocal(JSON.parse(req.p.notification), req.p.bundleId, paramParser.parseArrayParam(req.p.tokens), req.p.pattern, (result) => {
         result.code = "success";
         res.json(result);
         return next();
@@ -456,33 +458,4 @@ class RestApi {
     }
   }
 
-  moreThanOneTrue() {
-    let count = 0;
-    for (const item of arguments) {
-      if (item) {
-        count++;
-      }
-    }
-    return count > 1;
-  }
-
-  parseArrayParam(param) {
-    let arr;
-    if (typeof param === 'string') {
-      if (param.startsWith('[')) {
-        arr = JSON.parse(param);
-      } else if (param) {
-        arr = [param];
-      }
-    } else if (typeof param === 'number') {
-      arr = [param];
-    } else {
-      arr = param;
-    }
-    return arr;
-  }
-
-  parseNumber(param) {
-    return parseInt(param) || 0;
-  }
 }

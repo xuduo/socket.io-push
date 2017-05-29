@@ -112,7 +112,8 @@ config.routerApiUrls = [
 ]; //国内api分流
 
 config.apnApiUrls = [
-  'http://localhost:11001'
+  'http://localhost:13001',
+  'http://localhost:13443'
 ]; // 香港代理,用于apn推送
 
 module.exports = config;

@@ -20,6 +20,13 @@ try {
 }
 api.instances = api.instances || 0;
 
+let apnProxy = {};
+try {
+  apnProxy = require(process.cwd() + "/config-apn-proxy");
+} catch (ex) {
+  logger.warn('config-apn-proxy exception: ' + ex);
+}
+apnProxy.instances = apnProxy.instances || 0;
 
 let admin = {};
 try {
@@ -67,17 +74,17 @@ if (cluster.isMaster) {
       return workers[lastIndexNumber];
     };
     const lb = proxy.load_balancer == "round_robin" ? rr : hashUtil.getByHash;
-    let proxy_workers = [];
+    let workers = [];
     for (let i = 0; i < proxy.instances; i++) {
-      proxy_workers.push(spawn({
+      workers.push(spawn({
         processType: 'proxy'
-      }, proxy_workers));
+      }, workers));
     }
     if (proxy.http_port) {
-      createNetServer(proxy_workers, lb, proxy.http_port, proxy.host);
+      createNetServer(workers, lb, proxy.http_port, proxy.host);
     }
     if (proxy.https_port && proxy.https_key && proxy.https_cert) {
-      createNetServer(proxy_workers, lb, proxy.https_port, proxy.host);
+      createNetServer(workers, lb, proxy.https_port, proxy.host);
     }
   }
   if (api.instances > 0) {
@@ -87,17 +94,37 @@ if (cluster.isMaster) {
       return workers[lastIndexNumber];
     };
     const lb = api.load_balancer == "ip_hash" ? hashUtil.getByHash : rr;
-    let api_workers = [];
+    let workers = [];
     for (let i = 0; i < api.instances; i++) {
-      api_workers.push(spawn({
+      workers.push(spawn({
         processType: 'api'
-      }, api_workers));
+      }, workers));
     }
     if (api.http_port) {
-      createNetServer(api_workers, lb, api.http_port, api.host);
+      createNetServer(workers, lb, api.http_port, api.host);
     }
     if (api.https_port && api.https_key && api.https_cert) {
-      createNetServer(api_workers, lb, api.https_port, api.host);
+      createNetServer(workers, lb, api.https_port, api.host);
+    }
+  }
+  if (apnProxy.instances > 0) {
+    let lastIndexNumber = 0;
+    const rr = (workers) => {
+      if (++lastIndexNumber >= workers.length) lastIndexNumber = 0;
+      return workers[lastIndexNumber];
+    };
+    const lb = apnProxy.load_balancer == "ip_hash" ? hashUtil.getByHash : rr;
+    let workers = [];
+    for (let i = 0; i < apnProxy.instances; i++) {
+      workers.push(spawn({
+        processType: 'apnProxy'
+      }, workers));
+    }
+    if (apnProxy.http_port) {
+      createNetServer(workers, lb, apnProxy.http_port, apnProxy.host);
+    }
+    if (apnProxy.https_port && apnProxy.https_key && apnProxy.https_cert) {
+      createNetServer(workers, lb, apnProxy.https_port, apnProxy.host);
     }
   }
   if (admin.instances > 0) {
@@ -145,7 +172,6 @@ if (cluster.isMaster) {
           logger.error('error happened when start https on proxy.');
           process.exit(-1);
         }
-
       }
       require('./lib/proxy')(io, proxy);
     } else if (process.env.processType == 'api') {
@@ -165,6 +191,24 @@ if (cluster.isMaster) {
       }
       if (httpServer || spdyServer) {
         require('./lib/api')(httpServer, spdyServer, api);
+      }
+    } else if (process.env.processType == 'apnProxy') {
+      let spdyServer, httpServer;
+      socketTimeout = api.socketTimeout || 0;
+      if (apnProxy.http_port) {
+        httpServer = require('http').createServer();
+        servers[apnProxy.http_port] = httpServer;
+      }
+      if (apnProxy.https_port && apnProxy.https_cert && apnProxy.https_key) {
+        let options = {
+          key: fs.readFileSync(apnProxy.https_key),
+          cert: fs.readFileSync(apnProxy.https_cert)
+        };
+        spdyServer = require('spdy').createServer(options);
+        servers[apnProxy.https_port] = spdyServer;
+      }
+      if (httpServer || spdyServer) {
+        require('./lib/apnProxy')(httpServer, spdyServer, api);
       }
     } else if (process.env.processType == 'admin') {
       require('./lib/admin')(admin);

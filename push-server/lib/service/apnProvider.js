@@ -24,12 +24,14 @@ class ApnProvider {
         }
       }
       logger.debug("sentCallback ", result);
-      arrivalStats.addArrivalInfo(result.id, {
-        target_apn: result.total
-      });
-      arrivalStats.addArrivalInfo(result.id, {
-        arrive_apn: result.success
-      });
+      if (this.arrivalStats) {
+        arrivalStats.addArrivalInfo(result.id, {
+          target_apn: result.total
+        });
+        arrivalStats.addArrivalInfo(result.id, {
+          arrive_apn: result.success
+        });
+      }
     };
 
     apnConfigs.forEach((apnConfig, index) => {
@@ -161,7 +163,11 @@ class ApnProvider {
   sendAll(notification, timeToLive) {
     logger.info("sendAll %j", notification);
     if (!notification.apn) {
-      logger.debug("no apn info skip");
+      logger.error("no apn info skip");
+      return;
+    }
+    if (!this.mongo) {
+      logger.error("no mongo skip");
       return;
     }
     for (const bundleId of this.bundleIds) {
