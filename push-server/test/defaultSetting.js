@@ -1,9 +1,11 @@
 var DefaultSetting = {};
 
-DefaultSetting.getDefaultPushClient = (pushId) => {
+DefaultSetting.getDefaultPushClient = (pushId, platform) => {
+
   let port = require("../config-proxy").http_port;
   return require('socket.io-push-client')('http://localhost:' + port, {
-    pushId: pushId,
+    pushId,
+    platform,
     transports: ['websocket', 'polling'],
     useNotification: true
   });

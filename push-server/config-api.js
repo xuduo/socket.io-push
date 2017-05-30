@@ -64,6 +64,7 @@ config.xiaomi = {
   app_secret: 'ynJJ6b+MkCLyw1cdrg/72w=='
 };
 
+//友盟推送配置,可选, 友盟内建支持多包名, 一个配置就可以
 config.umeng = {
   appKey: '59229cabf29d982ebd000b4b',
   masterSecret: 'bjgv1ttgt2herpgqxrvmsupazzsumobq'

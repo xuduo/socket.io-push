@@ -11,17 +11,22 @@ class TokenService {
   }
 
   setApnNoToken(pushId) {
-    this.mongo.device.update({
-      _id: pushId,
-      type: null
-    }, {
-      _id: pushId,
-      type: 'apnNoToken',
-      updateTime: Date.now()
-    }, {
-      upsert: true
+    this.mongo.device.findById({
+      _id: pushId
     }, (err, doc) => {
-      logger.debug('setApnNoToken ', err, doc);
+      if (!err) {
+        if (!doc) {
+          doc = new this.mongo.device({
+            _id: pushId,
+            type: 'apnNoToken',
+            updateTime: Date.now()
+          });
+          doc.save();
+        } else if (!doc.type) {
+          doc.type = 'apnNoToken';
+          doc.save();
+        }
+      }
     });
   }
 

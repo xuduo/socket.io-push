@@ -14,7 +14,7 @@ class ArrivalStats {
 
     const dummy = {
       trace: (packet, callback) => {
-        callback();
+        callback(packet);
       }
     };
 
@@ -116,8 +116,8 @@ class ArrivalStats {
     android.arrive = parseInt(result.arrive_android || 0);
     android.arrive_umeng = parseInt(result.arrive_umeng || 0);
     android.click = parseInt(result.click_android || 0);
-    android.arrivalRate = android.target != 0 ? (result.arrive * 100 / result.target).toFixed(2) + '%' : 0;
-    android.clickRate = android.target != 0 ? (result.click * 100 / result.target).toFixed(2) + '%' : 0;
+    android.arrivalRate = android.target != 0 ? (android.arrive * 100 / android.target).toFixed(2) + '%' : 0;
+    android.clickRate = android.target != 0 ? (android.click * 100 / android.target).toFixed(2) + '%' : 0;
 
     if (android.target > 0) {
       result.android = android;

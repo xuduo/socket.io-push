@@ -65,25 +65,20 @@ class UidStore {
       logger.debug('update uid success ', pushId, uid);
       if (!err) {
         if (platformLimit > 0) {
-          this.mongo.device.find({
-            uid,
-            platform
-          }).sort('-updateTime').exec((err, devices) => {
+          let query = {
+            uid
+          };
+          if (platform != 'all') {
+            query.platform = platform;
+          }
+          this.mongo.device.find(query).sort('-updateTime').exec((err, devices) => {
             if (!err && devices) {
               for (let i = 0; i < devices.length; i++) {
                 if (i >= platformLimit) {
-                  this.mongo.device.update({
-                    _id: devices[i].id
-                  }, {
-                    $unset: {
-                      uid: 1
-                    },
-                    updateTime: Date.now()
-                  }, (err) => {
-                    if (err) {
-                      logger.error('mongodb write error', err);
-                    }
-                  });
+                  logger.debug('remove other binded uid', uid, device[i].id);
+                  devices[i].uid = undefined;
+                  devices[i].updateTime = Date.now();
+                  devices[i].save();
                 }
               }
             }
@@ -154,22 +149,30 @@ class UidStore {
   getDevicesByUid(uid, callback) {
     this.mongo.device.find({
       uid: uid
-    }, (err, devices) => {
+    }, (err, docs) => {
       const result = [];
-      for (const device of devices) {
-        device = device.toObject();
-        device.connected = Boolean(device.socketId);
-        result.push(result);
+      if (!err && docs) {
+        for (const doc of docs) {
+          const device = doc.toObject();
+          device.connected = Boolean(device.socketId);
+          result.push(device);
+        }
+      } else {
+        logger.error('getDevicesByUid error', uid, doc, err);
       }
-      callback(devices);
+      callback(result);
     });
   }
 
   getDeviceByPushId(pushId, callback) {
     this.mongo.device.findById(pushId, (err, device) => {
-      device = device.toObject();
-      device.connected = Boolean(device.socketId);
-      callback(device);
+      if (!err && device) {
+        device = device.toObject();
+        device.connected = Boolean(device.socketId);
+        callback(device);
+      } else {
+        callback({});
+      }
     });
   }
 

@@ -77,8 +77,8 @@ class ProxyServer {
             socket.platform = data.platform.toLowerCase();
           }
 
-          if (socket.platform == "ios") {
-            tokenService.setApnNoToken(socket.platform);
+          if ((socket.platform || '') == "ios") {
+            tokenService.setApnNoToken(socket.pushId);
           }
 
           stats.addPlatformSession(socket.platform);
@@ -189,11 +189,11 @@ class ProxyServer {
         socket.on('bindUid', (data) => {
           logger.debug("bindUid %s %j", socket.pushId, data);
           if (socket.pushId && data) {
-            config.bindUid(data, (uid) => {
-              socket.join("uid:" + uid);
+            config.bindUid(data, (uid, platform, limit) => {
               if (uid) {
+                socket.join("uid:" + uid);
                 socket.setUid(uid);
-                uidStore.bindUid(socket.pushId, data.uid, socket.platform, 0);
+                uidStore.bindUid(socket.pushId, data.uid, platform || socket.platform, limit);
               }
             });
           }
