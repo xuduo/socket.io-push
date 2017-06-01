@@ -75,7 +75,7 @@ class UidStore {
             if (!err && devices) {
               for (let i = 0; i < devices.length; i++) {
                 if (i >= platformLimit) {
-                  logger.debug('remove other binded uid', uid, device[i].id);
+                  logger.debug('remove other binded uid', uid, devices[i]._id);
                   devices[i].uid = undefined;
                   devices[i].updateTime = Date.now();
                   devices[i].save();

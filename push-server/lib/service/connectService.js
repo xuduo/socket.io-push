@@ -6,6 +6,17 @@ const logger = require('winston-proxy')('ConnectService');
 
 class ConnectService {
   constructor(mongo) {
+    const ipPath = process.cwd() + "/ip";
+    const fs = require('fs');
+    let ip;
+    if (fs.existsSync(ipPath)) {
+      ip = fs.readFileSync(ipPath, "utf8").trim();
+    }
+    logger.debug("ip file %s %s", ipPath, ip);
+    this.id = '';
+    if (ip) {
+      this.id = ip + ':';
+    }
     this.mongo = mongo;
   }
 
@@ -23,7 +34,7 @@ class ConnectService {
     this.mongo.device.update({
       _id: pushId
     }, {
-      socketId
+      socketId: (this.id + socketId)
     }, {
       upsert: true
     }, (err, doc) => {
@@ -49,7 +60,7 @@ class ConnectService {
 
   disconnect(socket, callback) {
     this.isConnected(socket.pushId, (connectedOrNot, socketId) => {
-      if (connectedOrNot && socketId == socket.id) {
+      if (connectedOrNot && socketId == (this.id + socket.id)) {
         this.unbindPushId(socket.pushId);
         callback(true);
       } else {

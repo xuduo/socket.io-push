@@ -187,9 +187,9 @@ class ProxyServer {
       if (config.bindUid) {
         config.request = require('request');
         socket.on('bindUid', (data) => {
-          logger.debug("bindUid %s %j", socket.pushId, data);
-          if (socket.pushId && data) {
+          if (config.bindUid && socket.pushId && data) {
             config.bindUid(data, (uid, platform, limit) => {
+              logger.debug("bindUid %s %s %j", uid, socket.pushId, data);
               if (uid) {
                 socket.join("uid:" + uid);
                 socket.setUid(uid);
