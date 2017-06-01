@@ -43,20 +43,23 @@ class ArrivalStats {
     });
   }
 
-  msgToData(msg, ttl) {
-    return {
+  msgToData(msg, ttl, expire = true) {
+    const data = {
       notification: msg.message || (msg.apn && msg.apn.alert) || (msg.android && msg.android.message),
-      expireAt: Date.now() + this.recordKeepTime,
       timeStart: Date.now(),
       ttl
     };
+    if (expire) {
+      data.expireAt = Date.now() + this.recordKeepTime;
+    }
+    return data;
   }
 
   addPushAll(msg, ttl) {
     logger.info('addPushAll, packet:%s', msg.id);
     this.topicOnline.getTopicOnline('noti', (count) => {
       logger.info('packet(%s) init count:%d', msg.id, count);
-      const data = this.msgToData(msg, ttl);
+      const data = this.msgToData(msg, ttl, false);
       data.type = 'pushAll';
       this.addArrivalInfo(msg.id, {
         'target_android': count
