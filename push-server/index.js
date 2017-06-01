@@ -208,7 +208,7 @@ if (cluster.isMaster) {
         servers[apnProxy.https_port] = spdyServer;
       }
       if (httpServer || spdyServer) {
-        require('./lib/apnProxy')(httpServer, spdyServer, api);
+        require('./lib/apnProxy')(httpServer, spdyServer, apnProxy);
       }
     } else if (process.env.processType == 'admin') {
       require('./lib/admin')(admin);

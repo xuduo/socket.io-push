@@ -44,7 +44,8 @@ class ProxyServer {
 
       socket.authJoin = (topic, callback) => {
         if (topic.startsWith("uid:")) {
-          logger.info("topic.startsWith(uid:) skip");
+          logger.warn("topic.startsWith(uid:) skip");
+          callback();
           return;
         }
         socket.join(topic, callback);
@@ -68,7 +69,7 @@ class ProxyServer {
 
           if (topics && topics.length > 0) {
             topics.forEach((topic) => {
-              socket.join(topic);
+              socket.authJoin(topic);
             });
             socket.topics = topics;
           }
