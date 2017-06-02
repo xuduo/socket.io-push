@@ -145,35 +145,4 @@ class UidStore {
       callback(pushIds);
     });
   }
-
-  getDevicesByUid(uid, callback) {
-    this.mongo.device.find({
-      uid: uid
-    }, (err, docs) => {
-      const result = [];
-      if (!err && docs) {
-        for (const doc of docs) {
-          const device = doc.toObject();
-          device.connected = Boolean(device.socketId);
-          result.push(device);
-        }
-      } else {
-        logger.error('getDevicesByUid error', uid, doc, err);
-      }
-      callback(result);
-    });
-  }
-
-  getDeviceByPushId(pushId, callback) {
-    this.mongo.device.findById(pushId, (err, device) => {
-      if (!err && device) {
-        device = device.toObject();
-        device.connected = Boolean(device.socketId);
-        callback(device);
-      } else {
-        callback({});
-      }
-    });
-  }
-
 }

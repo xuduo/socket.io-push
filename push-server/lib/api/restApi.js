@@ -1,5 +1,5 @@
-module.exports = (httpServer, spdyServer, apiRouter, topicOnline, stats, config, apnService, apiAuth, uidStore, connectService, arrivalStats, tagService) => {
-  return new RestApi(httpServer, spdyServer, apiRouter, topicOnline, stats, config, apnService, apiAuth, uidStore, connectService, arrivalStats, tagService);
+module.exports = (httpServer, spdyServer, apiRouter, topicOnline, stats, config, apnService, apiAuth, deviceService, arrivalStats) => {
+  return new RestApi(httpServer, spdyServer, apiRouter, topicOnline, stats, config, apnService, apiAuth, deviceService, arrivalStats);
 };
 const express = require('express');
 const logger = require('winston-proxy')('RestApi');
@@ -12,7 +12,7 @@ class RestApi {
 
   constructor(httpServer, spdyServer, apiRouter, topicOnline, stats, config, apnService, apiAuth = (opts, callback) => {
     callback(true)
-  }, uidStore, connectService, arrivalStats, tagService) {
+  }, deviceService, arrivalStats) {
     this.apiAuth = apiAuth;
     this.apiRouter = apiRouter;
 
@@ -267,8 +267,8 @@ class RestApi {
     });
 
     router.all('/uid/bind', (req, res, next) => {
-      uidStore.bindUid(req.p.pushId, req.p.uid, req.p.platform, paramParser.parseNumber(req.p.platformLimit));
-      uidStore.publishBindUid(req.p.pushId, req.p.uid);
+      deviceService.bindUid(req.p.pushId, req.p.uid, req.p.platform, paramParser.parseNumber(req.p.platformLimit));
+      deviceService.publishBindUid(req.p.pushId, req.p.uid);
       res.json({
         code: "success"
       });
@@ -280,16 +280,16 @@ class RestApi {
       const uids = paramParser.parseArrayParam(req.p.uid);
       if (pushIds) {
         pushIds.forEach((pushId) => {
-          uidStore.removePushId(pushId, true);
-          uidStore.publishUnbindUid(pushId, null);
+          deviceService.removePushId(pushId, true);
+          deviceService.publishUnbindUid(pushId, null);
         });
         res.json({
           code: "success"
         });
       } else if (uids) {
         uids.forEach((uid) => {
-          uidStore.removeUid(uid);
-          uidStore.publishUnbindUid(null, uid);
+          deviceService.removeUid(uid);
+          deviceService.publishUnbindUid(null, uid);
         });
         res.json({
           code: "success"
@@ -360,12 +360,12 @@ class RestApi {
     const handleQueryDevice = (req, res, next) => {
       if (req.p.pushId) {
         const pushId = req.p.pushId;
-        uidStore.getDeviceByPushId(pushId, (device) => {
+        deviceService.getDeviceByPushId(pushId, (device) => {
           res.json(device);
           return next();
         });
       } else if (req.p.uid) {
-        uidStore.getDevicesByUid(req.p.uid, (devices) => {
+        deviceService.getDevicesByUid(req.p.uid, (devices) => {
           res.json(devices);
           return next();
         });
@@ -382,46 +382,12 @@ class RestApi {
     router.all('/isConnected', handleQueryDevice);
     router.all('/device/get', handleQueryDevice);
 
-    router.all('/tag/get', (req, res, next) => {
-      const pushId = req.p.pushId;
-      const uid = req.p.uid;
-      if (pushId) {
-        tagService.getTagsByPushId(pushId, (tags) => {
-          res.json(tags);
-          return next();
-        });
-      } else if (uid) {
-        uidStore.getPushIdByUid(uid, (pushIds) => {
-          const result = [];
-          async.each(pushIds, (pushId, callback) => {
-            tagService.getTagsByPushId(pushId, (tags) => {
-              result.push({
-                pushId,
-                tags
-              });
-              callback();
-            })
-          }, () => {
-            res.json(result);
-            return next();
-          });
-        });
-      } else {
-        res.statusCode = 400;
-        res.json({
-          code: 'error',
-          message: 'pushId or uid is required'
-        });
-        return next();
-      }
-    });
-
     //兼容旧接口
     router.all('/redis/get', (req, res, next) => {
       const index = req.p.key.indexOf('#');
       const pushId = req.p.key.substring(index, req.p.key.length);
-      connectService.isConnected(pushId, (connected) => {
-        if (connected) {
+      deviceService.getDeviceByPushId(pushId, (device) => {
+        if (device.connected) {
           res.json({
             value: 1
           });

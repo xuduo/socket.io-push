@@ -44,22 +44,23 @@ describe('arrivalStatsTest', () => {
       arrivalStats.addArrivalInfo(packetId, {
         arrive_android: 1
       });
-    }, 500);
-    setTimeout(() => {
-      arrivalStats.getRateStatusByType('pushAll', (stats) => {
-        let item;
-        for (const stat of stats) {
-          if (stat.id == packetId) {
-            item = stat;
+      setTimeout(() => {
+        arrivalStats.getRateStatusByType('pushAll', (stats) => {
+          let item;
+          for (const stat of stats) {
+            if (stat.id == packetId) {
+              item = stat;
+            }
           }
-        }
-        console.log(item);
-        expect(item.id).to.be.equal(packetId);
-        expect(item.android.target).to.be.equal(100);
-        expect(item.android.arrive).to.be.equal(99);
-        done();
-      })
-    }, 1000);
+          console.log(item);
+          expect(item.id).to.be.equal(packetId);
+          expect(item.android.target).to.be.equal(100);
+          expect(item.android.arrive).to.be.equal(99);
+          done();
+        })
+      }, 1000);
+    }, 500);
+
   })
 
 });

@@ -24,12 +24,14 @@ class TopicOnline {
     this.expire = this.interval * 2;
     if (io) {
       this.io = io;
-      setInterval(() => {
-        if (this.io.nsps) {
-          const result = this.io.nsps['/'].adapter.rooms;
-          this.writeTopicOnline(result);
-        }
-      }, this.interval);
+      setInterval(this.flush.bind(this), this.interval);
+    }
+  }
+
+  flush() {
+    if (this.io.nsps) {
+      const result = this.io.nsps['/'].adapter.rooms;
+      this.writeTopicOnline(result);
     }
   }
 

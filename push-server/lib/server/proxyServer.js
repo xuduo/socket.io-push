@@ -1,12 +1,12 @@
-module.exports = (io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats, config) => {
-  return new ProxyServer(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats, config);
+module.exports = (io, stats, packetService, deviceService, ttlService, arrivalStats, config) => {
+  return new ProxyServer(io, stats, packetService, deviceService, ttlService, arrivalStats, config);
 };
 const logger = require('winston-proxy')('ProxyServer');
 const http = require('http');
 
 class ProxyServer {
 
-  constructor(io, stats, packetService, tokenService, uidStore, ttlService, tagService, connectService, arrivalStats, config) {
+  constructor(io, stats, packetService, deviceService, ttlService, arrivalStats, config) {
     this.io = io;
 
     io.on('connection', (socket) => {
@@ -21,7 +21,7 @@ class ProxyServer {
             disconnectDelay = config.disconnect_delay || 10000;
           }
           setTimeout(() => {
-            connectService.disconnect(socket, (ret) => {
+            deviceService.disconnect(socket, (ret) => {
               if (ret) {
                 if (packetService) {
                   logger.debug("publishDisconnect pushId:%s, socketId:%s", socket.pushId, socket.id);
@@ -78,10 +78,6 @@ class ProxyServer {
             socket.platform = data.platform.toLowerCase();
           }
 
-          if ((socket.platform || '') == "ios") {
-            tokenService.setApnNoToken(socket.pushId);
-          }
-
           stats.addPlatformSession(socket.platform);
 
           socket.authJoin(data.id, (err) => {
@@ -89,34 +85,30 @@ class ProxyServer {
               logger.error("join pushId room fail %s", err);
               return;
             }
-            tagService.getTagsByPushId(data.id, (tags) => {
-              uidStore.getUidByPushId(data.id, (uid) => {
-                const reply = {
-                  id: data.id
-                };
-                if (tags) {
-                  reply.tags = tags;
+            deviceService.connect(data.id, socket.id, (socket.platform || '') == "ios", (device) => {
+              const reply = {
+                id: data.id
+              };
+              if (device.tags) {
+                reply.tags = device.tags;
+              }
+              if (device.uid) {
+                reply.uid = device.uid;
+                socket.setUid(device.uid);
+              }
+
+              if (packetService) {
+                packetService.publishConnect(socket);
+              }
+
+              socket.emit('pushId', reply);
+              const lastPacketIds = data.lastPacketIds;
+              if (lastPacketIds) {
+                for (const topic in lastPacketIds) {
+                  ttlService.getPackets(topic, lastPacketIds[topic], socket);
                 }
-                if (uid) {
-                  reply.uid = uid;
-                  socket.setUid(uid);
-                }
-                connectService.connect(socket, (ret) => {
-                  if (ret) {
-                    if (packetService) {
-                      packetService.publishConnect(socket);
-                    }
-                  }
-                });
-                socket.emit('pushId', reply);
-                const lastPacketIds = data.lastPacketIds;
-                if (lastPacketIds) {
-                  for (const topic in lastPacketIds) {
-                    ttlService.getPackets(topic, lastPacketIds[topic], socket);
-                  }
-                }
-                ttlService.onPushId(socket, data.lastUnicastId);
-              });
+              }
+              ttlService.onPushId(socket, data.lastUnicastId);
             });
           });
         }
@@ -124,19 +116,19 @@ class ProxyServer {
 
       socket.on('addTag', (data) => {
         if (socket.pushId && data.tag) {
-          tagService.addTag(socket.pushId, data.tag);
+          deviceService.addTag(socket.pushId, data.tag);
         }
       });
 
       socket.on('setTags', (data) => {
         if (socket.pushId && data) {
-          tagService.setTags(socket.pushId, data);
+          deviceService.setTags(socket.pushId, data);
         }
       });
 
       socket.on('removeTag', (data) => {
         if (socket.pushId && data.tag) {
-          tagService.removeTag(socket.pushId, data.tag);
+          deviceService.removeTag(socket.pushId, data.tag);
         }
       });
 
@@ -168,7 +160,7 @@ class ProxyServer {
         if (data.type == "apn") {
           data.token = data.token.replace(/[<> ]/g, ''); //replace all
         }
-        tokenService.setToken(data);
+        deviceService.setToken(data);
       };
       socket.on('apnToken', token);
       socket.on('token', token);
@@ -187,7 +179,7 @@ class ProxyServer {
         socket.setUid(null);
         if (socket.pushId) {
           logger.debug('unbindUid pushId %s ', socket.pushId);
-          uidStore.removePushId(socket.pushId, true);
+          deviceService.removePushId(socket.pushId, true);
         }
       });
 
@@ -200,7 +192,7 @@ class ProxyServer {
               if (uid) {
                 socket.join("uid:" + uid);
                 socket.setUid(uid);
-                uidStore.bindUid(socket.pushId, data.uid, platform || socket.platform, limit);
+                deviceService.bindUid(socket.pushId, data.uid, platform || socket.platform, limit);
               }
             });
           }
@@ -233,12 +225,6 @@ class ProxyServer {
 
       stats.addSession(socket);
     });
-  }
-
-  getTopicOnline(topic) {
-    const online = this.io.nsps['/'].adapter.rooms[topic].length;
-    logger.debug("on topic online %s %d", topic, online);
-    return online;
   }
 
 }

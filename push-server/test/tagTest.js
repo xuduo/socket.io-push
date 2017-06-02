@@ -23,9 +23,9 @@ describe('tag', function() {
       pushClient.addTag("tag1");
       pushClient.addTag("tag2");
       setTimeout(function() {
-        global.apiServer.tagService.getTagsByPushId(pushClient.pushId, function(tags) {
+        global.apiServer.deviceService.getTagsByPushId(pushClient.pushId, function(tags) {
           expect(tags).to.deep.include.members(["tag1"]);
-          global.apiServer.tagService.getPushIdsByTag("tag1", function(pushIds) {
+          global.apiServer.deviceService.getPushIdsByTag("tag1", function(pushIds) {
             expect(pushIds).to.deep.include.members([pushClient.pushId]);
             done();
           });
@@ -37,9 +37,9 @@ describe('tag', function() {
   it('remove tag', function(done) {
     pushClient.removeTag("tag1");
     setTimeout(function() {
-      global.apiServer.tagService.getTagsByPushId(pushClient.pushId, function(tags) {
+      global.apiServer.deviceService.getTagsByPushId(pushClient.pushId, function(tags) {
         expect(tags).to.not.deep.include.members(["tag1"]);
-        global.apiServer.tagService.getPushIdsByTag("tag1", function(pushIds) {
+        global.apiServer.deviceService.getPushIdsByTag("tag1", function(pushIds) {
           expect(pushIds).to.not.deep.include.members([pushClient.pushId]);
           done();
         });

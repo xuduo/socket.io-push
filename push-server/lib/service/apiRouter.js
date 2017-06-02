@@ -1,5 +1,5 @@
-module.exports = (uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls, stats) => {
-  return new ApiRouter(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls, stats);
+module.exports = (deviceService, notificationService, ttlService, maxPushIds, remoteUrls, stats) => {
+  return new ApiRouter(deviceService, notificationService, ttlService, maxPushIds, remoteUrls, stats);
 };
 
 const logger = require('winston-proxy')('ApiRouter');
@@ -9,12 +9,11 @@ const randomstring = require("randomstring");
 
 class ApiRouter {
 
-  constructor(uidStore, notificationService, ttlService, tagService, maxPushIds, remoteUrls, stats) {
-    this.uidStore = uidStore;
+  constructor(deviceService, notificationService, ttlService, maxPushIds, remoteUrls, stats) {
+    this.deviceService = deviceService;
     this.stats = stats;
     this.notificationService = notificationService;
     this.ttlService = ttlService;
-    this.tagService = tagService;
     this.maxPushIds = maxPushIds || 1000;
     this.remoteUrls = require("../util/infiniteArray")(remoteUrls);
   }
@@ -27,13 +26,13 @@ class ApiRouter {
       this.sendNotificationByPushIds(notification, pushIds, timeToLive);
     } else if (uids) {
       uids.forEach((uid) => {
-        this.uidStore.getPushIdByUid(uid, (pushIds) => {
+        this.deviceService.getPushIdByUid(uid, (pushIds) => {
           this.sendNotificationByPushIds(notification, pushIds, timeToLive);
         });
       });
     } else if (tag) {
       let batch = [];
-      this.tagService.scanPushIdByTag(tag, (pushId) => {
+      this.deviceService.scanPushIdByTag(tag, (pushId) => {
         batch.push(pushId);
         if (batch.length == this.maxPushIds) {
           this.sendNotificationByPushIds(notification, batch, timeToLive);

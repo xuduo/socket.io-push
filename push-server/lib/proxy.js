@@ -12,8 +12,6 @@ class Proxy {
     console.log(`start proxy on port  ${config.http_port} ${config.https_port} #${process.pid}`);
     if (this.io) {
       const cluster = require('socket.io-push-redis/cluster')(config.redis);
-      this.tagService = require('./service/tagService')(this.mongo);
-      this.connectService = require('./service/connectService')(this.mongo);
       const nodeCluster = require('cluster');
       let id = 0;
       if (nodeCluster.worker) {
@@ -36,15 +34,14 @@ class Proxy {
         packetService = require('./service/packetService')(cluster);
       }
       this.uidStore = require('./redis/uidStore')(config.prefix, cluster, this.mongo, this.io);
+      this.deviceService = require('./service/deviceService')(this.mongo, this.uidStore);
       this.ttlService = require('./service/ttlService')(this.io, this.mongo, this.stats, this.arrivalStats);
-      this.tokenService = require('./service/tokenService')(this.mongo);
 
-      this.proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.tokenService, this.uidStore,
-        this.ttlService, this.tagService, this.connectService, this.arrivalStats, config);
+      this.proxyServer = require('./server/proxyServer')(this.io, this.stats, packetService, this.deviceService,
+        this.ttlService, this.arrivalStats, config);
     } else {
       console.log('start proxy failed!');
     }
-
   }
 
   close() {

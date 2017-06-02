@@ -22,9 +22,9 @@ describe('tag', function() {
     pushClient.on("connect", function() {
       pushClient.setTags(["tag1", "tag3"]);
       setTimeout(function() {
-        global.apiServer.tagService.getTagsByPushId(pushClient.pushId, function(tags) {
+        global.apiServer.deviceService.getTagsByPushId(pushClient.pushId, function(tags) {
           expect(tags).to.have.members(["tag1", "tag3"]);
-          global.apiServer.tagService.getPushIdsByTag("tag1", function(pushIds) {
+          global.apiServer.deviceService.getPushIdsByTag("tag1", function(pushIds) {
             expect(pushIds).to.deep.include.members([pushClient.pushId]);
             done();
           });

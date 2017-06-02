@@ -23,6 +23,10 @@ class Mongo {
         type: [String],
         index: true
       },
+      createTime: {
+        type: Date,
+        default: Date.now()
+      },
       updateTime: {
         type: Date,
         index: true
@@ -53,7 +57,6 @@ class Mongo {
     });
     this.device = this.getModel('device', deviceSchema);
 
-    this.ttlConnection = mongoose.createConnection(urls.ttl || urls.default);
     const ttlSchema = mongoose.Schema({
       _id: {
         type: String

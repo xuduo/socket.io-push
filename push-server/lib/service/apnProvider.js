@@ -1,5 +1,5 @@
-module.exports = (apnConfigs, apnApiUrls, mongo, arrivalStats, tokenService) => {
-  return new ApnProvider(apnConfigs, apnApiUrls, mongo, arrivalStats, tokenService);
+module.exports = (apnConfigs, apnApiUrls, mongo, arrivalStats, deviecService) => {
+  return new ApnProvider(apnConfigs, apnApiUrls, mongo, arrivalStats, deviecService);
 };
 
 const logger = require('winston-proxy')('ApnProvider');
@@ -9,7 +9,7 @@ const request = require('request');
 
 class ApnProvider {
 
-  constructor(apnConfigs, apnApiUrls = [], mongo, arrivalStats, tokenService) {
+  constructor(apnConfigs, apnApiUrls = [], mongo, arrivalStats, deviecService) {
     this.mongo = mongo;
     this.type = "apn";
     this.apnConnections = {};
@@ -20,7 +20,7 @@ class ApnProvider {
       if (result.errorTokens) {
         logger.debug("sentCallback errorTokens", result.errorTokens, result.bundleId);
         for (const token of result.errorTokens) {
-          tokenService.delApnToken(this.type, token, result.bundleId);
+          deviecService.delApnToken(this.type, token, result.bundleId);
         }
       }
       logger.debug("sentCallback ", result);

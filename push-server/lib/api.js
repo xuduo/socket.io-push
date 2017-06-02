@@ -13,13 +13,12 @@ class Api {
       key: config.prefix
     });
 
-    this.tagService = require('./service/tagService')(this.mongo);
-    this.connectService = require('./service/connectService')(this.mongo);
     const redisIncrBuffer = require('./stats/redisIncrBuffer')(this.mongo, config.statsCommitThreshold);
     this.stats = require('./stats/stats')(this.mongo, 0, redisIncrBuffer);
     const topicOnline = require('./stats/topicOnline')(this.mongo);
     this.arrivalStats = require('./stats/arrivalStats')(this.mongo, topicOnline);
     this.uidStore = require('./redis/uidStore')(config.prefix, cluster, this.mongo);
+    this.deviceService = require('./service/deviceService')(this.mongo, this.uidStore);
     this.ttlService = require('./service/ttlService')(this.io, this.mongo, this.stats, this.arrivalStats);
 
     this.notificationService = require('./service/notificationService')(config.apns, this.mongo, this.ttlService, this.arrivalStats);
@@ -27,8 +26,7 @@ class Api {
     const providerFactory = require('./service/notificationProviderFactory')();
     this.notificationService.providerFactory = providerFactory;
     if (config.apns != undefined) {
-      this.tokenService = require('./service/tokenService')(this.mongo);
-      this.apnService = require('./service/apnProvider')(config.apns, config.apnApiUrls, this.mongo, this.arrivalStats, this.tokenService);
+      this.apnService = require('./service/apnProvider')(config.apns, config.apnApiUrls, this.mongo, this.arrivalStats, this.deviceService);
       providerFactory.addProvider(this.apnService);
     }
     if (config.huawei) {
@@ -45,8 +43,8 @@ class Api {
       providerFactory.addProvider(this.umengProvider);
       this.arrivalStats.umengProvider = this.umengProvider;
     }
-    this.apiRouter = require('./service/apiRouter')(this.uidStore, this.notificationService, this.ttlService, this.tagService, config.routerMaxPushIds, config.routerApiUrls, this.stats);
-    this.restApi = require('./api/restApi')(httpServer, spdyServer, this.apiRouter, topicOnline, this.stats, config, this.apnService, config.apiAuth, this.uidStore, this.connectService, this.arrivalStats, this.tagService);
+    this.apiRouter = require('./service/apiRouter')(this.deviceService, this.notificationService, this.ttlService, config.routerMaxPushIds, config.routerApiUrls, this.stats);
+    this.restApi = require('./api/restApi')(httpServer, spdyServer, this.apiRouter, topicOnline, this.stats, config, this.apnService, config.apiAuth, this.deviceService, this.arrivalStats);
   }
 
   close() {
