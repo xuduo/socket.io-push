@@ -128,6 +128,12 @@ class ProxyServer {
         }
       });
 
+      socket.on('setTags', (data) => {
+        if (socket.pushId && data) {
+          tagService.setTags(socket.pushId, data);
+        }
+      });
+
       socket.on('removeTag', (data) => {
         if (socket.pushId && data.tag) {
           tagService.removeTag(socket.pushId, data.tag);

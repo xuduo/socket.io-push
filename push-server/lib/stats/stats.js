@@ -229,7 +229,7 @@ class Stats {
     this.mongo.stat.find({
       '_id.key': key
     }).sort({
-      timestamp: 1
+      '_id.timestamp': 1
     }).limit(7 * 24).exec((err, docs) => {
       let totalCount = 0;
       let totalSuccess = 0;

@@ -19,6 +19,10 @@ class Mongo {
       },
       platform: String,
       socketId: String,
+      tags: {
+        type: [String],
+        index: true
+      },
       updateTime: {
         type: Date,
         index: true
@@ -48,20 +52,6 @@ class Mongo {
       type: 1
     });
     this.device = this.getModel('device', deviceSchema);
-
-    const tagSchema = mongoose.Schema({
-      _id: {
-        pushId: String,
-        tag: String
-      }
-    });
-    tagSchema.index({
-      '_id.tag': 1
-    });
-    tagSchema.index({
-      '_id.pushId': 1
-    });
-    this.tag = this.getModel('tag', tagSchema);
 
     this.ttlConnection = mongoose.createConnection(urls.ttl || urls.default);
     const ttlSchema = mongoose.Schema({
