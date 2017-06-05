@@ -14,17 +14,12 @@ class DeviceService {
     this.getPushIdByUid = uidStore.getPushIdByUid.bind(uidStore);
     this.publishBindUid = uidStore.publishBindUid.bind(uidStore);
     this.publishUnbindUid = uidStore.publishUnbindUid.bind(uidStore);
-    const ipPath = process.cwd() + "/ip";
-    const fs = require('fs');
-    let ip;
-    if (fs.existsSync(ipPath)) {
-      ip = fs.readFileSync(ipPath, "utf8").trim();
-    }
-    logger.debug("ip file %s %s", ipPath, ip);
+
     this.id = '';
-    if (ip) {
-      this.id = ip + ':';
+    if (process.env.ip) {
+      this.id = process.env.ip + ':';
     }
+    logger.debug("this.id ", this.id);
   }
 
   connect(pushId, socketId, ios = false, callback) {

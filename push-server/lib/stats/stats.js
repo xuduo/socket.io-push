@@ -18,13 +18,8 @@ class Stats {
     this.packetDropThreshold = packetDropThreshold;
     this.interval = 10000;
     this.ms = require('./moving-sum.js')();
-    const ipPath = process.cwd() + "/ip";
-    const fs = require('fs');
-    let ip;
-    if (fs.existsSync(ipPath)) {
-      ip = fs.readFileSync(ipPath, "utf8").trim() + ":" + pid;
-    }
-    logger.debug("ip file %s %s", ipPath, ip);
+    let ip = process.env.ip;
+    logger.debug("ip %s", ip);
     this.id = ip || randomstring.generate(32);
     if (pid > 0) {
       setInterval(() => {

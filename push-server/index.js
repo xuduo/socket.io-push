@@ -47,25 +47,28 @@ if (cluster.isMaster) {
   });
   logger.info('total worker: ' + totalWorker);
 
+  let ip;
   let spawn = (processType, count) => {
     if (count > 0) {
+      const env = {
+        processType,
+        ip
+      };
       for (let i = 0; i < count; i++) {
-        const worker = cluster.fork({
-          processType
-        });
+        const worker = cluster.fork(env);
         worker.on('exit', (code, signal) => {
           logger.error('worker(%s) exit, code:%s, signal:%s', worker.id, code, signal);
           setTimeout(() => {
             logger.info('respanw worker');
-            spawn({
-              processType
-            });
+            spawn(env);
           }, 5000);
         });
       }
     }
   }
 
+  ip = require('./lib/util/ip')();
+  logger.info('master get ip', ip);
   spawn('proxy', proxy.instances);
   spawn('api', api.instances);
   spawn('admin', admin.instances);
