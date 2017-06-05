@@ -12,7 +12,6 @@ config.https_cert = process.cwd() + '/cert/https/cert.pem';
 config.prefix = 'test'; // 数据库表名/redis pub/sub prefix，用于多个系统公用redis和mongo的情况
 
 config.instances = 3;
-config.load_balancer = 'ip_hash'; // 'round_robin' or 'ip_hash' 如果要支持pooling协议,必须选ip_hash
 
 config.pingTimeout = 25000; //  心跳timeout
 config.pingInterval = 90000; // 心跳间隔

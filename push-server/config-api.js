@@ -7,7 +7,6 @@ config.host = 'localhost'; //不填或留空表示listen所有interface
 config.prefix = 'test'; // 数据库表名/redis pub/sub prefix，用于多个系统公用redis和mongo的情况
 
 config.instances = 3;
-config.load_balancer = 'round_robin'; // 'round_robin' or 'ip_hash'
 
 config.socketTimeout = 60 * 1000;
 

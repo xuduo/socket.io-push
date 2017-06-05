@@ -101,7 +101,6 @@ class ApnProvider {
     }
     const note = this.toApnNotification(notification, timeToLive);
     note.topic = bundleId;
-    logger.debug("callLocal ", bundleId, notification.id, tokens.length);
     apnConnection.send(note, tokens).then((response) => {
       const errorToken = [];
       let errorCount = 0;
@@ -126,6 +125,7 @@ class ApnProvider {
       }
       result.total = tokens.length;
       result.errorTokens = errorToken;
+      logger.debug('callLocal ', bundleId, notification.id, tokens.length, result);
       callback(result);
     });
   }
@@ -171,13 +171,16 @@ class ApnProvider {
       return;
     }
     for (const bundleId of this.bundleIds) {
-      const stream = this.mongo.device.find({
+      const cursor = this.mongo.device.find({
         package_name: bundleId,
         type: 'apn'
-      }).stream();
+      }).cursor({
+        batchSize: 1000
+      });
       let batch = [];
       const batchSize = 1000;
-      stream.on('data', (doc) => {
+
+      cursor.on('data', (doc) => {
         batch.push(doc.token);
         if (batch.length >= batchSize) {
           this.batchSendToApn(notification, bundleId, batch, timeToLive);
@@ -186,7 +189,8 @@ class ApnProvider {
       }).on('error', () => {
         this.batchSendToApn(notification, bundleId, batch, timeToLive);
         batch = [];
-      }).on('close', () => {
+      }).on('end', () => {
+        logger.debug('sendAll end');
         this.batchSendToApn(notification, bundleId, batch, timeToLive);
         batch = [];
       });

@@ -4,7 +4,6 @@ config.http_port = 13001; //api端口, 可选. 不配置,不提供api接口
 config.https_port = 13443;
 
 config.instances = 3;
-config.load_balancer = 'round_robin'; // 'round_robin' or 'ip_hash'
 
 config.socketTimeout = 60 * 1000;
 

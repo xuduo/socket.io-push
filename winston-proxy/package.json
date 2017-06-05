@@ -1,6 +1,6 @@
 {
   "name": "winston-proxy",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "a self defined log moudle based on winston, support multi process and module names",
   "main": "index.js",
   "directories": {

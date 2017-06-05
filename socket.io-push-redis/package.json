@@ -1,6 +1,6 @@
 {
   "name": "socket.io-push-redis",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "redis operation for socket.io-push, include adapter, emitter, read/write ",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
   "dependencies": {
     "ioredis": "^1.15.0",
     "redis-commands": "1.1.0",
-    "winston-proxy": "^1.0.2",
+    "winston-proxy": "1.0.4",
     "uid2": "0.0.3",
     "msgpack-js": "0.3.0",
     "socket.io-adapter": "0.4.0",

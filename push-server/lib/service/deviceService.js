@@ -57,7 +57,7 @@ class DeviceService {
       }
     }, (err, device) => {
       if (!err && device) {
-        if (docsocketId == (this.id + socket.id)) {
+        if (device.socketId == (this.id + socket.id)) {
           return callback(true)
         }
       }

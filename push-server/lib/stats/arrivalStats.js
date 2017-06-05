@@ -22,7 +22,7 @@ class ArrivalStats {
     this.umengProvider = dummy;
   }
 
-  addArrivalInfo(msgId, inc, set = {}) {
+  addArrivalInfo(msgId, inc = {}, set = {}) {
     if (!msgId) {
       logger.error('addArrivalInfo no msgId', inc, set);
       return;
@@ -61,9 +61,13 @@ class ArrivalStats {
       logger.info('packet(%s) init count:%d', msg.id, count);
       const data = this.msgToData(msg, ttl, false);
       data.type = 'pushAll';
-      this.addArrivalInfo(msg.id, {
-        'target_android': count
-      }, data);
+      let inc;
+      if (count) {
+        inc = {
+          'target_android': count
+        };
+      }
+      this.addArrivalInfo(msg.id, inc, data);
     });
   }
 
