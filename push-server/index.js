@@ -79,7 +79,7 @@ if (cluster.isMaster) {
     let httpServer;
     if (config.http_port) {
       httpServer = require('http').createServer();
-      if (false && config.host) {
+      if (config.host) {
         httpServer.listen(config.http_port, config.host);
       } else {
         httpServer.listen(config.http_port);
@@ -90,7 +90,7 @@ if (cluster.isMaster) {
       try {
         let https_key = fs.readFileSync(config.https_key);
         let https_cert = fs.readFileSync(config.https_cert);
-        let httpsServer = require(httpsType).createServer({
+        httpsServer = require(httpsType).createServer({
           key: https_key,
           cert: https_cert
         });
@@ -126,15 +126,14 @@ if (cluster.isMaster) {
       }
       if (servers.httpsServer) {
         io.attach(servers.httpsServer, opts);
-        servers[proxy.https_port] = httpsServer;
       }
       require('./lib/proxy')(io, proxy);
     } else if (process.env.processType == 'api') {
       const servers = createServers(api, 'spdy');
-      require('./lib/api')(servers.httpServer, servers.httpServer, api);
+      require('./lib/api')(servers.httpServer, servers.httpsServer, api);
     } else if (process.env.processType == 'apnProxy') {
-      const servers = createServers(api, 'spdy');
-      require('./lib/apnProxy')(servers.httpServer, servers.httpServer, apnProxy);
+      const servers = createServers(apnProxy, 'spdy');
+      require('./lib/apnProxy')(servers.httpServer, servers.httpsServer, apnProxy);
     } else if (process.env.processType == 'admin') {
       require('./lib/admin')(admin);
     }

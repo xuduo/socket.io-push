@@ -20,7 +20,7 @@ class Stats {
     this.ms = require('./moving-sum.js')();
     let ip = process.env.ip;
     logger.debug("ip %s", ip);
-    this.id = ip || randomstring.generate(32);
+    this.id = ip + ':' + pid;
     if (pid > 0) {
       setInterval(() => {
         this.writeStatsToRedis();
