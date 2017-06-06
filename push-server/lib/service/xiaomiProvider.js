@@ -5,7 +5,7 @@ module.exports = (config, arrivalStats) => {
 const logger = require('winston-proxy')('XiaomiProvider');
 
 const util = require('socket.io-push-redis/util');
-const request = require('request');
+const request = require('requestretry');
 const sendOneUrl = "https://api.xmpush.xiaomi.com/v3/message/regid";
 const sendAllUrl = "https://api.xmpush.xiaomi.com/v3/message/all";
 const traceUrl = "https://api.xmpush.xiaomi.com/v1/trace/message/status";
@@ -28,7 +28,10 @@ class XiaomiProvider {
         url: sendOneUrl,
         form: this.getPostData(notification, tokenDataList, timeToLive),
         headers: this.headers,
-        timeout: timeout
+        timeout: timeout,
+        maxAttempts: 2,
+        retryDelay: 5000,
+        retryStrategy: request.RetryStrategies.NetworkError
       }, (error, response, body) => {
         logger.debug("sendOne result", error, response && response.statusCode, body);
         if (this.success(error, response, body, callback, notification.id)) {
@@ -70,7 +73,10 @@ class XiaomiProvider {
         url: sendAllUrl,
         form: this.getPostData(notification, 0, timeToLive),
         headers: this.headers,
-        timeout: timeout
+        timeout: timeout,
+        maxAttempts: 2,
+        retryDelay: 5000,
+        retryStrategy: request.RetryStrategies.NetworkError
       }, (error, response, body) => {
         logger.info("sendAll result", error, response && response.statusCode, body);
         if (this.success(error, response, body, callback, notification.id)) {
@@ -108,7 +114,10 @@ class XiaomiProvider {
           msg_id: packetInfo.xiaomi_msg_id
         },
         headers: this.headers,
-        timeout: timeout
+        timeout: timeout,
+        maxAttempts: 2,
+        retryDelay: 5000,
+        retryStrategy: request.RetryStrategies.NetworkError
       }, (error, response, body) => {
         logger.info("trace result", error, response && response.statusCode, body);
         try {

@@ -1,6 +1,6 @@
 {
   "name": "socket.io-push",
-  "version": "0.8.55",
+  "version": "0.8.56",
   "description": "socket.io-push server by xuduo",
   "main": "index.js",
   "bin": {
@@ -23,6 +23,7 @@
     "ncp": "2.0.0",
     "randomstring": "1.1.3",
     "request": "2.67.0",
+    "requestretry": "^1.12.0",
     "restify": "4.0.3",
     "socket.io": "1.7.2",
     "socket.io-push-redis": "1.0.5",

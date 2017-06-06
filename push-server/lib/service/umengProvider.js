@@ -7,7 +7,7 @@ const dateformat = require('dateformat');
 const md5 = require('md5');
 
 const util = require('socket.io-push-redis/util');
-const request = require('request');
+const request = require('requestretry');
 const sendUrl = "http://msg.umeng.com/api/send";
 const sendAllUrl = "https://api.xmpush.xiaomi.com/v3/message/all";
 const traceUrl = "http://msg.umeng.com/api/status";
@@ -35,7 +35,10 @@ class UmengProvider {
       request.post({
         url: sendUrl + '?sign=' + sign,
         body: body,
-        timeout: timeout
+        timeout: timeout,
+        maxAttempts: 2,
+        retryDelay: 5000,
+        retryStrategy: request.RetryStrategies.NetworkError
       }, (error, response, body) => {
         logger.debug("sendMany result", error, response && response.statusCode, body);
         if (this.success(error, response, body, callback, notification.id)) {
@@ -54,7 +57,10 @@ class UmengProvider {
       request.post({
         url: sendUrl + '?sign=' + sign,
         body: body,
-        timeout: timeout
+        timeout: timeout,
+        maxAttempts: 2,
+        retryDelay: 5000,
+        retryStrategy: request.RetryStrategies.NetworkError
       }, (error, response, body) => {
         logger.debug("sendAll result", error, response && response.statusCode, body);
         if (this.success(error, response, body, callback, notification.id)) {
@@ -130,7 +136,10 @@ class UmengProvider {
       request.post({
         url: traceUrl + '?sign=' + sign,
         body: body,
-        timeout: timeout
+        timeout: timeout,
+        maxAttempts: 2,
+        retryDelay: 5000,
+        retryStrategy: request.RetryStrategies.NetworkError
       }, (error, response, body) => {
         logger.debug("trace result", error, response && response.statusCode, body);
         try {

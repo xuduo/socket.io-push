@@ -5,7 +5,7 @@ module.exports = (apnConfigs, apnApiUrls, mongo, arrivalStats, deviecService) =>
 const logger = require('winston-proxy')('ApnProvider');
 const apn = require('apn');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-const request = require('request');
+const request = require('requestretry');
 
 class ApnProvider {
 
@@ -135,7 +135,6 @@ class ApnProvider {
       return;
     }
     const apiUrl = this.apnApiUrls.next();
-    const retryCount = 2;
     request({
       url: apiUrl + "/api/apn",
       method: "post",
@@ -144,18 +143,16 @@ class ApnProvider {
         tokens: JSON.stringify(tokens),
         notification: JSON.stringify(notification),
         timeToLive: timeToLive
-      }
+      },
+      maxAttempts: 2,
+      retryDelay: 2000,
+      retryStrategy: request.RetryStrategies.NetworkError
     }, (error, response, body) => {
       logger.info("callRemote api batch ", tokens.length, apiUrl, error, body, notification);
-      if (error && errorCount <= retryCount) {
-        logger.error("retry remote api batch ", tokens.length, errorCount, apiUrl, error, body);
-        this.callRemote(notification, bundleId, tokens, timeToLive, errorCount + 1, callback);
-      } else {
-        try {
-          callback(JSON.parse(body));
-        } catch (e) {
-          logger.error("callRemote callback error ", e);
-        }
+      try {
+        callback(JSON.parse(body));
+      } catch (e) {
+        logger.error("callRemote callback error ", e);
       }
     });
   }
