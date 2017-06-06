@@ -13,6 +13,7 @@ class TTLService {
     this.io = io;
     this.stats = stats;
     this.arrivalStats = arrivalStats;
+    this.type = 'TTLService';
   }
 
   onPushId(socket, lastPacketId) {
@@ -122,6 +123,17 @@ class TTLService {
     } else {
       socket.emit(event, packet);
     }
+  }
+
+  sendAll(notification, timeToLive) {
+    this.arrivalStats.addPushAll(notification, timeToLive);
+    this.addTTL("noti", 'noti', timeToLive, notification, false);
+    // 小米,华为,苹果不订阅 "noti"
+    this.emitPacket("noti", 'noti', notification);
+  }
+
+  sendMany() {
+
   }
 
 }

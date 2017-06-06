@@ -28,6 +28,7 @@ DefaultSetting.getDefaultApiUrl = () => {
 
 DefaultSetting.getDefaultApiServer = () => {
   let apiConfig = require('../config-api');
+  apiConfig.pushAllInterval = 0;
   let apiHttpServer = require('http').createServer();
   apiHttpServer.listen(apiConfig.http_port);
   return require('../lib/api')(apiHttpServer, null, apiConfig);

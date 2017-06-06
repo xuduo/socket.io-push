@@ -54,12 +54,6 @@ class NotificationService {
   }
 
   sendAll(notification, timeToLive) {
-    if (this.ttlService) {
-      this.arrivalRate.addPushAll(notification, timeToLive);
-      this.ttlService.addTTL("noti", 'noti', timeToLive, notification, false);
-      // 小米,华为,苹果不订阅 "noti"
-      this.ttlService.emitPacket("noti", 'noti', notification);
-    }
     this.providerFactory.sendAll(notification, timeToLive);
   }
 

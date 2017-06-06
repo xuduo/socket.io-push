@@ -166,14 +166,16 @@ class DeviceService {
   }
 
   scanPushIdByTag(tag, callback, endCallback) {
-    const stream = this.mongo.device.find({
+    const cursor = this.mongo.device.find({
       'tags': tag
-    }).stream();
-    stream.on('data', (doc) => {
+    }).cursor({
+      batchSize: 1000
+    });
+    cursor.on('data', (doc) => {
       callback(doc._id);
     }).on('error', () => {
       endCallback();
-    }).on('close', () => {
+    }).on('end', () => {
       endCallback();
     });
   }

@@ -23,12 +23,13 @@ class Api {
 
     this.notificationService = require('./service/notificationService')(config.apns, this.mongo, this.ttlService, this.arrivalStats);
 
-    const providerFactory = require('./service/notificationProviderFactory')();
+    const providerFactory = require('./service/notificationProviderFactory')(config.pushAllInterval);
     this.notificationService.providerFactory = providerFactory;
     if (config.apns != undefined) {
       this.apnService = require('./service/apnProvider')(config.apns, config.apnApiUrls, this.mongo, this.arrivalStats, this.deviceService);
       providerFactory.addProvider(this.apnService);
     }
+    providerFactory.addProvider(this.ttlService);
     if (config.huawei) {
       this.huaweiProvider = require('./service/huaweiProvider')(config.huawei, this.stats);
       providerFactory.addProvider(this.huaweiProvider);
