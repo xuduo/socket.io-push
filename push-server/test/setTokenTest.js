@@ -24,23 +24,23 @@ describe('set token test', function() {
     pushClient.on('connect', function(data) {
       console.log('connect ------------- ', data);
       expect(data.pushId).to.be.equal(pushClient.pushId);
-      var notificationService = apiServer.notificationService;
+      var deviceService = apiServer.deviceService;
       setTimeout(function() {
-        notificationService.getTokenDataByPushId(pushClient.pushId, function(token) {
+        deviceService.getDeviceByPushId(pushClient.pushId, function(token) {
           expect(token.type).to.equal("apnNoToken");
           pushClient.socket.emit("token", {
             token: "testToken",
             type: "testType"
           });
           setTimeout(function() {
-            notificationService.getTokenDataByPushId(pushClient.pushId, function(token) {
+            deviceService.getDeviceByPushId(pushClient.pushId, function(token) {
               expect(token.token).to.equal("testToken");
               expect(token.type).to.equal("testType");
               pushClient.disconnect();
               pushClient.connect();
               pushClient.on('connect', () => {
                 setTimeout(() => {
-                  notificationService.getTokenDataByPushId(pushClient.pushId, (token) => {
+                  deviceService.getDeviceByPushId(pushClient.pushId, (token) => {
                     expect(token.token).to.equal("testToken");
                     expect(token.type).to.equal("testType");
                     done();

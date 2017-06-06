@@ -23,24 +23,24 @@ class ApiRouter {
     if (pushAll) {
       this.notificationService.sendAll(notification, timeToLive);
     } else if (pushIds) {
-      this.sendNotificationByPushIds(notification, pushIds, timeToLive);
+      this.deviceService.getDevicesByPushIds(pushIds, (devices) => {
+        this.sendNotificationByDevices(notification, devices, timeToLive);
+      });
     } else if (uids) {
-      uids.forEach((uid) => {
-        this.deviceService.getPushIdByUid(uid, (pushIds) => {
-          this.sendNotificationByPushIds(notification, pushIds, timeToLive);
-        });
+      this.deviceService.getDevicesByUid(uids, (devices) => {
+        this.sendNotificationByDevices(notification, devices, timeToLive);
       });
     } else if (tag) {
       let batch = [];
-      this.deviceService.scanPushIdByTag(tag, (pushId) => {
-        batch.push(pushId);
+      this.deviceService.scanByTag(tag, (doc) => {
+        batch.push(doc);
         if (batch.length == this.maxPushIds) {
-          this.sendNotificationByPushIds(notification, batch, timeToLive);
+          this.sendNotificationByDevices(notification, batch, timeToLive);
           batch = [];
         }
       }, () => {
         if (batch.length != 0) {
-          this.sendNotificationByPushIds(notification, batch, timeToLive);
+          this.sendNotificationByDevices(notification, batch, timeToLive);
         }
       });
     }
@@ -65,46 +65,12 @@ class ApiRouter {
     }
   }
 
-  sendNotificationByPushIds(notification, pushIds, timeToLive) {
-    if (pushIds.length == 0) {
+  sendNotificationByDevices(notification, devices, timeToLive) {
+    if (!devices || devices.length == 0) {
       return;
     }
-    this.stats.addPushById(pushIds.length);
-    if (pushIds.length >= this.maxPushIds && this.remoteUrls.hasNext()) {
-      logger.info("sendNotification to remote api ", this.maxPushIds, pushIds.length);
-      let batch = [];
-      pushIds.forEach((pushId, index) => {
-        batch.push(pushId);
-        if (batch.length == this.maxPushIds || index == pushIds.length - 1) {
-          this.callRemoteNotification(notification, batch, timeToLive);
-          batch = [];
-        }
-      });
-    } else {
-      this.notificationLocal(notification, pushIds, timeToLive);
-    }
-  }
-
-  callRemoteNotification(notification, pushIds, timeToLive, errorCount = 0) {
-    const apiUrl = this.remoteUrls.next();
-    request({
-      url: apiUrl + "/api/routeNotification",
-      method: "post",
-      form: {
-        pushId: JSON.stringify(pushIds),
-        notification: JSON.stringify(notification),
-        timeToLive: timeToLive
-      }
-    }, error => {
-      logger.info("call remote api batch ", pushIds.length, apiUrl, error);
-      if (error && errorCount < 3) {
-        this.callRemoteNotification(notification, pushIds, timeToLive, errorCount + 1);
-      }
-    });
-  }
-
-  notificationLocal(notification, pushIds, timeToLive) {
-    this.notificationService.sendByPushIds(pushIds, timeToLive, notification);
+    this.stats.addPushById(devices.length);
+    this.notificationService.sendByDevices(devices, timeToLive, notification);
   }
 
   addIdAndTimestamp(notification) {

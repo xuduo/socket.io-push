@@ -58,14 +58,14 @@ describe('apn send one', function() {
       }, (error, response, body) => {
         const result = JSON.parse(body);
         expect(result.code).to.be.equal("success");
-        global.apiServer.notificationService.getTokenDataByPushId(pushClient2.pushId, (data2) => {
-          console.log('======pushId=====' + pushClient2.pushId + ' data: ' + data2);
-          expect(data2.token).to.be.equal("eexxee");
+        global.apiServer.deviceService.getDeviceByPushId(pushClient2.pushId, (device) => {
+          console.log('======pushId=====' + pushClient2.pushId + ' data: ' + device);
+          expect(device.token).to.be.equal("eexxee");
           done();
         });
         setTimeout(() => {
-          global.apiServer.notificationService.getTokenDataByPushId(pushClient.pushId, (data) => {
-            expect(data).to.be.undefined;
+          global.apiServer.deviceService.getDeviceByPushId(pushClient.pushId, (device) => {
+            expect(device.token).to.be.undefined;
           });
         }, 4000);
 

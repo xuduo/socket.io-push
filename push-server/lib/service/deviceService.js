@@ -72,10 +72,35 @@ class DeviceService {
     });
   }
 
-  getDevicesByUid(uid, callback) {
+  getDevicesByPushIds(pushIds, callback) {
     this.mongo.device.find({
-      uid: uid
+      _id: {
+        $in: pushIds
+      }
     }, (err, docs) => {
+      if (!err && docs) {
+        callback(docs);
+      } else {
+        callback([]);
+        logger.error('getDevicesByUid error', uid, doc, err);
+      }
+    });
+  }
+
+  getDevicesByUid(uid, callback) {
+    let query;
+    if (uid.constructor === Array) {
+      query = {
+        uid: {
+          $in: uid
+        }
+      };
+    } else {
+      query = {
+        uid: uid
+      }
+    }
+    this.mongo.device.find(query, (err, docs) => {
       const result = [];
       if (!err && docs) {
         for (const doc of docs) {
@@ -84,7 +109,7 @@ class DeviceService {
           result.push(device);
         }
       } else {
-        logger.error('getDevicesByUid error', uid, doc, err);
+        logger.error('getDevicesByUid error', uid, docs, err);
       }
       callback(result);
     });
@@ -165,14 +190,14 @@ class DeviceService {
       });
   }
 
-  scanPushIdByTag(tag, callback, endCallback) {
+  scanByTag(tag, callback, endCallback) {
     const cursor = this.mongo.device.find({
       'tags': tag
     }).cursor({
       batchSize: 1000
     });
     cursor.on('data', (doc) => {
-      callback(doc._id);
+      callback(doc);
     }).on('error', () => {
       endCallback();
     }).on('end', () => {

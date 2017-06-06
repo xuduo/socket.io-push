@@ -397,18 +397,6 @@ class RestApi {
       })
     });
 
-    router.all('/token', (req, res, next) => {
-      const pushId = req.p.pushId;
-      apiRouter.notificationService.getTokenDataByPushId(pushId, (token) => {
-        logger.debug('---- token: ' + token);
-        res.json({
-          pushId: pushId,
-          token: token || ''
-        });
-        return next();
-      });
-    });
-
     router.all('/config', (req, res, next) => {
       res.json(config);
       return next();
