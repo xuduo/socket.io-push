@@ -8,7 +8,7 @@ class Api {
 
     console.log(`start api on port  http:${config.http_port} https:${config.https_port}  #${process.pid}`);
     const cluster = require('socket.io-push-redis/cluster')(config.redis);
-    this.mongo = require('./mongo/mongo')(config.prefix, config.mongo);
+    this.mongo = require('./mongo/mongo')(config.prefix, config.mongo, config.mongo_log);
     this.io = require('socket.io-push-redis/emitter')(cluster, {
       key: config.prefix
     });

@@ -1,5 +1,5 @@
-module.exports = (prefix, url) => {
-  return new Mongo(prefix, url);
+module.exports = (prefix, url, debug) => {
+  return new Mongo(prefix, url, debug);
 };
 
 let mongoose = require('mongoose');
@@ -7,7 +7,13 @@ mongoose.Promise = Promise;
 
 class Mongo {
 
-  constructor(prefix = '', urls) {
+  constructor(prefix = '', urls, debug = false) {
+    if (debug) {
+      const logger = require('winston-proxy')('Mongo');
+      mongoose.set('debug', (coll, method, query, doc) => {
+        logger.info('query ', coll, method, query);
+      });
+    }
     this.urls = urls;
     this.prefix = prefix;
 
@@ -27,24 +33,14 @@ class Mongo {
         type: Date,
         default: Date.now()
       },
-      updateTime: {
-        type: Date,
-        index: true
-      },
-      type: {
-        type: String,
-        index: true
-      },
+      updateTime: Date,
+      type: String,
       token: String,
       package_name: String
     });
     deviceSchema.index({
       uid: 1,
       platform: 1
-    });
-    deviceSchema.index({
-      _id: 1,
-      type: 1
     });
     deviceSchema.index({
       package_name: 1,
@@ -192,7 +188,11 @@ class Mongo {
     if (!this.connections) {
       this.connections = {};
       if (this.urls.default) {
-        this.connections[this.urls.default] = mongoose.createConnection(this.urls.default);
+        this.connections[this.urls.default] = mongoose.createConnection(this.urls.default, {
+          db: {
+            safe: false
+          }
+        });
       }
     }
     const url = this.urls[path] || this.urls.default;

@@ -84,6 +84,8 @@ config.apiAuth = function(opts, callback) {
   }
 };
 
+config.mongo_log = false;
+
 config.mongo = {
   default: 'mongodb://localhost/socketiopush',
   arrival: 'mongodb://localhost/socketiopush_arrival'

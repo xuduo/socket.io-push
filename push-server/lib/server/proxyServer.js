@@ -51,12 +51,12 @@ class ProxyServer {
         socket.join(topic, callback);
       };
 
-      socket.setUid = (uid) => {
+      socket.setUid = (uid, callback) => {
         if (uid) {
           socket.uid = uid;
-          socket.join("uid:" + uid);
+          socket.join("uid:" + uid, callback);
         } else if (socket.uid) {
-          socket.leave("uid:" + socket.uid);
+          socket.leave("uid:" + socket.uid, callback);
           socket.uid = uid;
         }
       };
@@ -92,16 +92,21 @@ class ProxyServer {
               if (device.tags) {
                 reply.tags = device.tags;
               }
+
               if (device.uid) {
                 reply.uid = device.uid;
-                socket.setUid(device.uid);
+                socket.setUid(device.uid, () => {
+                  socket.emit('pushId', reply);
+                });
+              } else {
+                socket.emit('pushId', reply);
               }
 
               if (packetService) {
                 packetService.publishConnect(socket);
               }
 
-              socket.emit('pushId', reply);
+
               const lastPacketIds = data.lastPacketIds;
               if (lastPacketIds) {
                 for (const topic in lastPacketIds) {

@@ -33,8 +33,9 @@ describe('arrivalStatsTest', () => {
       }
     };
     topicOnline.writeTopicOnline(topicOnlineData);
-    arrivalStats.addPushAll(packet, 1000);
+
     setTimeout(() => {
+      arrivalStats.addPushAll(packet, 1000);
       arrivalStats.addArrivalInfo(packetId, {
         arrive_android: 98
       });

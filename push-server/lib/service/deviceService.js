@@ -126,9 +126,7 @@ class DeviceService {
       tags
     }, {
       upsert: true
-    }, (err, doc) => {
-      logger.debug('setTags', pushId, tags, doc, err);
-    });
+    }).exec();
   }
 
   addTag(pushId, tag) {
@@ -163,9 +161,7 @@ class DeviceService {
       $pull: {
         tags: tag
       }
-    }, (err, doc) => {
-      logger.debug('removeTag', pushId, tag, err, doc);
-    });
+    }).exec();
   }
 
   getPushIdsByTag(tag, callback) {
@@ -223,9 +219,7 @@ class DeviceService {
         $set: {
           type: 'apnNoToken'
         }
-      }, (err, doc) => {
-        logger.debug('delete errorToken', err, doc, token);
-      });
+      }).exec();
     }
   }
 
@@ -239,9 +233,7 @@ class DeviceService {
       updateTime: Date.now()
     }, {
       upsert: true
-    }, (err, doc) => {
-      logger.debug("setToken mongo ", doc, err);
-    });
+    }).exec();
   }
 
 }

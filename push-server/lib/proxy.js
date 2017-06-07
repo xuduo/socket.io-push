@@ -7,7 +7,7 @@ class Proxy {
   constructor(ioServer, config) {
     this.httpServer = ioServer.hs;
     this.httpsServer = ioServer.hss;
-    this.mongo = require('./mongo/mongo')(config.prefix, config.mongo);
+    this.mongo = require('./mongo/mongo')(config.prefix, config.mongo, config.mongo_log);
     this.io = ioServer;
     console.log(`start proxy on port  ${config.http_port} ${config.https_port} #${process.pid}`);
     if (this.io) {
