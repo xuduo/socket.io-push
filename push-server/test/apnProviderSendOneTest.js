@@ -37,7 +37,7 @@ describe('apn send one', function() {
 
       var data = {
         "apn": {
-          alert: "wwww"
+          alert: "qqqqOne"
         }
       };
       var str = JSON.stringify(data);

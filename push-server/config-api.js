@@ -13,7 +13,7 @@ config.pushAllInterval = 10 * 1000; // 各个全网推送渠道调用间隔 防�
 config.https_key = process.cwd() + '/cert/https/key.pem';
 config.https_cert = process.cwd() + '/cert/https/cert.pem';
 
-config.statsCommitThreshold = 0; //ms,统计缓存commit间隔, 生产环境建议10秒以上
+config.statsCommitThreshold = 5000; //ms,统计缓存commit间隔, 生产环境建议10秒以上
 
 config.topicThreshold = {};
 

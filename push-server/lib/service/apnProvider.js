@@ -187,7 +187,7 @@ class ApnProvider {
         this.batchSendToApn(notification, bundleId, batch, timeToLive);
         batch = [];
       }).on('end', () => {
-        logger.debug('sendAll end');
+        logger.debug('sendAll cursor end', bundleId, batch.length);
         this.batchSendToApn(notification, bundleId, batch, timeToLive);
         batch = [];
       });

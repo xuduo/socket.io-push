@@ -38,7 +38,16 @@ DefaultSetting.getDefaultApnProxyServer = () => {
   let apnConfig = require('../config-apn-proxy');
   let apiHttpServer = require('http').createServer();
   apiHttpServer.listen(apnConfig.http_port);
-  return require('../lib/apnProxy')(apiHttpServer, null, apnConfig);
+  let fs = require('fs');
+  let https_key = fs.readFileSync(apnConfig.https_key);
+  let https_cert = fs.readFileSync(apnConfig.https_cert);
+
+  let httpsServer = require('spdy').createServer({
+    key: https_key,
+    cert: https_cert
+  });
+  httpsServer.listen(apnConfig.https_port);
+  return require('../lib/apnProxy')(apiHttpServer, httpsServer, apnConfig);
 }
 
 DefaultSetting.getDefaultProxyServer = () => {

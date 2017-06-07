@@ -189,8 +189,7 @@ class ProxyServer {
           if (config.bindUid && socket.pushId && data) {
             config.bindUid(data, (uid, platform, limit) => {
               logger.debug("bindUid %s %s %j", uid, socket.pushId, data);
-              if (uid) {
-                socket.join("uid:" + uid);
+              if (uid && socket.uid != uid) {
                 socket.setUid(uid);
                 deviceService.bindUid(socket.pushId, data.uid, platform || socket.platform, limit);
               }

@@ -21,7 +21,7 @@ describe('umengProviderTest', function() {
         message: "sendAll Msg"
       },
       payload: {
-        test: "wwwwqqq"
+        test: "wwwwqqqUmeng"
       }
     };
     var timeToLive = 10000;

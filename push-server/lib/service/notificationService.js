@@ -20,10 +20,9 @@ class NotificationService {
     for (const device of devices) {
       if (!device.token || device.type == 'umeng') {
         logger.debug("send notification in socket.io, connection", device);
-        if (device.socketId) {
-          sendViaTtlService++;
-          this.ttlService.emitPacket(device._id, 'noti', notification);
-        } else {
+        sendViaTtlService++;
+        this.ttlService.emitPacket(device._id, 'noti', notification);
+        if (!device.socketId) {
           this.ttlService.addTTL(device._id, 'noti', timeToLive, notification, true);
         }
       } else {

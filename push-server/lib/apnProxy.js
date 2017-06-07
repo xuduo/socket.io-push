@@ -52,6 +52,7 @@ class ApnProxy {
   }
 
   close() {
+    console.log('closing apnProxy');
     if (this.httpServer) {
       this.httpServer.close();
     }

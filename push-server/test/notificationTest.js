@@ -17,6 +17,7 @@ describe('notification', function() {
   after(function() {
     global.proxyServer.close();
     global.apiServer.close();
+    global.apnProxy.close();
     global.pushClient.disconnect();
     global.pushClient2.disconnect();
   });

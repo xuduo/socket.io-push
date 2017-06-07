@@ -24,7 +24,8 @@ class DeviceService {
 
   connect(pushId, socketId, ios = false, callback) {
     this.mongo.device.findByIdAndUpdate(pushId, {
-      socketId: (this.id + socketId)
+      socketId: (this.id + socketId),
+      updateTime: Date.now()
     }, {
       upsert: true,
       'new': true
@@ -49,6 +50,9 @@ class DeviceService {
     this.mongo.device.findByIdAndUpdate(socket.pushId, {
       $unset: {
         socketId: 1
+      },
+      $set: {
+        updateTime: Date.now()
       }
     }, (err, device) => {
       if (!err && device) {

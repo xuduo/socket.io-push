@@ -30,32 +30,37 @@ describe('apn test', function() {
       });
       var data = {
         "apn": {
-          alert: "wwww"
+          alert: "wwwwAll"
         }
       }
       var str = JSON.stringify(data);
 
       pushClient.on('notification', function() {
-        expect("do not receive").to.be.false
+        //    expect("do not receive").to.be.false
       });
 
-
-      request({
-        url: apiUrl + '/api/notification',
-        method: "post",
-        headers: {
-          'Accept': 'application/json'
-        },
-        form: {
-          pushAll: 'true',
-          notification: str
-        }
-      }, (error, response, body) => {
-        expect(JSON.parse(body).code).to.be.equal("success");
-        done();
+      setTimeout(() => {
+        request({
+          url: apiUrl + '/api/notification',
+          method: "post",
+          headers: {
+            'Accept': 'application/json'
+          },
+          form: {
+            pushAll: 'true',
+            notification: str
+          }
+        }, (error, response, body) => {
+          expect(JSON.parse(body).code).to.be.equal("success");
+          setTimeout(() => {
+            apiServer.deviceService.getDeviceByPushId(pushClient.pushId, (device) => {
+              expect(device.type).to.equal("apnNoToken");
+              done();
+            });
+          }, 5000);
+        });
       });
-    });
-
+    }, 100);
   });
 
 });
