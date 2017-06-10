@@ -26,6 +26,23 @@ describe('tag', function() {
           expect(tags).to.have.members(["tag1", "tag3"]);
           global.apiServer.deviceService.getPushIdsByTag("tag1", function(pushIds) {
             expect(pushIds).to.deep.include.members([pushClient.pushId]);
+            pushClient.disconnect();
+            done();
+          });
+        });
+      }, 100);
+    });
+  });
+
+  it('setTags 2', function(done) {
+    pushClient.connect();
+    pushClient.on("connect", function() {
+      pushClient.setTags(["tag3", "tag4"]);
+      setTimeout(function() {
+        global.apiServer.deviceService.getTagsByPushId(pushClient.pushId, function(tags) {
+          expect(tags).to.have.members(["tag3", "tag4"]);
+          global.apiServer.deviceService.getPushIdsByTag("tag4", function(pushIds) {
+            expect(pushIds).to.deep.include.members([pushClient.pushId]);
             done();
           });
         });

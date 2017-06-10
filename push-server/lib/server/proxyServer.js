@@ -124,22 +124,10 @@ class ProxyServer {
         }
       });
 
-      socket.on('addTag', (data) => {
-        if (socket.pushId && data.tag) {
-          deviceService.addTag(socket.pushId, data.tag);
-        }
-      });
-
       socket.on('setTags', (data) => {
         logger.debug('setTags ', socket.pushId, data);
         if (socket.pushId && data) {
           deviceService.setTags(socket.pushId, data);
-        }
-      });
-
-      socket.on('removeTag', (data) => {
-        if (socket.pushId && data.tag) {
-          deviceService.removeTag(socket.pushId, data.tag);
         }
       });
 

@@ -142,41 +142,6 @@ class DeviceService {
     }).exec();
   }
 
-  addTag(pushId, tag) {
-    this.mongo.device.update({
-      _id: pushId
-    }, {
-      $setOnInsert: {
-        tags: [tag]
-      }
-    }, {
-      upsert: true
-    }, (err, doc) => {
-      logger.debug('addTag setOnInsert', pushId, tag, doc, err);
-      if (doc.nModified === 0) {
-        this.mongo.device.update({
-          _id: pushId
-        }, {
-          $addToSet: {
-            tags: tag
-          }
-        }, (err, doc) => {
-          logger.debug('addTag addToSet', pushId, tag, doc, err);
-        });
-      }
-    });
-  }
-
-  removeTag(pushId, tag) {
-    this.mongo.device.update({
-      _id: pushId
-    }, {
-      $pull: {
-        tags: tag
-      }
-    }).exec();
-  }
-
   getPushIdsByTag(tag, callback) {
     this.mongo.device.find({
       tags: tag
