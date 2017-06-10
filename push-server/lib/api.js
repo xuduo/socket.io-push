@@ -16,7 +16,7 @@ class Api {
     const redisIncrBuffer = require('./stats/redisIncrBuffer')(this.mongo, config.statsCommitThreshold);
     this.stats = require('./stats/stats')(this.mongo, 0, redisIncrBuffer);
     const topicOnline = require('./stats/topicOnline')(this.mongo);
-    this.arrivalStats = require('./stats/arrivalStats')(this.mongo, topicOnline);
+    this.arrivalStats = require('./stats/arrivalStats')(this.mongo, redisIncrBuffer, topicOnline);
     this.uidStore = require('./redis/uidStore')(config.prefix, cluster, this.mongo);
     this.deviceService = require('./service/deviceService')(this.mongo, this.uidStore);
     this.ttlService = require('./service/ttlService')(this.io, this.mongo, this.stats, this.arrivalStats);

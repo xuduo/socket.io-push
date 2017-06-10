@@ -9,23 +9,28 @@ class RedisIncrBuffer {
 
   constructor(mongo, commitThreshHold) {
     this.mongo = mongo;
-    this.map = {};
+    this.collectionMap = {};
     let commitThresHold = commitThreshHold || 20 * 1000;
     setInterval(() => {
       this.commit();
     }, commitThresHold);
   }
 
-  incr(key, by) {
-    const currentIncr = this.map[key] || 0;
-    if (!this.map[key]) {
-      this.map[key] = by;
+  incr(key, by, collection = 'stat') {
+    let map = this.collectionMap[collection];
+    if (!map) {
+      map = {};
+      this.collectionMap[collection] = map;
+    }
+    const currentIncr = map[key] || 0;
+    if (!map[key]) {
+      map[key] = by;
     } else {
       for (const field in by) {
-        if (!this.map[key][field]) {
-          this.map[key][field] = 0;
+        if (!map[key][field]) {
+          map[key][field] = 0;
         }
-        this.map[key][field] += by[field];
+        map[key][field] += by[field];
       }
     }
   }
@@ -37,24 +42,31 @@ class RedisIncrBuffer {
   commit() {
     const timestamp = this.strip(Date.now());
     const expireAt = timestamp + expire;
-
-    for (const key in this.map) {
-      this.mongo.stat.update({
-        _id: {
-          key,
-          timestamp
+    for (const collection in this.collectionMap) {
+      console.log('coomitttt ', collection);
+      const map = this.collectionMap[collection];
+      for (const key in map) {
+        let _id = key;
+        if (collection == 'stat') {
+          _id = {
+            key,
+            timestamp
+          };
         }
-      }, {
-        $inc: this.map[key],
-        $set: {
-          expireAt
-        }
-      }, {
-        upsert: true
-      }, (err, doc) => {
+        this.mongo[collection].update({
+          _id
+        }, {
+          $inc: map[key],
+          $setOnInsert: {
+            expireAt
+          }
+        }, {
+          upsert: true
+        }, (err, doc) => {
 
-      });
+        });
+      }
     }
-    this.map = {};
+    this.collectionMap = {};
   }
 }

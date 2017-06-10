@@ -22,26 +22,39 @@ class DeviceService {
     logger.debug("this.id ", this.id);
   }
 
-  connect(pushId, socketId, ios = false, callback) {
-    this.mongo.device.findByIdAndUpdate(pushId, {
+  connect(data, socketId, callback) {
+    const update = {
       socketId: (this.id + socketId),
       updateTime: Date.now()
-    }, {
+    };
+    if (data.tags) {
+      update.tags = data.tags;
+    }
+    if (data.token) {
+      update.token = data.token.token;
+      update.package_name = data.token.package_name;
+      update.type = data.token.type;
+    }
+    if (!data.token) {
+      if (data.platform == 'ios') {
+        update['$setOnInsert'] = {
+          type: 'apnNoToken'
+        }
+      } else if (data.platform == 'android') {
+        update['$setOnInsert'] = {
+          type: 'androidNoToken'
+        }
+      }
+    }
+    this.mongo.device.findByIdAndUpdate({
+      _id: data.id
+    }, update, {
       upsert: true,
       'new': true
     }, (err, doc) => {
-      logger.debug('getDeviceByPushId ', pushId, doc, err);
-      if (!err) {
-        if (ios && !doc.type) {
-          doc.type = 'apnNoToken';
-          doc.save((err, doc) => {
-            if (!err) {
-              callback(doc);
-            }
-          });
-        } else {
-          callback(doc);
-        }
+      logger.debug('connect ', data, doc, err);
+      if (!err && doc) {
+        callback(doc);
       }
     });
   }

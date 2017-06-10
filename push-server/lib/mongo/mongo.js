@@ -33,7 +33,10 @@ class Mongo {
         type: Date,
         default: Date.now()
       },
-      updateTime: Date,
+      updateTime: {
+        type: Date,
+        index: true
+      },
       type: String,
       token: String,
       package_name: String

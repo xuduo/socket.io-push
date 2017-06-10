@@ -17,10 +17,10 @@ class Proxy {
       if (nodeCluster.worker) {
         id = nodeCluster.worker.id;
       }
-      const redisIncreBuffer = require('./stats/redisIncrBuffer')(this.mongo, config.statsCommitThreshold);
-      this.stats = require('./stats/stats')(this.mongo, id, redisIncreBuffer, config.packetDropThreshold);
+      const redisIncrBuffer = require('./stats/redisIncrBuffer')(this.mongo, config.statsCommitThreshold);
+      this.stats = require('./stats/stats')(this.mongo, id, redisIncrBuffer, config.packetDropThreshold);
       this.topicOnline = require('./stats/topicOnline')(this.mongo, this.io, this.stats.id, config.topicOnlineFilter);
-      this.arrivalStats = require('./stats/arrivalStats')(this.mongo);
+      this.arrivalStats = require('./stats/arrivalStats')(this.mongo, redisIncrBuffer);
       const socketIoRedis = require('socket.io-push-redis/adapter')({
         pubClient: cluster,
         subClient: cluster,

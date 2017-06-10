@@ -99,12 +99,13 @@ describe('notification', function() {
       expect(data.title).to.be.equal(title);
       expect(data.message).to.be.equal(message);
       expect(data.payload.ppp).to.be.equal(123);
+      apiServer.arrivalStats.incrBuffer.commit();
       setTimeout(() => {
         apiServer.arrivalStats.getArrivalInfo(data.id, (result) => {
           expect(result.android.arrive).to.be.equal(2);
           done();
         });
-      }, 100);
+      }, 500);
     }
     pushClient.on('notification', notificationCallback);
 

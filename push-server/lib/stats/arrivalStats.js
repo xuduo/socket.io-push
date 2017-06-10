@@ -1,5 +1,5 @@
-module.exports = (mongo, topicOnline, xiaomiProvider) => {
-  return new ArrivalStats(mongo, topicOnline, xiaomiProvider);
+module.exports = (mongo, incrBuffer, topicOnline) => {
+  return new ArrivalStats(mongo, incrBuffer, topicOnline);
 };
 
 const logger = require('winston-proxy')('ArrivalStats');
@@ -7,10 +7,11 @@ const async = require('async');
 
 class ArrivalStats {
 
-  constructor(mongo, topicOnline) {
+  constructor(mongo, incrBuffer, topicOnline) {
     this.mongo = mongo;
     this.topicOnline = topicOnline;
     this.recordKeepTime = 30 * 24 * 3600 * 1000;
+    this.incrBuffer = incrBuffer;
 
     const dummy = {
       trace: (packet, callback) => {
@@ -33,14 +34,16 @@ class ArrivalStats {
     }
     if (Object.keys(set).length > 0) {
       data['$set'] = set;
+      this.mongo.arrival.update({
+        _id: msgId
+      }, data, {
+        upsert: true
+      }, (err, doc) => {
+        logger.debug('addArrivalInfo ', msgId, data, doc, err);
+      });
+    } else {
+      this.incrBuffer.incr(msgId, inc, 'arrival');
     }
-    this.mongo.arrival.update({
-      _id: msgId
-    }, data, {
-      upsert: true
-    }, (err, doc) => {
-      logger.debug('addArrivalInfo ', msgId, data, doc, err);
-    });
   }
 
   msgToData(msg, ttl, expire = true) {

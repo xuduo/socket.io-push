@@ -75,7 +75,8 @@ class ProxyServer {
           }
 
           if (data.platform) {
-            socket.platform = data.platform.toLowerCase();
+            data.platform = data.platform.toLowerCase();
+            socket.platform = data.platform;
           }
 
           stats.addPlatformSession(socket.platform);
@@ -85,12 +86,16 @@ class ProxyServer {
               logger.error("join pushId room fail %s", err);
               return;
             }
-            deviceService.connect(data.id, socket.id, (socket.platform || '') == "ios", (device) => {
+            deviceService.connect(data, socket.id, (device) => {
               const reply = {
                 id: data.id
               };
-              if (device.tags) {
+              if (device.tags && device.tags.length) {
                 reply.tags = device.tags;
+              }
+
+              if (device.token) {
+                reply.token = device.token;
               }
 
               if (device.uid) {
@@ -126,6 +131,7 @@ class ProxyServer {
       });
 
       socket.on('setTags', (data) => {
+        logger.debug('setTags ', socket.pushId, data);
         if (socket.pushId && data) {
           deviceService.setTags(socket.pushId, data);
         }

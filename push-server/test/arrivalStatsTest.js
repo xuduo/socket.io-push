@@ -45,6 +45,7 @@ describe('arrivalStatsTest', () => {
       arrivalStats.addArrivalInfo(packetId, {
         arrive_android: 1
       });
+      arrivalStats.incrBuffer.commit();
       setTimeout(() => {
         arrivalStats.getRateStatusByType('pushAll', (stats) => {
           let item;
@@ -55,8 +56,8 @@ describe('arrivalStatsTest', () => {
           }
           console.log(item);
           expect(item.id).to.be.equal(packetId);
-          expect(item.android.target).to.be.equal(100);
           expect(item.android.arrive).to.be.equal(99);
+          expect(item.android.target).to.be.equal(100);
           done();
         })
       }, 1000);

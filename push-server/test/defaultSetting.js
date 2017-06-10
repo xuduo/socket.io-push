@@ -2,7 +2,7 @@ var DefaultSetting = {};
 
 DefaultSetting.getDefaultPushClient = (pushId, platform) => {
 
-  let port = require("../config-proxy").http_port;
+  let port = require("../config-proxy").http_port + 1;
   return require('socket.io-push-client')('http://localhost:' + port, {
     pushId,
     platform,
@@ -12,7 +12,7 @@ DefaultSetting.getDefaultPushClient = (pushId, platform) => {
 };
 
 DefaultSetting.getDefaultPushHttpsClient = (pushId) => {
-  let port = require("../config-proxy").https_port;
+  let port = require("../config-proxy").https_port + 1;
   return require('socket.io-push-client')('https://localhost:' + port, {
     pushId: pushId,
     transports: ['websocket', 'polling'],
@@ -68,20 +68,10 @@ DefaultSetting.getDefaultProxyServer = () => {
   io.hs = proxyHttpServer;
   io.attach(proxyHttpsServer);
   io.hss = proxyHttpsServer;
-  proxyHttpServer.listen(proxyConfig.http_port);
-  proxyHttpsServer.listen(proxyConfig.https_port);
+  proxyHttpServer.listen(proxyConfig.http_port + 1);
+  proxyHttpsServer.listen(proxyConfig.https_port + 1);
   proxyConfig.statsCommitThreshold = 500;
   return require('../lib/proxy')(io, proxyConfig);
-};
-
-DefaultSetting.getAndroidPushClient = (pushId) => {
-  let port = require("../config-proxy").port;
-  return require('socket.io-push-client')('http://localhost:' + port, {
-    pushId: pushId,
-    transports: ['websocket', 'polling'],
-    useNotification: true,
-    platform: 'android'
-  })
 };
 
 module.exports = DefaultSetting;
