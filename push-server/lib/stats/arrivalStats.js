@@ -136,8 +136,10 @@ class ArrivalStats {
       result.apn = apn;
     }
 
-    result.timeValid = new Date(packet.timeStart.getTime() + (packet.ttl || 0)).toLocaleString();
-    result.timeStart = packet.timeStart.toLocaleString();
+    if (packet.timeStart) {
+      result.timeValid = new Date(packet.timeStart.getTime() + (packet.ttl || 0)).toLocaleString();
+      result.timeStart = packet.timeStart.toLocaleString();
+    }
 
     result.id = result._id;
     delete result._id;
