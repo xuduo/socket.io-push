@@ -43,7 +43,6 @@ class RedisIncrBuffer {
     const timestamp = this.strip(Date.now());
     const expireAt = timestamp + expire;
     for (const collection in this.collectionMap) {
-      console.log('coomitttt ', collection);
       const map = this.collectionMap[collection];
       for (const key in map) {
         let _id = key;

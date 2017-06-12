@@ -201,17 +201,21 @@ class DeviceService {
     }
   }
 
-  setToken(data) {
-    this.mongo.device.update({
-      _id: data.pushId
-    }, {
-      type: data.type,
-      token: data.token,
-      package_name: data.package_name || data.bundleId,
-      updateTime: Date.now()
-    }, {
-      upsert: true
-    }).exec();
+  setToken(pushId, tokenData) {
+    this.mongo.device.find(tokenData, (err, docs) => {
+      if (!err && docs) {
+        for (const doc of docs) {
+          if (doc._id != pushId) {
+            logger.debug('delete other bind device', doc);
+            doc.remove();
+          }
+        }
+      }
+      this.mongo.device.update({
+        _id: pushId
+      }, tokenData, {
+        upsert: true
+      }).exec();
+    });
   }
-
 }

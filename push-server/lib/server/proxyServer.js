@@ -145,21 +145,20 @@ class ProxyServer {
       });
 
       const token = (data) => {
+        if (!socket.pushId) {
+          return;
+        }
         logger.debug("on token %s %j", socket.pushId, data);
-        if (socket.pushId) {
-          data.pushId = socket.pushId;
+        const tokenData = {};
+
+        tokenData.type = data.type || 'apn';
+        tokenData.token = data.token || data.apnToken;
+
+        if (tokenData.type == "apn") {
+          tokenData.token = tokenData.token.replace(/[<> ]/g, ''); //replace all
         }
-        if (!data.type) {
-          data.type = "apn";
-        }
-        if (data.apnToken) {
-          data.token = data.apnToken;
-          delete data.apnToken;
-        }
-        if (data.type == "apn") {
-          data.token = data.token.replace(/[<> ]/g, ''); //replace all
-        }
-        deviceService.setToken(data);
+        tokenData.package_name = data.package_name || data.bundleId;
+        deviceService.setToken(socket.pushId, tokenData);
       };
       socket.on('apnToken', token);
       socket.on('token', token);
