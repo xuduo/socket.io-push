@@ -94,7 +94,7 @@ class DeviceService {
       _id: {
         $in: pushIds
       }
-    }, (err, docs) => {
+    }).lean().exec((err, docs) => {
       if (!err && docs) {
         callback(docs);
       } else {
@@ -117,13 +117,12 @@ class DeviceService {
         uid: uid
       }
     }
-    this.mongo.device.find(query, (err, docs) => {
+    this.mongo.device.find(query).lean().exec((err, docs) => {
       const result = [];
       if (!err && docs) {
         for (const doc of docs) {
-          const device = doc.toObject();
-          device.connected = Boolean(device.socketId);
-          result.push(device);
+          doc.connected = Boolean(device.socketId);
+          result.push(doc);
         }
       } else {
         logger.error('getDevicesByUid error', uid, docs, err);
@@ -171,7 +170,7 @@ class DeviceService {
   scanByTag(tag, callback, endCallback) {
     const cursor = this.mongo.device.find({
       'tags': tag
-    }).cursor({
+    }).lean().cursor({
       batchSize: 1000
     });
     cursor.on('data', (doc) => {

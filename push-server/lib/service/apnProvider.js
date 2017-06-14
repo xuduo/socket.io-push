@@ -171,7 +171,7 @@ class ApnProvider {
       const cursor = this.mongo.device.find({
         package_name: bundleId,
         type: 'apn'
-      }).cursor({
+      }).lean().cursor({
         batchSize: 1000
       });
       let batch = [];
