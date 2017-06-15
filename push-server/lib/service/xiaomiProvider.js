@@ -33,11 +33,12 @@ class XiaomiProvider {
         timeout: timeout,
         maxAttempts: 2,
         retryDelay: 5000,
-        retryStrategy: request.RetryStrategies.NetworkError
+        retryStrategy: request.RetryStrategies.NetworkError,
+        time: true
       }, (error, response, body) => {
         logger.debug("sendOne result", error, response && response.statusCode, body);
         if (this.success(error, response, body, callback, notification.id)) {
-          this.stats.addSuccess(this.type);
+          this.stats.addSuccess(this.type, 1, response.elapsedTime);
           return;
         }
         logger.error("sendOne error", error, response && response.statusCode, body);
@@ -80,11 +81,12 @@ class XiaomiProvider {
         timeout: timeout,
         maxAttempts: 2,
         retryDelay: 5000,
-        retryStrategy: request.RetryStrategies.NetworkError
+        retryStrategy: request.RetryStrategies.NetworkError,
+        time: true
       }, (error, response, body) => {
         logger.info("sendAll result", error, response && response.statusCode, body);
         if (this.success(error, response, body, callback, notification.id)) {
-          this.stats.addSuccess(this.type + "All");
+          this.stats.addSuccess(this.type + "All", 1, response.elapsedTime);
           return;
         }
         logger.error("sendAll error", error, response && response.statusCode, body);

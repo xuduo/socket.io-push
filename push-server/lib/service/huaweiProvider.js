@@ -52,11 +52,12 @@ class HuaweiProvider {
               timeout: timeout,
               maxAttempts: 2,
               retryDelay: 5000,
+              time: true,
               retryStrategy: request.RetryStrategies.NetworkError
             }, (error, response, body) => {
               logger.debug("sendMany result", error, body);
               if (!error && response && response.statusCode == 200) {
-                this.stats.addSuccess(this.type);
+                this.stats.addSuccess(this.type, 1, response.elapsedTime);
               } else {
                 error = error || 'unknown error';
               }
@@ -107,11 +108,16 @@ class HuaweiProvider {
             const postData = this.getPostData(2, notification, package_name, 0, timeToLive);
             request.post({
               url: apiUrl,
-              form: postData
+              form: postData,
+              timeout: timeout,
+              maxAttempts: 2,
+              retryDelay: 5000,
+              time: true,
+              retryStrategy: request.RetryStrategies.NetworkError
             }, (error, response, body) => {
               logger.info("sendAll result", error, response && response.statusCode, body);
               if (!error && response && response.statusCode == 200) {
-                this.stats.addSuccess(this.type + "All");
+                this.stats.addSuccess(this.type + "All", 1, response.elapsedTime);
               } else {
                 error = error || "unknown error"
               }

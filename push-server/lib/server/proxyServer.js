@@ -187,10 +187,11 @@ class ProxyServer {
         socket.on('bindUid', (data) => {
           stats.addTotal('bindUid');
           if (config.bindUid && socket.pushId && data) {
+            const start = Date.now();
             config.bindUid(data, (uid, platform, limit) => {
               logger.debug("bindUid %s %s %j", uid, socket.pushId, data);
               if (uid) {
-                stats.addSuccess('bindUid');
+                stats.addSuccess('bindUid', 1, Date.now() - start);
                 if (socket.uid != uid) {
                   socket.setUid(uid);
                   deviceService.bindUid(socket.pushId, data.uid, platform || socket.platform, limit);

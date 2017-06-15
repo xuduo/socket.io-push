@@ -139,10 +139,14 @@ class Stats {
     });
   }
 
-  addSuccess(type, count = 1) {
-    this.redisIncrBuffer.incr(type, {
+  addSuccess(type, count = 1, latency = 0) {
+    const incr = {
       successCount: count
-    });
+    };
+    if (latency > 0) {
+      incr.totalLatency = latency;
+    }
+    this.redisIncrBuffer.incr(type, incr);
   }
 
   addSession(socket, count) {
@@ -198,7 +202,8 @@ class Stats {
       '_id.key': key
     }).sort({
       '_id.timestamp': 1
-    }).limit(7 * 24).exec((err, docs) => {
+    }).limit(7 * 24).lean().exec((err, docs) => {
+      logger.debug('find ', key, err, docs && docs.length);
       let totalCount = 0;
       let totalSuccess = 0;
       let avgLatency = 0;
@@ -212,6 +217,7 @@ class Stats {
           if (start == 0) {
             start = stat._id.timestamp;
           }
+          stat.time = new Date(stat._id.timestamp).toLocaleString();
           end = stat._id.timestamp;
           totalCount += stat.totalCount || 0;
           totalSuccess += stat.successCount || 0;

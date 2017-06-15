@@ -147,6 +147,7 @@ class ApnProvider {
         timeToLive: timeToLive
       },
       maxAttempts: 2,
+      time: true,
       retryDelay: 2000,
       retryStrategy: request.RetryStrategies.NetworkError
     }, (error, response, body) => {
@@ -154,7 +155,7 @@ class ApnProvider {
       if (!error && body) {
         try {
           callback(JSON.parse(body));
-          this.stats.addSuccess(this.type);
+          this.stats.addSuccess(this.type, 1, response.elapsedTime);
         } catch (e) {
           logger.error("callRemote callback error ", e);
         }
