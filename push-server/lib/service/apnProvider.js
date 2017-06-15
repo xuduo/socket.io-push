@@ -1,5 +1,5 @@
-module.exports = (apnConfigs, apnApiUrls, mongo, arrivalStats, deviecService) => {
-  return new ApnProvider(apnConfigs, apnApiUrls, mongo, arrivalStats, deviecService);
+module.exports = (apnConfigs, apnApiUrls, mongo, arrivalStats, deviecService, stats) => {
+  return new ApnProvider(apnConfigs, apnApiUrls, mongo, arrivalStats, deviecService, stats);
 };
 
 const logger = require('winston-proxy')('ApnProvider');
@@ -9,8 +9,9 @@ const request = require('requestretry');
 
 class ApnProvider {
 
-  constructor(apnConfigs, apnApiUrls = [], mongo, arrivalStats, deviecService) {
+  constructor(apnConfigs, apnApiUrls = [], mongo, arrivalStats, deviecService, stats) {
     this.mongo = mongo;
+    this.stats = stats;
     this.type = "apn";
     this.apnConnections = {};
     this.arrivalStats = arrivalStats;
@@ -117,7 +118,7 @@ class ApnProvider {
           if (failed.response) {
             error = failed.response.reason || "unknown";
           }
-          if ((error == "BadDeviceToken" || error == "Unregistered" || error == "DeviceTokenNotForTopic") && failed.device) {
+          if ((error == "BadDeviceToken" || error == "Unregistered") && failed.device) {
             errorToken.push(failed.device);
           }
           logger.error("apn failed ", notification.id, error, bundleId, failed.device);
@@ -135,6 +136,7 @@ class ApnProvider {
       return;
     }
     const apiUrl = this.apnApiUrls.next();
+    this.stats.addTotal(this.type);
     request({
       url: apiUrl + "/api/apn",
       method: "post",
@@ -148,11 +150,14 @@ class ApnProvider {
       retryDelay: 2000,
       retryStrategy: request.RetryStrategies.NetworkError
     }, (error, response, body) => {
-      logger.info("callRemote api batch ", tokens.length, apiUrl, error, body, notification);
-      try {
-        callback(JSON.parse(body));
-      } catch (e) {
-        logger.error("callRemote callback error ", e);
+      logger.info("callRemote api batch ", tokens.length, apiUrl, error, body);
+      if (!error && body) {
+        try {
+          callback(JSON.parse(body));
+          this.stats.addSuccess(this.type);
+        } catch (e) {
+          logger.error("callRemote callback error ", e);
+        }
       }
     });
   }

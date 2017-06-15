@@ -25,7 +25,8 @@ class NotificationService {
         if (!device.socketId) {
           this.ttlService.addTTL(device._id, 'noti', timeToLive, notification, true);
         }
-      } else {
+      }
+      if (device.type && device.token && device.package_name) {
         const tokenList = mapTypeToToken[device.type] || [];
         mapTypeToToken[device.type] = tokenList;
         tokenList.push(device);

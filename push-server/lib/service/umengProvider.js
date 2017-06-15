@@ -1,5 +1,5 @@
-module.exports = (config, arrivalStats) => {
-  return new UmengProvider(config, arrivalStats);
+module.exports = (config, arrivalStats, stats) => {
+  return new UmengProvider(config, arrivalStats, stats);
 };
 
 const logger = require('winston-proxy')('UmengProvider');
@@ -15,9 +15,10 @@ const timeout = 5000;
 
 class UmengProvider {
 
-  constructor(config, arrivalStats) {
+  constructor(config, arrivalStats, stats) {
     logger.debug('UmengProvider init ', config);
     this.arrivalStats = arrivalStats;
+    this.stats = stats;
     this.appKey = config.appKey;
     this.masterSecret = config.masterSecret;
     this.type = "umeng";
@@ -32,6 +33,7 @@ class UmengProvider {
       const params = this.getPostData(notification, tokenDataList, timeToLive);
       const body = JSON.stringify(params);
       const sign = this.sign(sendUrl, body);
+      this.stats.addTotal(this.type);
       request.post({
         url: sendUrl + '?sign=' + sign,
         body: body,
@@ -42,6 +44,7 @@ class UmengProvider {
       }, (error, response, body) => {
         logger.debug("sendMany result", error, response && response.statusCode, body);
         if (this.success(error, response, body, callback, notification.id)) {
+          this.stats.addSuccess(this.type);
           return;
         }
         logger.error("sendMany error", error, response && response.statusCode, body);
@@ -54,6 +57,7 @@ class UmengProvider {
       const params = this.getPostData(notification, 'pushAll', timeToLive);
       const body = JSON.stringify(params);
       const sign = this.sign(sendUrl, body);
+      this.stats.addTotal(this.type + "All");
       request.post({
         url: sendUrl + '?sign=' + sign,
         body: body,
@@ -64,6 +68,7 @@ class UmengProvider {
       }, (error, response, body) => {
         logger.debug("sendAll result", error, response && response.statusCode, body);
         if (this.success(error, response, body, callback, notification.id)) {
+          this.stats.addSuccess(this.type + "All");
           return;
         }
         logger.error("sendAll error", error, response && response.statusCode, body);

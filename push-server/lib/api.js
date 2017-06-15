@@ -26,7 +26,7 @@ class Api {
     const providerFactory = require('./service/notificationProviderFactory')(config.pushAllInterval);
     this.notificationService.providerFactory = providerFactory;
     if (config.apns != undefined) {
-      this.apnService = require('./service/apnProvider')(config.apns, config.apnApiUrls, this.mongo, this.arrivalStats, this.deviceService);
+      this.apnService = require('./service/apnProvider')(config.apns, config.apnApiUrls, this.mongo, this.arrivalStats, this.deviceService, this.stats);
       providerFactory.addProvider(this.apnService);
     }
     providerFactory.addProvider(this.ttlService);
@@ -35,12 +35,12 @@ class Api {
       providerFactory.addProvider(this.huaweiProvider);
     }
     if (config.xiaomi) {
-      this.xiaomiProvider = require('./service/xiaomiProvider')(config.xiaomi, this.arrivalStats);
+      this.xiaomiProvider = require('./service/xiaomiProvider')(config.xiaomi, this.arrivalStats, this.stats);
       providerFactory.addProvider(this.xiaomiProvider);
       this.arrivalStats.xiaomiProvider = this.xiaomiProvider;
     }
     if (config.umeng) {
-      this.umengProvider = require('./service/umengProvider')(config.umeng, this.arrivalStats);
+      this.umengProvider = require('./service/umengProvider')(config.umeng, this.arrivalStats, this.stats);
       providerFactory.addProvider(this.umengProvider);
       this.arrivalStats.umengProvider = this.umengProvider;
     }

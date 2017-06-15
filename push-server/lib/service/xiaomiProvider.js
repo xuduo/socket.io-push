@@ -1,5 +1,5 @@
-module.exports = (config, arrivalStats) => {
-  return new XiaomiProvider(config, arrivalStats);
+module.exports = (config, arrivalStats, stats) => {
+  return new XiaomiProvider(config, arrivalStats, stats);
 };
 
 const logger = require('winston-proxy')('XiaomiProvider');
@@ -13,8 +13,9 @@ const timeout = 5000;
 
 class XiaomiProvider {
 
-  constructor(config, arrivalStats) {
+  constructor(config, arrivalStats, stats) {
     this.arrivalStats = arrivalStats;
+    this.stats = stats;
     this.headers = {
       'Authorization': 'key=' + config.app_secret
     };
@@ -24,6 +25,7 @@ class XiaomiProvider {
 
   sendMany(notification, tokenDataList, timeToLive, callback) {
     if (notification.android.title) {
+      this.stats.addTotal(this.type);
       request.post({
         url: sendOneUrl,
         form: this.getPostData(notification, tokenDataList, timeToLive),
@@ -35,6 +37,7 @@ class XiaomiProvider {
       }, (error, response, body) => {
         logger.debug("sendOne result", error, response && response.statusCode, body);
         if (this.success(error, response, body, callback, notification.id)) {
+          this.stats.addSuccess(this.type);
           return;
         }
         logger.error("sendOne error", error, response && response.statusCode, body);
@@ -69,6 +72,7 @@ class XiaomiProvider {
 
   sendAll(notification, timeToLive, callback) {
     if (notification.android.title) {
+      this.stats.addTotal(this.type + "All");
       request.post({
         url: sendAllUrl,
         form: this.getPostData(notification, 0, timeToLive),
@@ -80,6 +84,7 @@ class XiaomiProvider {
       }, (error, response, body) => {
         logger.info("sendAll result", error, response && response.statusCode, body);
         if (this.success(error, response, body, callback, notification.id)) {
+          this.stats.addSuccess(this.type + "All");
           return;
         }
         logger.error("sendAll error", error, response && response.statusCode, body);

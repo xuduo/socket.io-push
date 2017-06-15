@@ -176,6 +176,7 @@ class ProxyServer {
       socket.on('unbindUid', () => {
         socket.setUid(null);
         if (socket.pushId) {
+          stats.addSuccess('unbindUid');
           logger.debug('unbindUid pushId %s ', socket.pushId);
           deviceService.removePushId(socket.pushId, true);
         }
@@ -184,12 +185,16 @@ class ProxyServer {
       if (config.bindUid) {
         config.request = require('request');
         socket.on('bindUid', (data) => {
+          stats.addTotal('bindUid');
           if (config.bindUid && socket.pushId && data) {
             config.bindUid(data, (uid, platform, limit) => {
               logger.debug("bindUid %s %s %j", uid, socket.pushId, data);
-              if (uid && socket.uid != uid) {
-                socket.setUid(uid);
-                deviceService.bindUid(socket.pushId, data.uid, platform || socket.platform, limit);
+              if (uid) {
+                stats.addSuccess('bindUid');
+                if (socket.uid != uid) {
+                  socket.setUid(uid);
+                  deviceService.bindUid(socket.pushId, data.uid, platform || socket.platform, limit);
+                }
               }
             });
           }

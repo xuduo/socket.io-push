@@ -129,46 +129,19 @@ class Stats {
     });
   }
 
-  addApiCall(path, latency) {
-    this.redisIncrBuffer.incr('call:' + path, {
-      totalCount: 1
-    });
+  addApiCall(path) {
+    this.addSuccess('call:' + path);
   }
 
-  addApiSuccess(path, latency) {
-    this.redisIncrBuffer.incr('call:' + path, {
-      successCount: 1,
-      totalLatency: latency
-    });
-  }
-
-  addPushById(count = 1) {
-    this.redisIncrBuffer.incr('pushById', {
+  addTotal(type, count = 1) {
+    this.redisIncrBuffer.incr(type, {
       totalCount: count
     });
   }
 
-  addPushId(type) {
-    this.redisIncrBuffer.incr('api_' + type, {
-      totalCount: count
-    });
-  }
-
-  addPushTotal(count, type) {
-    this.redisIncrBuffer.incr('notification_' + type, {
-      totalCount: count
-    });
-  }
-
-  addPushSuccess(count, type) {
-    this.redisIncrBuffer.incr('notification_' + type, {
+  addSuccess(type, count = 1) {
+    this.redisIncrBuffer.incr(type, {
       successCount: count
-    });
-  }
-
-  addPushError(count, errorCode, type) {
-    this.redisIncrBuffer.incr('notification_error_' + type + '_' + errorCode, {
-      totalCount: count
     });
   }
 

@@ -38,8 +38,10 @@ class TTLService {
           expireAt: packet.timestampValid
         },
         $push: {
-          packetsMixed: packet,
-          $slice: maxTllPacketPerTopic
+          packetsMixed: {
+            $each: [packet],
+            $slice: maxTllPacketPerTopic
+          }
         },
       }, {
         upsert: true
@@ -51,7 +53,7 @@ class TTLService {
           }
         }
         if (err) {
-          logger.error("update ttl error", doc);
+          logger.error("update ttl error", err);
         }
       });
 

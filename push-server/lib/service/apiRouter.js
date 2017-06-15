@@ -69,7 +69,7 @@ class ApiRouter {
     if (!devices || devices.length == 0) {
       return;
     }
-    this.stats.addPushById(devices.length);
+    this.stats.addSuccess('notificationByDevices', devices.length);
     this.notificationService.sendByDevices(devices, timeToLive, notification);
   }
 

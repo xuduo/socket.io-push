@@ -28,7 +28,6 @@ class HuaweiProvider {
 
   sendMany(notification, tokenDataList, timeToLive, callback) {
     if (notification.android.title) {
-      this.stats.addPushTotal(tokenDataList.length, this.type);
       const mapTokenData = {};
       for (const tokenData of tokenDataList) {
         const package_name = tokenData.package_name || this.default_package_name;
@@ -45,6 +44,7 @@ class HuaweiProvider {
         this.checkToken(package_name, (tokenError) => {
           if (!tokenError) {
             logger.debug("sendMany ", notification, timeToLive);
+            this.stats.addTotal(this.type);
             const postData = this.getPostData(1, notification, package_name, mapTokenData[package_name], timeToLive);
             request.post({
               url: apiUrl,
@@ -54,9 +54,9 @@ class HuaweiProvider {
               retryDelay: 5000,
               retryStrategy: request.RetryStrategies.NetworkError
             }, (error, response, body) => {
-              logger.debug("sendOne result", error, body);
+              logger.debug("sendMany result", error, body);
               if (!error && response && response.statusCode == 200) {
-                this.stats.addPushSuccess(mapTokenData[package_name].length, this.type);
+                this.stats.addSuccess(this.type);
               } else {
                 error = error || 'unknown error';
               }
@@ -100,7 +100,7 @@ class HuaweiProvider {
   sendAll(notification, timeToLive, callback) {
     if (notification.android.title) {
       for (const package_name in this.authInfo) {
-        this.stats.addPushTotal(1, this.type + "All");
+        this.stats.addTotal(this.type + "All");
         this.checkToken(package_name, (tokenError) => {
           if (!tokenError) {
             logger.debug("sendAll ", notification, timeToLive);
@@ -111,7 +111,7 @@ class HuaweiProvider {
             }, (error, response, body) => {
               logger.info("sendAll result", error, response && response.statusCode, body);
               if (!error && response && response.statusCode == 200) {
-                this.stats.addPushSuccess(1, this.type + "All");
+                this.stats.addSuccess(this.type + "All");
               } else {
                 error = error || "unknown error"
               }
@@ -122,8 +122,6 @@ class HuaweiProvider {
           }
         });
       }
-
-
     }
   }
 

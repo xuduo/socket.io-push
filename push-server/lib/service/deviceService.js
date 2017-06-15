@@ -121,7 +121,7 @@ class DeviceService {
       const result = [];
       if (!err && docs) {
         for (const doc of docs) {
-          doc.connected = Boolean(device.socketId);
+          doc.connected = Boolean(doc.socketId);
           result.push(doc);
         }
       } else {
