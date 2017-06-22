@@ -65,7 +65,7 @@ class ArrivalStats {
       const data = this.msgToData(msg, ttl, false);
       data.type = 'pushAll';
       let inc;
-      if (count) {
+      if (msg.android.title && count) {
         inc = {
           'target_android': count
         };
