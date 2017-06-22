@@ -19,10 +19,8 @@ class ApnProvider {
 
     this.sentCallback = (result) => {
       if (result.errorTokens) {
-        logger.debug("sentCallback errorTokens", result.errorTokens, result.bundleId);
-        for (const token of result.errorTokens) {
-          deviecService.delApnToken(this.type, token, result.bundleId);
-        }
+        logger.debug("sentCallback errorTokens", result.errorTokens.length, result.bundleId);
+        deviecService.delApnTokens(this.type, result.errorTokens, result.bundleId);
       }
       logger.debug("sentCallback ", result);
       if (this.arrivalStats) {
@@ -151,7 +149,7 @@ class ApnProvider {
       retryDelay: 2000,
       retryStrategy: request.RetryStrategies.NetworkError
     }, (error, response, body) => {
-      logger.info("callRemote api batch ", tokens.length, apiUrl, error, body);
+      logger.info("callRemote api batch ", tokens.length, apiUrl, error);
       if (!error && body) {
         try {
           callback(JSON.parse(body));
@@ -189,7 +187,8 @@ class ApnProvider {
           this.batchSendToApn(notification, bundleId, batch, timeToLive);
           batch = [];
         }
-      }).on('error', () => {
+      }).on('error', (err) => {
+        logger.error('sendAll cursor error', bundleId, err);
         this.batchSendToApn(notification, bundleId, batch, timeToLive);
         batch = [];
       }).on('end', () => {

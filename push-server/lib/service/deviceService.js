@@ -182,10 +182,12 @@ class DeviceService {
     });
   }
 
-  delApnToken(type, token, bundleId) {
-    if (type && token) {
+  delApnTokens(type, tokens, bundleId) {
+    if (type && tokens) {
       this.mongo.device.update({
-        token,
+        token: {
+          $in: tokens
+        },
         type,
         package_name: bundleId
       }, {
@@ -196,6 +198,8 @@ class DeviceService {
         $set: {
           type: 'apnNoToken'
         }
+      }, {
+        multi: true
       }).exec();
     }
   }
