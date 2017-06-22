@@ -37,6 +37,7 @@ class NotificationService {
   }
 
   sendAll(notification, timeToLive) {
+    this.arrivalRate.addPushAll(notification, timeToLive);
     this.providerFactory.sendAll(notification, timeToLive);
   }
 
