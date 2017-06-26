@@ -28,7 +28,7 @@ function createFileRotateTransport(dir, level, formatter = readableFormatter) {
     formatter: formatter
   };
   const msPerDel = 24 * 60 * 60 * 1000;
-  if (workId == 1 && false == deleteOpStarted) {
+  if (workId == 'master' && false == deleteOpStarted) {
     deleteOpStarted = true;
     deleteOutdatedLog(dir);
     setInterval(() => {
@@ -124,13 +124,14 @@ const deleteOutdatedLog = function(dir, days = 7) {
   const msPerDay = 24 * 60 * 60 * 1000;
   fs.readdir(dir, (err, files) => {
     if (err) {
+      console.log('readdir error ', err);
       return;
     }
-    let now = new Date();
+    let now = Date.now();
     files.forEach((filename) => {
       try {
         let stat = fs.statSync(dir + '/' + filename);
-        let time_diff = now - stat.mtimeMs;
+        let time_diff = now - stat.mtime;
         if (time_diff > days * msPerDay) {
           console.log("delete log file ", filename);
           fs.unlinkSync(dir + '/' + filename);

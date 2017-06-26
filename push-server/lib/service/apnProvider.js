@@ -22,7 +22,6 @@ class ApnProvider {
         logger.debug("sentCallback errorTokens", result.errorTokens.length, result.bundleId);
         deviecService.delApnTokens(this.type, result.errorTokens, result.bundleId);
       }
-      logger.debug("sentCallback ", result);
       if (this.arrivalStats) {
         arrivalStats.addArrivalInfo(result.id, {
           target_apn: result.total
