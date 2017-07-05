@@ -14,6 +14,7 @@ describe('push test', () => {
 
   after(() => {
     global.proxyServer.close();
+    global.apiServer.close();
     global.pushClient.disconnect();
   });
 
@@ -54,8 +55,14 @@ describe('push test', () => {
 
   it('expect receive push once', (done) => {
 
+    pushClient.bindUid({
+      uid: "123456"
+    });
+    pushClient.bindUid({
+      uid: "1234567"
+    });
+    let rec = 0;
     pushClient.on('push', function(data) {
-      let rec = 0;
       expect(data.message).to.be.equal('ok');
       expect(++rec).to.be.equal(1);
       setTimeout(() => {
@@ -68,7 +75,7 @@ describe('push test', () => {
       url: apiUrl + '/api/push',
       method: "post",
       form: {
-        uid: '["1234", "4321"]',
+        uid: '[1234, 4321,123456,1234567]',
         json: '{"message":"ok"}'
       }
     }, (error, response, body) => {
@@ -79,14 +86,34 @@ describe('push test', () => {
   });
 
   it('unbind from client', (done) => {
-    pushClient.unbindUid();
-    pushClient.disconnect();
-    pushClient.connect();
-    pushClient.on('connect', (data) => {
-      expect(data.uid).to.be.undefined;
-      pushClient.connect();
-      done();
+    pushClient.on('push', function(data) {
+      expect('do not receive').to.be.equal('ok');
     });
+    pushClient.unbindUid();
+    setTimeout(() => {
+      request({
+        url: apiUrl + '/api/push',
+        method: "post",
+        form: {
+          uid: '["1234", "4321"]',
+          json: '{"message":"ok"}'
+        }
+      }, (error, response, body) => {
+        console.log(body);
+        expect(JSON.parse(body).code).to.be.equal("success");
+      });
+
+      setTimeout(() => {
+        pushClient.disconnect();
+        pushClient.connect();
+        pushClient.on('connect', (data) => {
+          expect(data.uid).to.be.undefined;
+          pushClient.connect();
+          done();
+        });
+      }, 100);
+    }, 100);
+
   });
 
 

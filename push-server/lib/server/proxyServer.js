@@ -59,13 +59,10 @@ class ProxyServer {
             logger.debug("leave old binded room ", room);
           }
         }
+        socket.uid = uid;
         if (uid) {
-          socket.uid = uid;
           socket.join("uid:" + uid, callback);
           return;
-        }
-        if (socket.uid) {
-          socket.uid = uid;
         }
         callback && callback();
       };
