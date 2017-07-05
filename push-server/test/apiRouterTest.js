@@ -3,16 +3,29 @@ var chai = require('chai');
 var expect = chai.expect;
 var defSetting = require('./defaultSetting');
 
+var title = 'hello',
+  message = 'hello world';
+var data = {
+  "android": {
+    "title": title,
+    "message": message
+  },
+  "payload": {
+    "wwww": "qqqq"
+  }
+};
+var str = JSON.stringify(data);
+
 describe('apiRouterTest', function() {
 
   before(function() {
     global.proxyServer = defSetting.getDefaultProxyServer();
     global.apiServer = defSetting.getDefaultApiServer();
     global.apnProxy = defSetting.getDefaultApnProxyServer();
-    global.apiServer.apiRouter.maxPushIds = 3;
+    global.apiServer.apiRouter.batchSize = 3;
     global.apiUrl = defSetting.getDefaultApiUrl();
     global.pushClients = [];
-    for (let i = 0; i < 2 * global.apiServer.apiRouter.maxPushIds + 1; i++) {
+    for (let i = 0; i < 7; i++) {
       global.pushClients.push(defSetting.getDefaultPushClient("abcdefghijsdjfk" + i));
     }
   });
@@ -27,22 +40,11 @@ describe('apiRouterTest', function() {
   });
 
   it('send notification', (done) => {
-
+    global.apiServer.apiRouter.bufferSize = 0;
     let pushIds = [];
     pushClients.forEach((client) => {
       client.on('connect', () => {
-        var title = 'hello',
-          message = 'hello world';
-        var data = {
-          "android": {
-            "title": title,
-            "message": message
-          },
-          "payload": {
-            "wwww": "qqqq"
-          }
-        };
-        var str = JSON.stringify(data);
+
 
         var notificationCallback = function(data) {
           expect(data.title).to.be.equal(title);
@@ -75,4 +77,6 @@ describe('apiRouterTest', function() {
       });
     });
   });
-});
+
+
+});;

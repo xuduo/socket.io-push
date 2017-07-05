@@ -86,17 +86,19 @@ config.apiAuth = function(opts, callback) {
 
 config.mongo_log = false;
 
+/**
+  存储设备信息，统计数据等使用
+*/
 config.mongo = {
   default: 'mongodb://localhost/socketiopush',
   arrival: 'mongodb://localhost/socketiopush_arrival'
 };
 
 /**
+ * 透传使用
  * 数组表示hash切片,可以配置多个redis实例,分担流量/cpu负载
  * pubs 广播pub redis,二维数组 第一级表示redis分组 第二季表示hash切片
  * sub 订阅接收 redis
- * write 数据存储主库
- * read 数据读从库
  * event 客户端断线,连接事件pub的redis.功能可能以后会改,不推荐使用
  */
 config.redis = {
@@ -108,11 +110,9 @@ config.redis = {
   ]
 };
 
-config.routerMaxPushIds = 1000;
+config.notificationBatchSize = 1000; //如果单次调用notification超过1000个uid, 将会分成多个批次任务
 
-config.routerApiUrls = [
-  'http://127.0.0.1:11001'
-]; //国内api分流
+config.notificationBufferSize = 2000; // buffer里最多有多少个分批次任务,超过会清空buffer 默认0, 无限制
 
 config.apnApiUrls = [
   'http://localhost:13001',

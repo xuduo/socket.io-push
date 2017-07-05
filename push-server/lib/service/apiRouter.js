@@ -1,5 +1,5 @@
-module.exports = (deviceService, notificationService, ttlService, maxPushIds, remoteUrls, stats) => {
-  return new ApiRouter(deviceService, notificationService, ttlService, maxPushIds, remoteUrls, stats);
+module.exports = (deviceService, notificationService, ttlService, batchSize, bufferSize, remoteUrls, stats) => {
+  return new ApiRouter(deviceService, notificationService, ttlService, batchSize, bufferSize, remoteUrls, stats);
 };
 
 const logger = require('winston-proxy')('ApiRouter');
@@ -9,42 +9,108 @@ const randomstring = require("randomstring");
 
 class ApiRouter {
 
-  constructor(deviceService, notificationService, ttlService, maxPushIds, remoteUrls, stats) {
+  constructor(deviceService, notificationService, ttlService, batchSize, bufferSize, remoteUrls, stats) {
     this.deviceService = deviceService;
     this.stats = stats;
     this.notificationService = notificationService;
     this.ttlService = ttlService;
-    this.maxPushIds = maxPushIds || 1000;
+    this.batchSize = batchSize || 1000;
     this.remoteUrls = require("../util/infiniteArray")(remoteUrls);
+    this.notificationBuffer = [];
+    this.bufferSize = bufferSize || 0;
+    this.bufferTask = null;
+  }
+
+  sendFromBuffer() {
+    const notiParams = this.notificationBuffer.shift();
+    if (notiParams) {
+      if (notiParams.pushIds) {
+        this.deviceService.getDevicesByPushIds(notiParams.pushIds, (devices) => {
+          this.sendNotificationByDevices(notiParams.notification, devices, notiParams.timeToLive);
+          this.bufferTaskDone();
+        });
+      } else if (notiParams.uids) {
+        this.deviceService.getDevicesByUid(notiParams.uids, (devices) => {
+          this.sendNotificationByDevices(notiParams.notification, devices, notiParams.timeToLive);
+          this.bufferTaskDone();
+        });
+      } else if (notiParams.tag) {
+        let batch = [];
+        this.deviceService.scanByTag(notiParams.tag, (doc) => {
+          batch.push(doc);
+          if (batch.length == this.maxPushIds) {
+            this.sendNotificationByDevices(notiParams.notification, batch, notiParams.timeToLive);
+            batch = [];
+          }
+        }, () => {
+          if (batch.length != 0) {
+            this.sendNotificationByDevices(notiParams.notification, batch, notiParams.timeToLive);
+          }
+          this.bufferTaskDone();
+        });
+      }
+    }
+  }
+
+  bufferTaskDone() {
+    this.bufferTask = null;
+    this.postBufferTask();
+  }
+
+  postBufferTask() {
+    logger.debug('postBufferTask bufferSize', this.notificationBuffer.length);
+    if (this.bufferSize > 0 && this.notificationBuffer.length > this.bufferSize) {
+      logger.error('postBufferTask bufferSize too big dropping all', this.notificationBuffer.length);
+      this.notificationBuffer = [];
+    }
+    if (this.bufferTask == null && this.notificationBuffer.length > 0) {
+      this.bufferTask = setTimeout(() => {
+        this.sendFromBuffer();
+      }, 0);
+    }
   }
 
   notification(notification, pushAll, pushIds, uids, tag, timeToLive) {
     this.addIdAndTimestamp(notification);
     if (pushAll) {
       this.notificationService.sendAll(notification, timeToLive);
-    } else if (pushIds) {
-      this.deviceService.getDevicesByPushIds(pushIds, (devices) => {
-        this.sendNotificationByDevices(notification, devices, timeToLive);
-      });
-    } else if (uids) {
-      this.deviceService.getDevicesByUid(uids, (devices) => {
-        this.sendNotificationByDevices(notification, devices, timeToLive);
-      });
-    } else if (tag) {
-      let batch = [];
-      this.deviceService.scanByTag(tag, (doc) => {
-        batch.push(doc);
-        if (batch.length == this.maxPushIds) {
-          this.sendNotificationByDevices(notification, batch, timeToLive);
-          batch = [];
+    } else {
+      let targetName;
+      let targets;
+      if (pushIds) {
+        targetName = 'pushIds';
+        targets = pushIds;
+      } else if (uids) {
+        targetName = 'uids';
+        targets = uids;
+      } else if (tag) {
+        this.pushToNotificationBuffer('tag', tag, notification, timeToLive);
+      }
+      if (targetName) {
+        let split = [];
+        for (const item of targets) {
+          split.push(item);
+          if (split.length == this.batchSize) {
+            this.pushToNotificationBuffer(targetName, targets, notification, timeToLive);
+            split = [];
+          }
         }
-      }, () => {
-        if (batch.length != 0) {
-          this.sendNotificationByDevices(notification, batch, timeToLive);
+        if (split.length > 0) {
+          this.pushToNotificationBuffer(targetName, targets, notification, timeToLive);
         }
-      });
+      }
+      this.postBufferTask();
     }
     return notification.id;
+  }
+
+  pushToNotificationBuffer(targetName, targets, notification, timeToLive) {
+    const params = {
+      notification,
+      timeToLive
+    };
+    params[targetName] = targets;
+    this.notificationBuffer.push(params);
   }
 
   push(pushData, topic, pushIds, uids, timeToLive) {
