@@ -52,13 +52,22 @@ class ProxyServer {
       };
 
       socket.setUid = (uid, callback) => {
+        const currentRooms = io.nsps['/'].adapter.sids[socket.id];
+        for (const room in currentRooms) {
+          if (room && room.startsWith('uid:') && room != `uid:${uid}`) {
+            socket.leave(room);
+            logger.debug("leave old binded room ", room);
+          }
+        }
         if (uid) {
           socket.uid = uid;
           socket.join("uid:" + uid, callback);
-        } else if (socket.uid) {
-          socket.leave("uid:" + socket.uid, callback);
+          return;
+        }
+        if (socket.uid) {
           socket.uid = uid;
         }
+        callback && callback();
       };
 
       socket.on('pushId', (data) => {
