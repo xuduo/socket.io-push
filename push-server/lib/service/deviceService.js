@@ -45,6 +45,8 @@ class DeviceService {
           type: 'androidNoToken'
         }
       }
+    } else { // 处理某app误用 ios sdk 0.0.9
+      this.deleteOldToken(data.id, data.token);
     }
     this.mongo.device.findByIdAndUpdate({
       _id: data.id
@@ -204,16 +206,24 @@ class DeviceService {
     }
   }
 
-  setToken(pushId, tokenData) {
+  deleteOldToken(pushId, tokenData, callback) {
     this.mongo.device.find(tokenData, (err, docs) => {
       if (!err && docs) {
         for (const doc of docs) {
           if (doc._id != pushId) {
-            logger.debug('delete other bind device', doc);
+            logger.debug('delete other same token device', doc);
             doc.remove();
           }
         }
       }
+      if (callback) {
+        callback();
+      }
+    });
+  }
+
+  setToken(pushId, tokenData) {
+    this.deleteOldToken(pushId, tokenData, () => {
       this.mongo.device.update({
         _id: pushId
       }, tokenData, {
