@@ -8,6 +8,14 @@ const logger = require('winston-proxy')('SimpleRedisHashCluster');
 const REDIS_MASTER = 'master';    // ioreids use when fetch sentinel
 const REDIS_SLAVE = 'slave';     // ioreids use when fetch sentinel
 
+
+function defaultRetryStrategy(times) {
+    const delay = Math.min(times * 300, 2000);
+    return delay;
+}
+
+const defaultConnectTimeout = 10000000000000000;
+
 function SimpleRedisHashCluster(config) {
     if (!(this instanceof SimpleRedisHashCluster)) return new SimpleRedisHashCluster(config);
     this.messageCallbacks = [];
@@ -83,15 +91,14 @@ function getClientsFromIpList(addrs, subscribe) {
     const clients = [];
     if (addrs) {
         addrs.forEach(function (addr) {
-            const client = new IoRedis({
-                host: addr.host,
-                port: addr.port,
-                retryStrategy: function (times) {
-                    const delay = Math.min(times * 300, 2000);
-                    return delay;
-                },
-                connectTimeout: 10000000000000000
-            });
+
+            if (!addr.retryStrategy) {
+                addr.retryStrategy = defaultRetryStrategy;
+            }
+            if (!addr.connectTimeout) {
+                addr.connectTimeout = defaultConnectTimeout;
+            }
+            const client = new IoRedis(addr);
             client.on("error", function (err) {
                 logger.error("redis error", err);
             });
@@ -185,7 +192,7 @@ SimpleRedisHashCluster.prototype["HHDEL"] =
         return client.call.apply(client, ["hdel"].concat(toArray(arguments)));
     };
 
-SimpleRedisHashCluster.prototype["HHINCRBY"] = 
+SimpleRedisHashCluster.prototype["HHINCRBY"] =
     SimpleRedisHashCluster.prototype["hhincrby"] = function (key, field, value, callback) {
         const client = util.getByHash(this.write, field);
         return client.call.apply(client, ["hincrby"].concat(toArray(arguments)));
