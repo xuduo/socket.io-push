@@ -16,7 +16,8 @@ mongod &
 
 ####  安装/更新socket.io-push
 ```
-sudo npm install -g socket.io-push@version ##npm安装运行, 也可以直接clone代码, 在push-server目录运行node.
+sudo npm install -g socket.io-push@version
+##npm安装运行, 也可以直接clone代码, 在push-server目录运行node .
 ```
 
 ####  新建工作目录, 用于存储日志, 配置文件
