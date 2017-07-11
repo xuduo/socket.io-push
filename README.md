@@ -19,12 +19,14 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 
 
 ### 特点
-* 透明集成了小米, 华为push，第三方推送由于政策问题，无法做到
-* 支持浏览器, 微信小程序
-* 支持Unity3D (完成度很低）
+* 厂商通道: 透明集成了小米, 华为push，第三方推送由于政策问题，无法做到
+* 非厂商通道: 友盟推送 + socket.io 双通道客户端sdk去重, 可以享受友盟号称上万APP互相拉起, 大概可以增加非厂商通道50%以上送达率
+* IOS推送实现了可以部署代理节点, 可以通过国内专线->香港->苹果服务器, 极大提升成功率和吞吐能力
+* 支持浏览器, 微信小程序, Unity3D (完成度很低）
 * 与业务服务同机房部署，第三方服务无法比拟
 
 ### 性能
+* 目前使用的最高日活的一款APP有350W日活, 评估目前架构至少可以支持千万日活APP
 * 可以部署70台(实测)或者更多机器, 支持百万以上同时在线
 * 单机广播速度可以达到[10W条/秒](bench-mark.md)，如果只使用系统通知功能，单机支撑一个10W左右日活的APP，平均1W以上同时在线，几乎不占机器负载
 * 从推送接口调用，到客户端收到回包给服务器，RTT只有280m(线上平均延迟)
@@ -46,19 +48,8 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * [推送中的坑](readmes/notification-keng.md)
 * [送达率计算](readmes/arrive-rate.md)
 
-###名词
-* `push-server` 推送服务器, 提供客户端长连接, http api接口
-* `业务服务器` push-server api的调用方
-* `客户端` 业务app服务器
-* `长连接` 客户端到push-server之间的socket.io连接
-* `notification` 发送通知栏消息, ios走apns通道, 华为,小米走厂商通道(如配置开启), 浏览器/android手机走长连接
-* `push` 协议透传, 走长连接通道. app主进程存活的时候才能收到.主要应用场景如直播间聊天,送礼物,股价实时推送
-* `topic` 服务器push广播的对象,类似于直播间/频道的概念, 客户端进入某直播间(id=001)后(topic="room001"),业务服务器可以向此topic发聊天push,subscribe了这个topic的客户端即可收到push
-* `pushId` 某个设备的唯一标识, app安装后生成的随机字符串, 用于服务器单播
-* `uid` 业务服务器用于标识某个用户的id,字符串类型.可以通过push-server的接口进行绑定,通过客户端SDK解除绑定
-* `timeToLive` 过期时间
 
-###Q&A
+### Q&A
 * 相比第三方推送有什么优劣?
 
 优势:
@@ -72,4 +63,16 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 
 1. 需要自己运维部署服务器
 2. 如果需要扩容, 需要自己来评估, 第三方推送通常是给钱就可以了
+
+### 名词
+* `push-server` 推送服务器, 提供客户端长连接, http api接口
+* `业务服务器` push-server api的调用方
+* `客户端` 业务app服务器
+* `长连接` 客户端到push-server之间的socket.io连接
+* `notification` 发送通知栏消息, ios走apns通道, 华为,小米走厂商通道(如配置开启), 浏览器/android手机走长连接
+* `push` 协议透传, 走长连接通道. app主进程存活的时候才能收到.主要应用场景如直播间聊天,送礼物,股价实时推送
+* `topic` 服务器push广播的对象,类似于直播间/频道的概念, 客户端进入某直播间(id=001)后(topic="room001"),业务服务器可以向此topic发聊天push,subscribe了这个topic的客户端即可收到push
+* `pushId` 某个设备的唯一标识, app安装后生成的随机字符串, 用于服务器单播
+* `uid` 业务服务器用于标识某个用户的id,字符串类型.可以通过push-server的接口进行绑定,通过客户端SDK解除绑定
+* `timeToLive` 过期时间
 
