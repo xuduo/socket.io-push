@@ -5,20 +5,16 @@
 APNS推送, 需要自己保存ios上报的token, APNS本身不提供全网推送接口, 如果要做一次全网推送, 需要从数据库中查出所有token, 逐个推送. 对于一个用户量较高的APP, 需要存储的token数, 可能在百万或者千万级. 
 
 1. **国内到APNS服务器网络问题**
-
   我们项目中, 从国内某机房, 做一次6w的批量推送, 需要10~15分钟. 增加到APNS的连接数, 也无法提升速度.
-  
   **解决方法:** 把APNS调用服务部署到了香港机房, 同样一次6w的批量推送, 10秒左右就完成了, 速度提升近100倍. 可见国内某些机房到APNS服务器, 网络有很大问题.
   
 2. **token相关**
-  
   1. 用户如果不允许通知权限, 是无法获取token的. 用户卸载APP, 或者禁用通知, 一般来说APP也无法得知.
   2. 根据IOS版本的不同, 卸载重装APP, token可能变, 也可能不变. 用户升级/重装操作系统, 也可能会变. 所以每次启动APP, 都需要重新上报token.
   3. 调用APNS推送, 对于已经卸载APP或者禁用通知的用户, APNS是不会有特殊返回值的.
   
 3. **APNS调用报错: invalid token (8)**
-
-  token非法, 最常见的产生原因 : ios开发, 测试, 企业版内测, 提交APPSTORE都有不同的bundleId, 而每个bundleId都对应不同的推送证书, 如果token存储的时候没有区分bundleId, 调用时就会产生错误8. 错误8太多, APNS有可能会断掉推送的http2长连接, 导致推送**失败率增加**.
+   token非法, 最常见的产生原因 : ios开发, 测试, 企业版内测, 提交APPSTORE都有不同的bundleId, 而每个bundleId都对应不同的推送证书, 如果token存储的时候没有区分bundleId, 调用时就会产生错误8. 错误8太多, APNS有可能会断掉推送的http2长连接, 导致推送**失败率增加**.
   
   **解决方法:** 记录每个token对应的bundleId. 可以做到无论任bundleId的版本, 连正式/测试, 都可以收到APNS推送.
   
@@ -37,7 +33,9 @@ APNS推送, 需要自己保存ios上报的token, APNS本身不提供全网推送
    错误码我们只遇到过 error(8), 见上. error(10) 系统维护中.
    
 7. **苹果推送证书只有一年有效期, 到期前需要重新生成**
-  
+   
+    新版HTTP2接口, 用的证书, 永不过期
+  
 ## 安卓后台保活
 
 1. **对于国内大部分手机厂商**
@@ -55,6 +53,11 @@ APNS推送, 需要自己保存ios上报的token, APNS本身不提供全网推送
   实现方法参见 https://github.com/xuduo/socket.io-push-android/blob/master/android-push-sdk/src/main/java/com/yy/httpproxy/service/ForegroundService.java
 
   starForeground再stopForeground, 进程还是forground级别, 但通知栏那个foreground级别常驻的东西不会弹出来.
+  
+3. **友盟推送**
+
+   友盟有互相拉起的机制, 大概可以提升50%以上的后台推送设备数.
+   然而国产主流厂商(如OPPO,VIVO), 默认配置下依然是不能互相拉起.
 
 ## 小米/华为推送
 
