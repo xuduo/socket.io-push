@@ -27,7 +27,8 @@ curl -H "Content-Type: application/json" -X POST -d '{"a":"1" , "b":"2"}' http:/
 1. string[]类型, 可以使用http标准的如
    get?uid=123&uid=456 
    或者使用uid=["123", "456"]
-   
+   至少支持一次调用传10w以上的uid
+   
 2. string
 
 ## /api/push 应用内透传
