@@ -61,16 +61,16 @@ push-server -f
 
 # Q&A
 
-* 如何多机部署？
+1. 如何多机部署？
 
-    proxy，api，apn-proxy均可以独立部署。只需保证配置中连接同一个mongodb，同一组redis。建议在调用机器上直接部署api进程。proxy前端机器独立部署。
+ proxy，api，apn-proxy均可以独立部署。只需保证配置中连接同一个mongodb，同一组redis。建议在调用机器上直接部署api进程。proxy前端机器独立部署。
  
-     proxy，api，apn-proxy启动多少个进程，由各自config中instance控制，一般api只需要一个即可，proxy cpu数量/2。
+ proxy，api，apn-proxy启动多少个进程，由各自config中instance控制，一般api只需要一个即可，proxy cpu数量/2。
 
-* 多个proxy前端情况下，如何负载均衡？
+2. 多个proxy前端情况下，如何负载均衡？
 
-  依靠dns解析到所有前端ip，当然也可以使用lvs。Nginx是不行的，由于长连接是一对一，nginx最多能把机器出口ip占完6w多个连接，远远不能满足需要
+ 依靠dns解析到所有前端ip，当然也可以使用lvs。Nginx是不行的，由于长连接是一对一，nginx最多能把机器出口ip占完6w多个连接，远远不能满足需要
 
-* 如何指定只发安卓或者ios？
+3. 如何指定只发安卓或者ios？
 
-  notification接口里只传ios或者android，即可指定单一平台发送
+ notification接口里只传ios或者android，即可指定单一平台发送
