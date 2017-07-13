@@ -1,6 +1,6 @@
 socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?branch=master)](https://travis-ci.org/xuduo/socket.io-push) [![Coverage Status](https://coveralls.io/repos/github/xuduo/socket.io-push/badge.svg?branch=master&a=1)](https://coveralls.io/github/xuduo/socket.io-push?branch=master&a=1)
 =======================
-基于socket.io协议实现的类似小米,极光,个推的系统. 
+基于socket.io协议实现的类似小米,极光,个推的系统.
 [视频介绍](http://www.bilibili.com/video/av8531451/)
 
 [![NPM](https://nodei.co/npm/socket.io-push.png?compact=true)](https://npmjs.org/package/socket.io-push)
@@ -35,6 +35,7 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * [Android SDK & Demo](https://github.com/xuduo/socket.io-push-android)
 * [IOS SDK & Demo](https://github.com/xuduo/socket.io-push-ios)
 * [Browser sdk](push-client)
+* QQ技术支持群 128769919
 
 ### 高级功能文档
 * topic相关(用于实现如直播间观众列表，在线人数实时查询功能)
@@ -72,4 +73,3 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 
 1. 需要自己运维部署服务器
 2. 如果需要扩容, 需要自己来评估, 第三方推送通常是给钱就可以了
-
