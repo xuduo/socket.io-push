@@ -117,14 +117,24 @@ class ProxyServer {
                 packetService.publishConnect(socket);
               }
 
-
+              const ttlTopics = {};
+              if (data.lastUnicastId) {
+                ttlTopics[socket.pushId] = {
+                  lastPacketId: data.lastUnicastId,
+                  unicast: true
+                };
+              }
               const lastPacketIds = data.lastPacketIds;
               if (lastPacketIds) {
                 for (const topic in lastPacketIds) {
-                  ttlService.getPackets(topic, lastPacketIds[topic], socket);
+                  if (lastPacketIds[topic]) {
+                    ttlTopics[topic] = {
+                      lastPacketId: lastPacketIds[topic]
+                    };
+                  }
                 }
               }
-              ttlService.onPushId(socket, data.lastUnicastId);
+              ttlService.getPackets(socket, ttlTopics);
             });
           });
         }
@@ -140,7 +150,13 @@ class ProxyServer {
       socket.on('subscribeTopic', (data) => {
         logger.debug("on subscribeTopic %j, pushId %s", data, socket.pushId);
         const topic = data.topic;
-        ttlService.getPackets(topic, data.lastPacketId, socket);
+        const ttlTopics = {};
+        if (data.lastPacketId) {
+          ttlTopics[topic] = {
+            lastPacketId: data.lastPacketId
+          };
+        }
+        ttlService.getPackets(socket, ttlTopics);
         socket.authJoin(topic);
       });
 

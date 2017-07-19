@@ -16,10 +16,6 @@ class TTLService {
     this.type = 'TTLService';
   }
 
-  onPushId(socket, lastPacketId) {
-    this.getPackets(socket.pushId, lastPacketId, socket, true);
-  }
-
   addTTL(topic, event, timeToLive = 0, packet, unicast) {
     if (timeToLive > 0) {
       if (!packet.id) {
@@ -60,44 +56,60 @@ class TTLService {
     }
   }
 
-  getPackets(topic, lastId, socket, unicast) {
-    if (lastId) {
-      this.mongo.ttl.findById(topic, (err, ttl) => {
-        if (!err && ttl) {
-          const list = ttl.packetsMixed;
-          if (list && list.length > 0) {
-            var lastFound = false;
-            var now = Date.now();
+  /*
+    ttlTopics = {
+    noti: {lastPacketId:'qweljkasd',unicast: false},
+    qweLJKoiu1U: {lastPacketId:'doamc',unicast: true}
+  }
+  */
+  getPackets(socket, ttlTopics) {
+    const topics = Object.keys(ttlTopics);
+    if (topics.length) {
+      this.mongo.ttl.find({
+        _id: {
+          $in: topics
+        }
+      }, (err, ttls) => {
+        if (!err && ttls && ttls.length) {
+          for (const ttl of ttls) {
+            const topic = ttl._id;
+            const list = ttl.packetsMixed;
+            const lastId = ttlTopics[topic].lastPacketId;
+            const unicast = ttlTopics[topic].unicast;
+            if (list && list.length > 0) {
+              var lastFound = false;
+              var now = Date.now();
 
-            list.forEach((packet) => {
-              if (packet.id == lastId) {
-                lastFound = true;
-                logger.debug("lastFound %s %s", topic, lastId);
-              } else if (lastFound == true && packet.timestampValid > now) {
-                logger.debug("call emitPacket %s %s", packet.id, lastId);
-                this.emitToSocket(socket, packet.event, packet);
-                this.arrivalStats.addArrivalInfo(packet.id, {
-                  target_android: 1
-                });
-              }
-            });
-
-            if (unicast) {
-              this.mongo.ttl.remove({
-                _id: topic
-              });
-            }
-
-            if (!lastFound) {
-              logger.debug('topic %s lastId %s not found send all packets', topic, lastId);
               list.forEach((packet) => {
-                if (packet.timestampValid > now) {
+                if (packet.id == lastId) {
+                  lastFound = true;
+                  logger.debug("lastFound %s %s", topic, lastId);
+                } else if (lastFound == true && packet.timestampValid > now) {
+                  logger.debug("call emitPacket %s %s", packet.id, lastId);
                   this.emitToSocket(socket, packet.event, packet);
                   this.arrivalStats.addArrivalInfo(packet.id, {
                     target_android: 1
                   });
                 }
               });
+
+              if (unicast) {
+                this.mongo.ttl.remove({
+                  _id: topic
+                });
+              }
+
+              if (!lastFound) {
+                logger.debug('topic %s lastId %s not found send all packets', topic, lastId);
+                list.forEach((packet) => {
+                  if (packet.timestampValid > now) {
+                    this.emitToSocket(socket, packet.event, packet);
+                    this.arrivalStats.addArrivalInfo(packet.id, {
+                      target_android: 1
+                    });
+                  }
+                });
+              }
             }
           }
         }
