@@ -1,6 +1,9 @@
 socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?branch=master)](https://travis-ci.org/xuduo/socket.io-push) [![Coverage Status](https://coveralls.io/repos/github/xuduo/socket.io-push/badge.svg?branch=master&a=1)](https://coveralls.io/github/xuduo/socket.io-push?branch=master&a=1)
 =======================
-基于socket.io协议实现的类似小米,极光,个推的系统.
+整合了小米，华为，友盟，苹果推送的统一解决方案
+
+更有应用内超低延迟(生产环境平均200MS以下)透传功能
+
 [视频介绍](http://www.bilibili.com/video/av8531451/)
 
 [![NPM](https://nodei.co/npm/socket.io-push.png?compact=true)](https://npmjs.org/package/socket.io-push)
