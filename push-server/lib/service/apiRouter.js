@@ -91,12 +91,12 @@ class ApiRouter {
         for (const item of targets) {
           split.push(item);
           if (split.length == this.batchSize) {
-            this.pushToNotificationBuffer(targetName, targets, notification, timeToLive);
+            this.pushToNotificationBuffer(targetName, split, notification, timeToLive);
             split = [];
           }
         }
         if (split.length > 0) {
-          this.pushToNotificationBuffer(targetName, targets, notification, timeToLive);
+          this.pushToNotificationBuffer(targetName, split, notification, timeToLive);
         }
       }
       this.postBufferTask();
