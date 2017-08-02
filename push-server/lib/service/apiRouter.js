@@ -5,7 +5,8 @@ module.exports = (deviceService, notificationService, ttlService, batchSize, buf
 const logger = require('winston-proxy')('ApiRouter');
 const request = require('request');
 const pushEvent = 'push';
-const randomstring = require("randomstring");
+const randomstring = require('randomstring');
+const versionCompare = require('../util/versionCompare');
 
 class ApiRouter {
 
@@ -16,22 +17,49 @@ class ApiRouter {
     this.ttlService = ttlService;
     this.batchSize = batchSize || 1000;
     this.remoteUrls = require("../util/infiniteArray")(remoteUrls);
-    this.notificationBuffer = [];
+    this.notificationBuffer = []; // 保证notification只有一个‘线程’ 读取数据库，防止蜂拥
     this.bufferSize = bufferSize || 0;
     this.bufferTask = null;
   }
 
+  splitTargets(targets) {
+    let split;
+    let done = false;
+    if (targets > this.bufferSize) {
+      split = [];
+      for (let i = 0; i < this.bufferSize; i++) {
+        split.push(targets[0]);
+      }
+      targets.splice(0, this.bufferSize)
+    } else {
+      split = targets;
+      done = true;
+    }
+    return {
+      split,
+      done
+    }
+  }
+
   sendFromBuffer() {
-    const notiParams = this.notificationBuffer.shift();
-    if (notiParams) {
+    if (this.notificationBuffer.length > 0) {
+      const notiParams = this.notificationBuffer[this.notificationBuffer.length - 1];
       if (notiParams.pushIds) {
-        this.deviceService.getDevicesByPushIds(notiParams.pushIds, (devices) => {
-          this.sendNotificationByDevices(notiParams.notification, devices, notiParams.timeToLive);
+        const split = this.splitTargets(notiParams.pushIds);
+        if (split.done) {
+          this.notificationBuffer.shift();
+        }
+        this.deviceService.getDevicesByPushIds(split.split, (devices) => {
+          this.sendNotificationByDevices(notiParams, devices);
           this.bufferTaskDone();
         });
       } else if (notiParams.uids) {
-        this.deviceService.getDevicesByUid(notiParams.uids, (devices) => {
-          this.sendNotificationByDevices(notiParams.notification, devices, notiParams.timeToLive);
+        const split = this.splitTargets(notiParams.uids);
+        if (split.done) {
+          this.notificationBuffer.shift();
+        }
+        this.deviceService.getDevicesByUid(split.split, (devices) => {
+          this.sendNotificationByDevices(notiParams, devices);
           this.bufferTaskDone();
         });
       } else if (notiParams.tag) {
@@ -39,17 +67,18 @@ class ApiRouter {
         this.deviceService.scanByTag(notiParams.tag, (doc) => {
           batch.push(doc);
           if (batch.length == this.maxPushIds) {
-            this.sendNotificationByDevices(notiParams.notification, batch, notiParams.timeToLive);
+            this.sendNotificationByDevices(notiParams, batch);
             batch = [];
           }
         }, () => {
           if (batch.length != 0) {
-            this.sendNotificationByDevices(notiParams.notification, batch, notiParams.timeToLive);
+            this.sendNotificationByDevices(notiParams, batch);
           }
           this.bufferTaskDone();
         });
       }
     }
+    this.notificationBuffer.shift();
   }
 
   bufferTaskDone() {
@@ -70,47 +99,15 @@ class ApiRouter {
     }
   }
 
-  notification(notification, pushAll, pushIds, uids, tag, timeToLive) {
-    this.addIdAndTimestamp(notification);
-    if (pushAll) {
-      this.notificationService.sendAll(notification, timeToLive);
+  notification(params) {
+    this.addIdAndTimestamp(params.notification);
+    if (params.pushAll) {
+      this.notificationService.sendAll(params.notification, params.timeToLive);
     } else {
-      let targetName;
-      let targets;
-      if (pushIds) {
-        targetName = 'pushIds';
-        targets = pushIds;
-      } else if (uids) {
-        targetName = 'uids';
-        targets = uids;
-      } else if (tag) {
-        this.pushToNotificationBuffer('tag', tag, notification, timeToLive);
-      }
-      if (targetName) {
-        let split = [];
-        for (const item of targets) {
-          split.push(item);
-          if (split.length == this.batchSize) {
-            this.pushToNotificationBuffer(targetName, split, notification, timeToLive);
-            split = [];
-          }
-        }
-        if (split.length > 0) {
-          this.pushToNotificationBuffer(targetName, split, notification, timeToLive);
-        }
-      }
+      this.notificationBuffer.push(params);
       this.postBufferTask();
     }
-    return notification.id;
-  }
-
-  pushToNotificationBuffer(targetName, targets, notification, timeToLive) {
-    const params = {
-      notification,
-      timeToLive
-    };
-    params[targetName] = targets;
-    this.notificationBuffer.push(params);
+    return params.notification.id;
   }
 
   push(pushData, topic, pushIds, uids, timeToLive) {
@@ -131,12 +128,47 @@ class ApiRouter {
     }
   }
 
-  sendNotificationByDevices(notification, devices, timeToLive) {
+  sendNotificationByDevices(params, devices) {
+    this.filterByTag(params, devices);
     if (!devices || devices.length == 0) {
       return;
     }
     this.stats.addSuccess('notificationByDevices', devices.length);
-    this.notificationService.sendByDevices(devices, timeToLive, notification);
+    this.notificationService.sendByDevices(devices, params.timeToLive, params.notification);
+  }
+
+  filterByTag(params, devices) {
+    if ((params.tagStart && params.tagLessThan) || (params.tagStart && params.tagGreaterThan)) {
+      for (let i = devices.length - 1; i >= 0; i--) {
+        let match = false;
+        if (devices[i].tags) {
+          for (const tag of devices[i].tags) {
+            if (tag.startsWith(params.tagStart)) {
+              const tail = tag.substr(params.tagStart.length);
+              if (params.tagLessThan) {
+                if (versionCompare(tail, params.tagLessThan) < 0) {
+                  match = true;
+                } else {
+                  break;
+                }
+              }
+              if (params.tagGreaterThan) {
+                if (versionCompare(tail, params.tagGreaterThan) > 0) {
+                  match = true;
+                } else {
+                  match = false;
+                }
+              }
+              break;
+            }
+          }
+        }
+        if (!match) {
+          logger.debug('do not match ', devices[i]);
+          devices.splice(i, 1);
+        }
+      }
+    }
   }
 
   addIdAndTimestamp(notification) {

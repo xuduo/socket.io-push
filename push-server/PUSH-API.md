@@ -4,19 +4,19 @@
 
 支持以下三种传参方式
 
-1.HTTP GET 如 curl 
+1.HTTP GET 如 curl
 ```bash
 #curl 例子
 curl http://localhost:11001/api/test?a=1&b=2
 ```
 
-2.HTTP POST (FORM) 
+2.HTTP POST (FORM)
 ```bash
 #curl 例子
 curl -X POST -F 'a=1' -F 'b=2' http://localhost:11001/api/test
 ```
 
-3.HTTP POST (JSON) 
+3.HTTP POST (JSON)
 ```bash
 #curl 例子
 curl -H "Content-Type: application/json" -X POST -d '{"a":"1" , "b":"2"}' http://localhost:11001/api/test
@@ -25,10 +25,10 @@ curl -H "Content-Type: application/json" -X POST -d '{"a":"1" , "b":"2"}' http:/
 ##数组类型参数
 
 1. string[]类型, 可以使用http标准的如
-   get?uid=123&uid=456 
+   get?uid=123&uid=456
    或者使用uid=["123", "456"]
    至少支持一次调用传10w以上的uid
-   
+  
 2. string
 
 ## /api/push 应用内透传
@@ -50,12 +50,21 @@ json map  {"uri":1, content:"test string"}
 json array  [1, {"content":"test string"}]
 
 建议使用json数组,第0为表示推送类型URI, 省流量, 可通过前面几个字符判断uri，而不解析整串json
-         
+
 第一个int或string来表示推送类型,第二个参数表示该类型的透传数据
-         
+
 ---        
 
 timeToLive -> int, 毫秒, 表示当时用户不在线, 消息服务器保存多久
+
+---
+
+---
+当指定了uid 或者 pushId的时候可以使用tagStart,tagLessThan,tagGreaterThan进行进一步过滤
+
+如：客户端设置了version_1.5.0的tag, 可以通过传参tagStart='version_',tagGreaterThan=1.4.0来过滤，不支持含有字母的版本号
+
+一些特殊情况1.5.1 > 1.5, 1.5.0 > 1.5, 1.5.11 > 1.5.6, 1.6 > 1.5.1, 详细可见versionCompareTest.js
 
 ---
 
@@ -178,7 +187,7 @@ pushId=123 或者　uid=123
 
 ## /api/stats/arrival/info 查询某条notification送达率
 
---- 参数 
+--- 参数
 
 id=xxxxxx 调用notification接口时返回的id, 目前不提供华为推送查询功能
 ```javascript

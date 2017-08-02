@@ -60,6 +60,28 @@ describe('apiRouterTest', function() {
             'Accept': 'application/json'
           },
           form: {
+            pushId: ['123123444'],
+            notification: str
+          }
+        });
+        request({
+          url: apiUrl + '/api/notification',
+          method: "post",
+          headers: {
+            'Accept': 'application/json'
+          },
+          form: {
+            pushId: ['123123444'],
+            notification: str
+          }
+        });
+        request({
+          url: apiUrl + '/api/notification',
+          method: "post",
+          headers: {
+            'Accept': 'application/json'
+          },
+          form: {
             pushId: JSON.stringify(pushIds),
             notification: str
           }

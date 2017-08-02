@@ -136,11 +136,17 @@ class RestApi {
         return next();
       }
 
-      let notification;
+      let params = {
+        tagStart: req.p.tagStart,
+        tagLessThan: req.p.tagLessThan,
+        tagGreaterThan: req.p.tagGreaterThan,
+        timeToLive: paramParser.parseNumber(req.p.timeToLive),
+        tag: req.p.tag
+      };
 
       if (typeof req.p.notification == "string") {
         try {
-          notification = JSON.parse(req.p.notification);
+          params.notification = JSON.parse(req.p.notification);
         } catch (err) {
           logger.error("notification parse json error ", req.p.notification, err);
           res.statusCode = 400;
@@ -151,34 +157,35 @@ class RestApi {
           return next();
         }
       } else {
-        notification = req.p.notification;
+        params.notification = req.p.notification;
       }
 
-      if (!notification.android) {
-        notification.android = {};
+      if (!params.notification.android) {
+        params.notification.android = {};
       }
 
-      if (notification.payload) {
-        notification.android.payload = notification.payload;
-        delete notification.payload;
+      if (params.notification.payload) {
+        params.notification.android.payload = params.notification.payload;
+        delete params.notification.payload;
       }
 
-      if (!notification.android.payload) {
-        notification.android.payload = {};
+      if (!params.notification.android.payload) {
+        params.notification.android.payload = {};
       }
 
-      if (notification.apn && notification.apn.payload) {
-        delete notification.apn.payload;
+      if (params.notification.apn && params.notification.apn.payload) {
+        delete params.notification.apn.payload;
       }
 
-      const pushIds = paramParser.parseArrayParam(req.p.pushId);
-      const uids = paramParser.parseArrayParam(req.p.uid);
+      params.pushIds = paramParser.parseArrayParam(req.p.pushId);
+      params.uids = paramParser.parseArrayParam(req.p.uid);
 
-      if (req.p.pushAll == 'true') {
+      if (req.p.pushAll === 'true') {
+        params.pushAll = true;
         logger.info('handleNotification pushAll ', req.p);
       }
 
-      if (!req.p.tag && !pushIds && !uids && req.p.pushAll != 'true') {
+      if (!req.p.tag && !params.pushIds && !params.uids && req.p.pushAll != 'true') {
         res.statusCode = 400;
         res.json({
           code: "error",
@@ -187,7 +194,7 @@ class RestApi {
         return next();
       }
 
-      if (paramParser.moreThanOneTrue(req.p.tag, pushIds, uids, req.p.pushAll == 'true')) {
+      if (paramParser.moreThanOneTrue(req.p.tag, params.pushIds, params.uids, req.p.pushAll == 'true')) {
         res.statusCode = 400;
         res.json({
           code: "error",
@@ -196,22 +203,11 @@ class RestApi {
         return next();
       }
 
-      const id = apiRouter.notification(notification, req.p.pushAll == 'true', pushIds, uids, req.p.tag, paramParser.parseNumber(req.p.timeToLive));
+      const id = apiRouter.notification(params);
       logger.info("handleNotification %s %j ,id: %s", req.connection.remoteAddress, req.p, id);
       res.json({
         code: "success",
         id: id
-      });
-      return next();
-    });
-
-    router.all('/routeNotification', (req, res, next) => {
-      const notification = JSON.parse(req.p.notification);
-      const pushIds = JSON.parse(req.p.pushId);
-      const timeToLive = paramParser.parseNumber(req.p.timeToLive);
-      apiRouter.notificationLocal(notification, pushIds, timeToLive);
-      res.json({
-        code: "success"
       });
       return next();
     });

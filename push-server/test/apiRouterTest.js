@@ -44,8 +44,6 @@ describe('apiRouterTest', function() {
     let pushIds = [];
     pushClients.forEach((client) => {
       client.on('connect', () => {
-
-
         var notificationCallback = function(data) {
           expect(data.title).to.be.equal(title);
           expect(data.message).to.be.equal(message);
