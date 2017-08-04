@@ -25,12 +25,12 @@ class ApiRouter {
   splitTargets(targets) {
     let split;
     let done = false;
-    if (targets > this.bufferSize) {
+    if (targets.length > this.batchSize) {
       split = [];
-      for (let i = 0; i < this.bufferSize; i++) {
-        split.push(targets[0]);
+      for (let i = 0; i < this.batchSize; i++) {
+        split.push(targets[i]);
       }
-      targets.splice(0, this.bufferSize)
+      targets.splice(0, this.batchSize)
     } else {
       split = targets;
       done = true;
@@ -64,6 +64,7 @@ class ApiRouter {
         });
       } else if (notiParams.tag) {
         let batch = [];
+        this.notificationBuffer.shift();
         this.deviceService.scanByTag(notiParams.tag, (doc) => {
           batch.push(doc);
           if (batch.length == this.maxPushIds) {
@@ -76,9 +77,12 @@ class ApiRouter {
           }
           this.bufferTaskDone();
         });
+      } else {
+        logger.error('invalid notiParams', notiParams);
+        this.notificationBuffer.shift();
+        this.bufferTaskDone();
       }
     }
-    this.notificationBuffer.shift();
   }
 
   bufferTaskDone() {

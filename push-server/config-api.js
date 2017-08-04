@@ -112,7 +112,7 @@ config.redis = {
 
 config.notificationBatchSize = 1000; //如果单次调用notification超过1000个uid, 将会分成多个批次任务
 
-config.notificationBufferSize = 2000; // buffer里最多有多少个分批次任务,超过会清空buffer 默认0, 无限制
+config.notificationBufferSize = 10000; // buffer里最多有多少个分批次任务,超过会清空buffer 默认0, 无限制
 
 config.apnApiUrls = [
   'http://localhost:13001',

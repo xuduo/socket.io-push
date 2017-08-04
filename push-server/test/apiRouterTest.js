@@ -40,7 +40,7 @@ describe('apiRouterTest', function() {
   });
 
   it('send notification', (done) => {
-    global.apiServer.apiRouter.bufferSize = 0;
+    global.apiServer.apiRouter.bufferSize = 2;
     let pushIds = [];
     pushClients.forEach((client) => {
       client.on('connect', () => {
