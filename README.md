@@ -34,6 +34,39 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * 单机广播速度可以达到[10W条/秒](bench-mark.md)，如果只使用系统通知功能，单机支撑一个10W左右日活的APP，平均1W以上同时在线，几乎不占机器负载
 * 从推送接口调用，到客户端收到回包给服务器，RTT只有280m(线上平均延迟)
 
+### 基本功能和实现原理
+
+#### 1. push (在线透传）
+
+###### 目标: 
+
+* pushId: 对某个设备
+* topic: 已经订阅了某topic的设备列表，订阅关系在redis和socket.io实例里保存，如socket.io服务重启，会丢失，客户端重连上来会自动重新订阅建立关系
+* uid: 已绑定的设备列表，设备连接后读一次数据库，然后此关系以topic的方式实现
+
+   ###### 实现原理:
+       
+        使用socket.io通道，只针对当时在线，也可以通过制定timeToLive参数实现重传, 无论push给任何目标，只有一次redis pub操作，不走数据库，可靠性，速度非常高
+
+#### 2. notification（手机系统通知栏）
+
+
+###### 目标: 
+   
+* pushId: 对某个设备
+* uid: 已绑定的设备列表
+* tags: 绑定了某tag的设备列表，存储在数据库持久化
+* pushAll: 推送所有设备
+
+###### 实现原理:
+   
+无论给哪个目标发，都要查一次mongodb，用于确定目标设备的类型和token。
+
+* ios设备，走苹果apn推送。
+* 小米和华为，走该厂商通道。
+* 其它设备（安卓或者浏览器等）,走socket.io push通道。 如有上报umeng token，会调用友盟推送再发一次。安卓客户端有可能收到两次，SDK层做去重保证手机只弹出一次。
+
+
 ### Quick Start
 * [5分钟搭建一个单机服务器](push-server)
 * [服务器推送Api文档](push-server/PUSH-API.md)
@@ -67,7 +100,6 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 
 1. 需要自己运维部署服务器
 2. 如果需要扩容, 需要自己来评估, 第三方推送通常是给钱就可以了
-<<<<<<< HEAD
 =======
 
 ### 名词
@@ -82,4 +114,3 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * `uid` 业务服务器用于标识某个用户的id,字符串类型.可以通过push-server的接口进行绑定,通过客户端SDK解除绑定
 * `timeToLive` 过期时间
 
->>>>>>> deeb18c81def4a0dc06b749e1bb5d1b8edba5646
