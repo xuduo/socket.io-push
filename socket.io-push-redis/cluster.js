@@ -35,7 +35,7 @@ function SimpleRedisHashCluster(config) {
             this.sub = getClientsFromIpList(config.sub, this);
         } else {
             logger.debug("sub using sentinel", config.sub);
-            this.sub = getClientsFromSentinel(config.sub.sentinel, config.sub.groupName, REDIS_SLAVE, this);
+            this.sub = getClientsFromSentinel(config.sub.sentinel, config.sub.groupName, config.sub.password, REDIS_SLAVE, this);
         }
     }
 
@@ -47,13 +47,13 @@ function SimpleRedisHashCluster(config) {
                 self.pubs.push(getClientsFromIpList(pub));
             } else {
                 logger.debug("pub using sentinel", pub);
-                self.pubs.push(getClientsFromSentinel(pub.sentinel, pub.groupName, REDIS_MASTER));
+                self.pubs.push(getClientsFromSentinel(pub.sentinel, pub.groupName, pub.password, REDIS_MASTER));
             }
         });
     }
 }
 
-function getClientsFromSentinel(sentinels, names, role, subscribe) {
+function getClientsFromSentinel(sentinels, names, password, role, subscribe) {
     const clients = [];
     if (names) {
         names.forEach(function (name) {
@@ -61,6 +61,7 @@ function getClientsFromSentinel(sentinels, names, role, subscribe) {
                 sentinels: sentinels,
                 name: name,
                 role: role,
+                password: password,
                 retryStrategy: function (times) {
                     const delay = Math.min(times * 300, 2000);
                     return delay;
