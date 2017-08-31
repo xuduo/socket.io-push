@@ -20,9 +20,12 @@ class RestApi {
     app.disable('etag');
 
     app.use("/api", bodyParser.urlencoded({ // to support URL-encoded bodies
-      extended: true
+      extended: true,
+      limit: '100mb'
     }));
-    app.use("/api", bodyParser.json());
+    app.use("/api", bodyParser.json({
+      limit: '100mb'
+    }));
     app.use("/api", (req, res, next) => {
       res.set("Access-Control-Allow-Origin", "*");
       stats.addApiCall(req.path);

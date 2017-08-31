@@ -75,7 +75,7 @@ class ArrivalStats {
   }
 
   addPushMany(msg, ttl, sentCount) {
-    logger.info('addPushMany, packet: %s', msg);
+    logger.debug('addPushMany, packet: ', msg);
     const data = this.msgToData(msg, ttl);
     data.type = 'pushMany';
     this.addArrivalInfo(msg.id, {
