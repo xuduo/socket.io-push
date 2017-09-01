@@ -86,7 +86,7 @@ class RestApi {
         });
         return next();
       }
-      logger.info("handlePush %j", req.p);
+
       const pushData = {};
       if (data) {
         pushData.data = data;
@@ -119,6 +119,8 @@ class RestApi {
         });
         return next();
       }
+
+      logger.info("handlePush %j topic:%s, uids:%s, pushIds:%s", pushData, req.p.topic, getLimitedArrayToLog(uids), getLimitedArrayToLog(pushIds));
 
       apiRouter.push(pushData, req.p.topic, pushIds, uids, paramParser.parseNumber(req.p.timeToLive));
       res.json({
@@ -207,7 +209,9 @@ class RestApi {
       }
 
       const id = apiRouter.notification(params);
-      logger.info("handleNotification %s %j ,id: %s", req.connection.remoteAddress, req.p, id);
+
+      logger.info("handleNotification %s id: %s ,tag:%s,pushAll:%s,uids:%s, pushIds:%s, %j", req.connection.remoteAddress, id, params.tag, params.pushAll, getLimitedArrayToLog(params.uids), getLimitedArrayToLog(params.pushIds), params.notification);
+
       res.json({
         code: "success",
         id: id
@@ -411,4 +415,14 @@ class RestApi {
     }
   }
 
+}
+
+function getLimitedArrayToLog(targets) {
+  if (targets) {
+    if (targets.length < 100) {
+      return targets;
+    } else {
+      return "count-" + targets.length;
+    }
+  }
 }

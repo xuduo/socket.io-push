@@ -118,8 +118,16 @@ class TTLService {
   }
 
   emitPacket(topic, event, packet) {
-    logger.debug("emitPacket %s %s %j", topic, event, packet);
-    this.emitToSocket(this.io.to(topic), event, packet);
+    logger.debug("emitPacket %j %s %j", topic, event, packet);
+    let target = this.io;
+    if (topic.constructor === Array) {
+      for (const t of topic) {
+        target = target.to(t);
+      }
+    } else {
+      target = target.to(topic);
+    }
+    this.emitToSocket(target, event, packet);
   }
 
   emitToSocket(socket, event, packet) {

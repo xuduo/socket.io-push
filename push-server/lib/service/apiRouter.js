@@ -91,7 +91,7 @@ class ApiRouter {
   }
 
   postBufferTask() {
-    logger.debug('postBufferTask bufferSize', this.notificationBuffer.length);
+    logger.info('postBufferTask bufferSize', this.notificationBuffer.length);
     if (this.bufferSize > 0 && this.notificationBuffer.length > this.bufferSize) {
       logger.error('postBufferTask bufferSize too big dropping all', this.notificationBuffer.length);
       this.notificationBuffer = [];
@@ -118,14 +118,15 @@ class ApiRouter {
     if (pushIds) {
       pushIds.forEach((id) => {
         this.ttlService.addTTL(id, pushEvent, timeToLive, pushData, true);
-        this.ttlService.emitPacket(id, pushEvent, pushData);
       });
+      this.ttlService.emitPacket(pushIds, pushEvent, pushData);
     } else if (uids) {
+      const topics = [];
       uids.forEach((id) => {
-        const topic = "uid:" + id;
+        topics.push("uid:" + id);
         this.ttlService.addTTL(topic, pushEvent, timeToLive, pushData, true);
-        this.ttlService.emitPacket(topic, pushEvent, pushData);
       });
+      this.ttlService.emitPacket(topics, pushEvent, pushData);
     } else if (topic) {
       this.ttlService.addTTL(topic, pushEvent, timeToLive, pushData, false);
       this.ttlService.emitPacket(topic, pushEvent, pushData);

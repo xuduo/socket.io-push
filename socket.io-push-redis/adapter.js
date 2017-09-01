@@ -3,7 +3,6 @@
  */
 
 const uid2 = require('uid2');
-const msgpack = require('msgpack-js');
 const Adapter = require('socket.io-adapter');
 const logger = require('winston-proxy')('RedisAdapter');
 
@@ -86,34 +85,27 @@ function adapter(uri, opts, stats) {
       return;
     }
 
-    if (!channel.toString().startsWith(prefix)) {
+    let channelStr = channel.toString();
+    if (!channelStr.startsWith(prefix + '#')) {
       return;
     }
 
-    if (channel.toString().startsWith(prefix + ':')) {
-      return;
-    }
+    channelStr = channelStr.substring((prefix + '#').length, channelStr.length);
 
-    const args = msgpack.decode(msg);
-    let packet;
+    const args = JSON.parse(msg);
+    let packet = {
+      data: args,
+      nsp: '/',
+      type: 2
+    };
 
-    if (uid == args.shift()) {
-      return;
-    }
+    Adapter.prototype.broadcast.call(this, packet, {
+      rooms: [channelStr],
+      flags: {
+        broadcast: true
+      }
+    });
 
-    packet = args[0];
-
-    if (packet && packet.nsp === undefined) {
-      packet.nsp = '/';
-    }
-
-    if (!packet || packet.nsp != this.nsp.name) {
-      return;
-    }
-
-    args.push(true);
-
-    this.broadcast.apply(this, args);
   };
 
   /**
@@ -126,17 +118,16 @@ function adapter(uri, opts, stats) {
    */
 
   Redis.prototype.broadcast = function(packet, opts, remote) {
-    Adapter.prototype.broadcast.call(this, packet, opts);
-    if (!remote) {
-      const msg = msgpack.encode([uid, packet, opts]);
-      if (opts.rooms) {
-        opts.rooms.forEach(function(room) {
-          const chnRoom = prefix + "#" + room;
-          pub.publish(chnRoom, msg);
-        });
-      } else {
-        pub.publish(prefix, msg);
-      }
+
+    var msg = JSON.stringify(packet.data);
+
+    if (opts.rooms) {
+      opts.rooms.forEach(function(room) {
+        const chnRoom = prefix + "#" + room;
+        pub.publish(chnRoom, msg);
+      });
+    } else {
+      pub.publish(prefix, msg);
     }
   };
 
