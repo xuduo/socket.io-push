@@ -1,3 +1,8 @@
+#### node 依赖
+
+npm install socket.io-push-client --save
+
+
 #### js sdk
 [source](../../static/js/push-client-1.0.js)
 
