@@ -71,10 +71,7 @@ flags.forEach(function(flag) {
 
 Emitter.prototype.in =
   Emitter.prototype.to = function(room) {
-    if (!~this._rooms.indexOf(room)) {
-      debug('room %s', room);
-      this._rooms.push(room);
-    }
+    this._rooms.push(room);
     return this;
   };
 

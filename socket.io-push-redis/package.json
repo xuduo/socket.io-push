@@ -1,6 +1,6 @@
 {
   "name": "socket.io-push-redis",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "redis operation for socket.io-push, include adapter, emitter, read/write ",
   "main": "index.js",
   "scripts": {

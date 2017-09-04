@@ -118,7 +118,6 @@ class TTLService {
   }
 
   emitPacket(topic, event, packet) {
-    logger.debug("emitPacket %j %s %j", topic, event, packet);
     let target = this.io;
     if (topic.constructor === Array) {
       for (const t of topic) {
