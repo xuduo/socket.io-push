@@ -14,7 +14,7 @@ class NotificationService {
     this.arrivalRate = arrivalRate;
   }
 
-  sendByDevices(devices, timeToLive, notification) {
+  sendByDevices(devices, timeToLive, notification, type) {
     const mapTypeToToken = {};
     let sendViaTtlService = 0;
     for (const device of devices) {
@@ -32,7 +32,7 @@ class NotificationService {
         tokenList.push(device);
       }
     }
-    this.arrivalRate.addPushMany(notification, timeToLive, sendViaTtlService);
+    this.arrivalRate.addPushMany(notification, timeToLive, sendViaTtlService, type);
     this.providerFactory.sendMany(notification, mapTypeToToken, timeToLive);
   }
 

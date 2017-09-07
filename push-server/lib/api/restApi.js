@@ -146,7 +146,8 @@ class RestApi {
         tagLessThan: req.p.tagLessThan,
         tagGreaterThan: req.p.tagGreaterThan,
         timeToLive: paramParser.parseNumber(req.p.timeToLive),
-        tag: req.p.tag
+        tag: req.p.tag,
+        type: req.p.type
       };
 
       if (typeof req.p.notification == "string") {

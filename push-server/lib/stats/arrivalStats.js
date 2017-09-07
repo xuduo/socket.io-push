@@ -74,10 +74,10 @@ class ArrivalStats {
     });
   }
 
-  addPushMany(msg, ttl, sentCount) {
+  addPushMany(msg, ttl, sentCount, type) {
     logger.debug('addPushMany, packet: ', msg);
     const data = this.msgToData(msg, ttl);
-    data.type = 'pushMany';
+    data.type = type ? type : 'pushMany';
     this.addArrivalInfo(msg.id, {
       'target_android': sentCount
     }, data);

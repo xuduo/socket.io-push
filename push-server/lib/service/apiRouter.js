@@ -139,7 +139,7 @@ class ApiRouter {
       return;
     }
     this.stats.addSuccess('notificationByDevices', devices.length);
-    this.notificationService.sendByDevices(devices, params.timeToLive, params.notification);
+    this.notificationService.sendByDevices(devices, params.timeToLive, params.notification, params.type);
   }
 
   filterByTag(params, devices) {
