@@ -150,7 +150,7 @@
             pushId: pushIds,
             topic: $("#topic").val(),
             uid: uids,
-            json: $("#data").val(),
+            json: JSON.stringify(JSON.parse($("#data").val())),
             timeToLive: $("#timeToLive").val()
         };
 
