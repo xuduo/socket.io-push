@@ -43,7 +43,7 @@ class ApiRouter {
 
   sendFromBuffer() {
     if (this.notificationBuffer.length > 0) {
-      const notiParams = this.notificationBuffer[this.notificationBuffer.length - 1];
+      const notiParams = this.notificationBuffer[0];
       if (notiParams.pushIds) {
         const split = this.splitTargets(notiParams.pushIds);
         if (split.done) {
