@@ -14,7 +14,7 @@ npm install socket.io-push-client --save
 
 ```javascript
 var pushClient = PushClient('https://spush.yy.com', {
-            transports: ['websocket'], //使用的tranport, 只用WEBSOCKET, 不支持polling
+            transports: ['websocket'], //使用的tranport, proxy如果是多进程模式, 不支持polling
             useNotification: true //是否接收notification
         });
 ```
@@ -36,7 +36,7 @@ pushClient.unsubscribeTopic(topic);
 
 ```javascript
 pushClient.on('push',function(data){
-  
+
 });
 ```
 
@@ -56,6 +56,6 @@ pushClient.on('connect',function(data){
 });
 
 pushClient.on('disconnect',function(){
-  
+
 });
 ```
