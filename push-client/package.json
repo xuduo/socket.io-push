@@ -1,6 +1,6 @@
 {
   "name": "socket.io-push-client",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "socket.io-push client by xuduo",
   "main": "index.js",
   "repository": {

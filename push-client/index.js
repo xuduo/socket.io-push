@@ -135,7 +135,7 @@ PushClient.prototype.updateLastPacketId = function(topic, data) {
   if (id && ttl) {
     if (unicast) {
       this.setItem("lastUnicastId", id);
-    } else if (topic != null && this.topics[topic] == 2) {
+    } else if (topic != null) {
       this.topicToLastPacketId[topic] = id;
     }
   }
@@ -235,26 +235,6 @@ PushClient.prototype.unsubscribeTopic = function(topic) {
   delete this.topics[topic];
   this.socket.emit("unsubscribeTopic", {
     topic: topic
-  });
-}
-
-PushClient.prototype.http = function(options, cb) {
-
-  var requestCtx = [
-
-    (options.method && options.method.toLowerCase()) || 'get',
-
-    options.url, options.headers || {},
-
-    options.params || options.data || {}
-
-  ];
-  this.socket.emit("http", requestCtx, function(responseCtx) {
-    cb({
-      statusCode: responseCtx[0],
-      headers: responseCtx[1],
-      body: responseCtx[2]
-    });
   });
 }
 

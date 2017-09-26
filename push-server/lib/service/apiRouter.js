@@ -124,9 +124,17 @@ class ApiRouter {
       const topics = [];
       uids.forEach((id) => {
         topics.push("uid:" + id);
-        this.ttlService.addTTL(topic, pushEvent, timeToLive, pushData, true);
       });
-      this.ttlService.emitPacket(topics, pushEvent, pushData);
+      if (timeToLive > 0) {
+        this.deviceService.getDevicesByUid(uids, (devices) => {
+          for (const device of devices) {
+            this.ttlService.addTTL(device._id, pushEvent, timeToLive, pushData, true);
+          }
+          this.ttlService.emitPacket(topics, pushEvent, pushData);
+        });
+      } else {
+        this.ttlService.emitPacket(topics, pushEvent, pushData);
+      }
     } else if (topic) {
       this.ttlService.addTTL(topic, pushEvent, timeToLive, pushData, false);
       this.ttlService.emitPacket(topic, pushEvent, pushData);
