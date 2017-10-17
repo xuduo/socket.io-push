@@ -20,7 +20,7 @@ class XiaomiProvider {
       'Authorization': 'key=' + config.app_secret
     };
     this.type = "xiaomi";
-    this.notify_foreground = config.notify_foreground || 1;
+    this.notify_foreground = (config.notify_foreground === 0) ? 0 : 1;
   }
 
   sendMany(notification, tokenDataList, timeToLive, callback) {
@@ -47,7 +47,7 @@ class XiaomiProvider {
   }
 
   getPostData(notification, tokenDataList, timeToLive) {
-    logger.debug("getPostData notification ", notification, ": tokenlist: ", tokenDataList);
+    logger.debug("getPostData notification ", notification, this.notify_foreground);
     const postData = {
       title: notification.android.title,
       description: notification.android.message,

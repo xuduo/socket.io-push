@@ -60,7 +60,8 @@ config.huawei = [{
 
 //小米推送配置,可选, 小米内建支持多包名, 一个配置就可以
 config.xiaomi = {
-  app_secret: 'ynJJ6b+MkCLyw1cdrg/72w=='
+  app_secret: 'ynJJ6b+MkCLyw1cdrg/72w==',
+  notify_foreground: 0 //前台不通知
 };
 
 //友盟推送配置,可选, 友盟内建支持多包名, 一个配置就可以

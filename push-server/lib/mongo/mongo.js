@@ -76,33 +76,33 @@ class Mongo {
 
     const arrivalSchema = mongoose.Schema({
       _id: {
-        type: String
+        type: String //调用notification 接口返回的 id
       },
       expireAt: {
-        type: Date
+        type: Date //控制数据过期时间
       },
       timeStart: {
-        type: Date,
+        type: Date, // 调用时间
         index: true
       },
-      notification: String,
-      ttl: Number,
-      click_android: Number,
-      target_android: Number,
-      arrive_android: Number,
-      arrive_umeng: Number,
-      click_apn: Number,
-      target_apn: Number,
-      arrive_apn: Number,
-      click_huawei: Number,
-      target_huawei: Number,
-      arrive_huawei: Number,
-      click_xiaomi: Number,
-      xiaomi_msg_id: String,
-      umeng_click: Number,
-      umeng_task_id: String,
+      notification: String, //推送title
+      ttl: Number, // 调用notification 传的timeToLive参数
+      click_android: Number, //安卓点击数 目前统计偏低
+      target_android: Number, //安卓发送数
+      arrive_android: Number, //安卓送达数
+      arrive_umeng: Number, // 友盟送达数
+      click_apn: Number, // ios点击数 目前统计偏低
+      target_apn: Number, // ios发送数
+      arrive_apn: Number, // ios送达数
+      click_huawei: Number, // 华为点击数 目前统计偏低
+      target_huawei: Number, // 华为发送数
+      arrive_huawei: Number, // 华为送达数
+      click_xiaomi: Number, // 小米点击数
+      xiaomi_msg_id: String, // 调用小米接口返回的id
+      umeng_click: Number, // 友盟点击数 目前统计偏低
+      umeng_task_id: String, // 调用友盟接口返回的id
       type: {
-        type: String,
+        type: String, // 调用notification 传的type参数
         index: true
       }
     });
