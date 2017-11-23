@@ -97,8 +97,8 @@ notification -> 通知消息内容 需要url encode
 
 ```
 {
-  "android" : {"title":"title","message":"message" },
-  "apn":  {"alert":"message" , "badge":5, "sound":"default" },
+  "android" : {"title":"title1","message":"message1" },
+  "apn":  {"alert": {"title":"title1","body":"message1"} , "badge":5, "sound":"default" },
   "payload": { "abc": 123}
 }
 ```

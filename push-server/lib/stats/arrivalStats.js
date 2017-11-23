@@ -48,7 +48,7 @@ class ArrivalStats {
 
   msgToData(msg, ttl, expire = true) {
     const data = {
-      notification: msg.message || (msg.apn && msg.apn.alert) || (msg.android && msg.android.message),
+      notification: msg.message || (msg.apn && msg.apn.alert && msg.apn.alert.body) || (msg.apn && msg.apn.alert) || (msg.android && msg.android.message),
       timeStart: Date.now(),
       ttl
     };
