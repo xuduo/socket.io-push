@@ -59,8 +59,8 @@ if (cluster.isMaster) {
         worker.on('exit', (code, signal) => {
           logger.error('worker(%s) exit, code:%s, signal:%s', worker.id, code, signal);
           setTimeout(() => {
-            logger.info('respanw worker');
-            spawn(env);
+            logger.info('respawn worker');
+            spawn(processType, 1);
           }, 5000);
         });
       }
