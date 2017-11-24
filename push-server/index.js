@@ -139,3 +139,8 @@ if (cluster.isMaster) {
     }
   }
 }
+
+process.on('uncaughtException', function (err) {
+  logger.error('uncaughtException:', err);
+  process.exit(1)
+})
