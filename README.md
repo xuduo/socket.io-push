@@ -76,7 +76,7 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * QQ技术支持群 128769919
 
 ### 高级功能文档
-* topic相关(用于实现如直播间观众列表，在线人数实时查询功能)
+* [topic相关(用于实现如直播间观众列表，弹幕，礼物，支持同直播间20W人以上在线)](readmes/topic.md)
 * 多机器/机房部署
 * 苹果推送代理服务器(用于解决api服务器连接美国网络较差问题)
 * 统计相关
