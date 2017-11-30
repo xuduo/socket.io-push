@@ -1,6 +1,6 @@
 {
   "name": "socket.io-push",
-  "version": "0.9.8",
+  "version": "0.9.9",
   "description": "socket.io-push server by xuduo",
   "main": "index.js",
   "bin": {
@@ -13,7 +13,7 @@
     "url": "git@github.com:xuduo/socket.io-push.git"
   },
   "dependencies": {
-    "apn": "^2.1.5",
+    "apn": "2.1.5",
     "async": "0.9.0",
     "body-parser": "1.15.2",
     "dateformat": "^2.0.0",
