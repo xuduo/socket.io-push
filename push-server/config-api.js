@@ -8,7 +8,7 @@ config.prefix = 'test'; // 数据库表名/redis pub/sub prefix，用于多个�
 
 config.instances = 3;
 
-config.pushAllInterval = 10 * 1000; // 各个全网推送渠道调用间隔 防止蜂拥
+config.pushAllInterval = 1 * 1000; // 各个全网推送渠道调用间隔 防止蜂拥
 
 config.https_key = process.cwd() + '/cert/https/key.pem';
 config.https_cert = process.cwd() + '/cert/https/cert.pem';

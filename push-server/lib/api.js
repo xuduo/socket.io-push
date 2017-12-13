@@ -31,7 +31,7 @@ class Api {
     }
     providerFactory.addProvider(this.ttlService);
     if (config.huawei) {
-      this.huaweiProvider = require('./service/huaweiProvider')(config.huawei, this.stats);
+      this.huaweiProvider = require('./service/huaweiProvider')(config.huawei, this.stats, this.mongo);
       providerFactory.addProvider(this.huaweiProvider);
     }
     if (config.xiaomi) {
