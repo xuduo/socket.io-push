@@ -2,7 +2,11 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 =======================
 整合了小米，华为，友盟，苹果推送的统一解决方案
 
-更有应用内超低延迟(生产环境平均200MS以下)透传功能
+更有应用内超低延迟顺序(生产环境平均200MS以下)透传功能，支持websocket
+
+![白板](https://github.com/xuduo/socket.io-push/raw/master/readmes/broadcast.gif)
+
+广播可支持同频道10w以上在线
 
 [视频介绍](http://www.bilibili.com/video/av8531451/)
 
