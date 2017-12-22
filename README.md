@@ -6,7 +6,11 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 
 ![白板](https://github.com/xuduo/socket.io-push/raw/master/readmes/broadcast.gif)
 
-广播可支持同频道10w以上在线
+广播可支持同频道10w以上在线，每台前端(proxy)可支持5W以上长连接(取决于你的推送量)
+
+![notification](https://github.com/xuduo/socket.io-push/raw/master/readmes/notification.gif)
+
+目前我司有数款APP在使用，其中一个日活在500W以上
 
 [视频介绍](http://www.bilibili.com/video/av8531451/)
 
