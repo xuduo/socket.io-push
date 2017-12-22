@@ -10,7 +10,7 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 
 ![notification](https://github.com/xuduo/socket.io-push/raw/master/readmes/notification.gif)
 
-目前我司有数款APP在使用，其中一个日活在500W以上
+16年1月上线运行，目前已经非常稳定，功能完善，我司有数款APP在使用，其中一个日活在500W以上
 
 [视频介绍](http://www.bilibili.com/video/av8531451/)
 
