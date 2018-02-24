@@ -1,5 +1,5 @@
-module.exports = (deviceService, notificationService, ttlService, batchSize, bufferSize, remoteUrls, stats) => {
-  return new ApiRouter(deviceService, notificationService, ttlService, batchSize, bufferSize, remoteUrls, stats);
+module.exports = (deviceService, notificationService, ttlService, batchSize, remoteUrls, stats) => {
+  return new ApiRouter(deviceService, notificationService, ttlService, batchSize, remoteUrls, stats);
 };
 
 const logger = require('winston-proxy')('ApiRouter');
@@ -10,16 +10,13 @@ const versionCompare = require('../util/versionCompare');
 
 class ApiRouter {
 
-  constructor(deviceService, notificationService, ttlService, batchSize, bufferSize, remoteUrls, stats) {
+  constructor(deviceService, notificationService, ttlService, batchSize, remoteUrls, stats) {
     this.deviceService = deviceService;
     this.stats = stats;
     this.notificationService = notificationService;
     this.ttlService = ttlService;
     this.batchSize = batchSize || 1000;
     this.remoteUrls = require("../util/infiniteArray")(remoteUrls);
-    this.notificationBuffer = []; // 保证notification只有一个‘线程’ 读取数据库，防止蜂拥
-    this.bufferSize = bufferSize || 0;
-    this.bufferTask = null;
   }
 
   splitTargets(targets) {
@@ -41,65 +38,39 @@ class ApiRouter {
     }
   }
 
-  sendFromBuffer() {
-    if (this.notificationBuffer.length > 0) {
-      const notiParams = this.notificationBuffer[0];
-      if (notiParams.pushIds) {
-        const split = this.splitTargets(notiParams.pushIds);
-        if (split.done) {
-          this.notificationBuffer.shift();
-        }
+  doSendNotification(notiParams) {
+    if (notiParams.pushIds) {
+      let split;
+      do {
+        split = this.splitTargets(notiParams.pushIds);
         this.deviceService.getDevicesByPushIds(split.split, (devices) => {
           this.sendNotificationByDevices(notiParams, devices);
-          this.bufferTaskDone();
         });
-      } else if (notiParams.uids) {
-        const split = this.splitTargets(notiParams.uids);
-        if (split.done) {
-          this.notificationBuffer.shift();
-        }
+      } while (!split.done)
+
+    } else if (notiParams.uids) {
+      let split;
+      do {
+        split = this.splitTargets(notiParams.uids);
         this.deviceService.getDevicesByUid(split.split, (devices) => {
           this.sendNotificationByDevices(notiParams, devices);
-          this.bufferTaskDone();
         });
-      } else if (notiParams.tag) {
-        let batch = [];
-        this.notificationBuffer.shift();
-        this.deviceService.scanByTag(notiParams.tag, (doc) => {
-          batch.push(doc);
-          if (batch.length == this.maxPushIds) {
-            this.sendNotificationByDevices(notiParams, batch);
-            batch = [];
-          }
-        }, () => {
-          if (batch.length != 0) {
-            this.sendNotificationByDevices(notiParams, batch);
-          }
-          this.bufferTaskDone();
-        });
-      } else {
-        logger.error('invalid notiParams', notiParams);
-        this.notificationBuffer.shift();
-        this.bufferTaskDone();
-      }
-    }
-  }
-
-  bufferTaskDone() {
-    this.bufferTask = null;
-    this.postBufferTask();
-  }
-
-  postBufferTask() {
-    logger.info('postBufferTask bufferSize', this.notificationBuffer.length);
-    if (this.bufferSize > 0 && this.notificationBuffer.length > this.bufferSize) {
-      logger.error('postBufferTask bufferSize too big dropping all', this.notificationBuffer.length);
-      this.notificationBuffer = [];
-    }
-    if (this.bufferTask == null && this.notificationBuffer.length > 0) {
-      this.bufferTask = setTimeout(() => {
-        this.sendFromBuffer();
-      }, 0);
+      } while (!split.done)
+    } else if (notiParams.tag) {
+      let batch = [];
+      this.deviceService.scanByTag(notiParams.tag, (doc) => {
+        batch.push(doc);
+        if (batch.length == this.maxPushIds) {
+          this.sendNotificationByDevices(notiParams, batch);
+          batch = [];
+        }
+      }, () => {
+        if (batch.length != 0) {
+          this.sendNotificationByDevices(notiParams, batch);
+        }
+      });
+    } else {
+      logger.error('invalid notiParams', notiParams);
     }
   }
 
@@ -108,8 +79,7 @@ class ApiRouter {
     if (params.pushAll) {
       this.notificationService.sendAll(params.notification, params.timeToLive);
     } else {
-      this.notificationBuffer.push(params);
-      this.postBufferTask();
+      this.doSendNotification(params);
     }
     return params.notification.id;
   }
