@@ -219,7 +219,7 @@ class ProxyServer {
                   deviceService.bindUid(socket.pushId, data.uid, platform || socket.platform, limit);
                 }
               }
-            });
+            }, logger);
           }
         });
       }

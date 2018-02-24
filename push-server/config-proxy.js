@@ -54,8 +54,9 @@ config.redis = {
   }]
 };
 
-config.bindUid = (data, callback) => {
-  callback(data.uid);
+config.bindUid = (data, callback, logger) => {
+  logger.info("bind uid log from config ", data);
+  callback(data.uid)
 };
 
 module.exports = config;
