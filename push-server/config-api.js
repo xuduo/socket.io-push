@@ -17,6 +17,24 @@ config.statsCommitThreshold = 5000; //ms,统计缓存commit间隔, 生产环境�
 
 config.topicThreshold = {};
 
+
+//google play 推送 可选
+config.fcm = {
+  serviceAccount: {
+    "type": "service_account",
+    "project_id": "socketiodemo",
+    "private_key_id": "3d896d67b4323d4195d5432f3834e7d7b184cc40",
+    "private_key": `-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDAD7iZRgxQLNv3\nZcQvgHxwsPvwmexVrTzXlbMdR6El+77vVwHp+N5lkDCQeL6OrX2xZE9ez6fGbRlP\nRJOEjCdsWz1kAZOR8ZAOHPEmyp0Tnw6PfNCMbYKwoHxaHZFqXKKapYS8jaZr26nF\nY41sInoALIBdI4izkUlhTw5PKODJ5rjfB2fZhx6hxmyixMa+zGPi9J/58fUys6LX\nEOzXmiQCQtjGrGk/voxvydN9MHFm0X0OpkaQI0bCsKsVMFsM/rKAhWZ8grabYX1E\nm0+pR4JUcIsgpTlgzaqPUEDkxG+W8S+zPII9M8RDyGcmbWoQuOTkNNRrttpQBkHr\nFsoGTcoDAgMBAAECggEAUp7QsfrctCbAD3qTPT4ACjhQgQ2uCaNG/5Sx4yAbtivI\nVMxwkdaR0U4IXjXa/6SpZAS7UhVxXp4zG5LsBMKH+Qh87cbx1P/+ENwpbx8NGFI9\noMM4MZiwdkvrgpaipgcome8nHTewRkjODRBI16IzKlz6cVamaVzQHNC13p6+qItc\n9h+yXQvHnmcXOkb+akAk1TF4bLD1zrH4odNRr1sqnslgZ0aJwK++yOEt+DGXPP13\n9BIuXe0YOHIqtANlh0VYBzQoWP9RKaWet9hvvWnGJ9oC7CHAZdaNtNAIOkQQ/gJ+\nS73l924sVlzmkF0OanXulZrZ8vjXZxix2J4Wmp3XKQKBgQD08kC6hDtH6sLWbP3R\nquLKzgFZzavtLpzEvNGxP5BRi84VXYIDIc6IgJFYTxmKhmSPUM4sSwAdKuJYrXjt\nonJ8cgoiIT2jq3cSNj3Nm+EEqlhw+6Vf+zAym5zkvbdGM9OjLiHGMFFLbpHwa9iP\nzkD8ykv4vwpotXRyLS1Ai73GiQKBgQDIuoO0WaPScghaURbPEu+RTlFUAD+Gc1FI\nly9g1e+7+I5VA5xSWxuerpdLvGblgmL+xYU7C37BY+Fqq8OsB14s2mYmZz/8y3yr\nNtXYezI8puae0T/AoRZ7qHHEYlNmpvJE0G8UrnFAD8sAikSXuP8hyfGBuIjYVx+x\nl4xMEzWpKwKBgQDc184kXDRWkwM38OynrTrtPu9Y2Ga6YdxWRSeKd5TW8QXNnZEq\n4cAkskZZKHgOvTzNOj2pEbX4lkGdUkpFdsFiEi+wteetOVsRwHXYe0JVwoAa3cgs\n0XyTJFpAogwr725RIbaxyb6CFB7gdVu7zGorgPkePKBV58QlbTXvjA5+gQKBgFFs\nFvCZS/KZfvnj2rS0oaj3c9X3I82OCXLAoN9O6Kf+8v1ZMZfWjSWY/JYkHjkK4s0l\noh2JVCluMonqkry9YF4hWT5Ks5H/mNp6q9PcZUxlBzd0+b9RmKUgdsWKfPouzidL\nxUNGX3n07guSCrDgwd0a5XQRPrFC5gBL0QUq5aFxAoGBALV5n/hpkMR5WP9Q0JCg\nuhsIUmIdj0deA6i2f94AznhLS8CYxpqA59T/Vof3IUldB4BB7NKae4KwlBzvZDQ0\n5E1A9JuBPsg9T2S1nTkKDKRkMGUY9/x6beoRpB0TE8v002Csl+oID64GTChVRH8A\ntDf0xs7Zg+PgllqObnY/yz7o\n-----END PRIVATE KEY-----\n`,
+    "client_email": "firebase-adminsdk-85bnp@socketiodemo.iam.gserviceaccount.com",
+    "client_id": "111316098587525102725",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://accounts.google.com/o/oauth2/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-85bnp%40socketiodemo.iam.gserviceaccount.com"
+  },
+  databaseURL: "https://socketiodemo.firebaseio.com"
+}
+
 //apns推送配置,可选
 config.apns = [{
     production: false,

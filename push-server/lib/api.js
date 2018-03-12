@@ -44,6 +44,10 @@ class Api {
       providerFactory.addProvider(this.umengProvider);
       this.arrivalStats.umengProvider = this.umengProvider;
     }
+    if (config.fcm) {
+      this.fcmProvider = require('./service/fcmProvider')(config.fcm, this.arrivalStats, this.stats);
+      providerFactory.addProvider(this.fcmProvider);
+    }
     this.apiRouter = require('./service/apiRouter')(this.deviceService, this.notificationService, this.ttlService, config.notificationBatchSize, config.routerApiUrls, this.stats);
     this.restApi = require('./api/restApi')(httpServer, spdyServer, this.apiRouter, topicOnline, this.stats, config, this.apnService, config.apiAuth, this.deviceService, this.arrivalStats);
   }

@@ -56,7 +56,7 @@ config.redis = {
 
 config.bindUid = (data, callback, logger) => {
   logger.info("bind uid log from config ", data);
-  callback(data.uid)
+  callback(data.uid); // 不验证直接绑定
 };
 
 module.exports = config;
