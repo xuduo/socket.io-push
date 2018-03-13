@@ -1,5 +1,5 @@
-module.exports = (providerFactory, mongo, ttlService, arrivalRate) => {
-  return new NotificationService(providerFactory, mongo, ttlService, arrivalRate);
+module.exports = (providerFactory, mongo, ttlService) => {
+  return new NotificationService(providerFactory, mongo, ttlService);
 };
 
 const logger = require('winston-proxy')('NotificationService');
@@ -7,11 +7,10 @@ const async = require('async');
 
 class NotificationService {
 
-  constructor(providerFactory, mongo, ttlService, arrivalRate) {
+  constructor(providerFactory, mongo, ttlService) {
     this.mongo = mongo;
     this.ttlService = ttlService;
     this.providerFactory = providerFactory;
-    this.arrivalRate = arrivalRate;
   }
 
   sendByDevices(devices, timeToLive, notification, type) {
@@ -32,12 +31,11 @@ class NotificationService {
         tokenList.push(device);
       }
     }
-    this.arrivalRate.addPushMany(notification, timeToLive, sendViaTtlService, type);
     this.providerFactory.sendMany(notification, mapTypeToToken, timeToLive);
+    return sendViaTtlService;
   }
 
   sendAll(notification, timeToLive) {
-    this.arrivalRate.addPushAll(notification, timeToLive);
     this.providerFactory.sendAll(notification, timeToLive);
   }
 

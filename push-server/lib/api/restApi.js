@@ -209,6 +209,8 @@ class RestApi {
         return next();
       }
 
+      params.remoteAddress = req.connection.remoteAddress;
+
       const id = apiRouter.notification(params);
 
       logger.info("handleNotification %s id: %s ,tag:%s,pushAll:%s,uids:%s, pushIds:%s, %j", req.connection.remoteAddress, id, params.tag, params.pushAll, getLimitedArrayToLog(params.uids), getLimitedArrayToLog(params.pushIds), params.notification);
@@ -257,9 +259,21 @@ class RestApi {
 
     router.all('/stats/arrival/:type', (req, res, next) => {
       const packetId = req.p.id;
+      const uid = req.p.uid;
+      const pushId = req.p.pushId;
       if (packetId) {
         arrivalStats.getArrivalInfo(packetId, (packet) => {
           res.json(packet);
+          return next();
+        });
+      } else if (uid) {
+        arrivalStats.getRateStatusByUid(uid, (result) => {
+          res.json(result);
+          return next();
+        });
+      } else if (pushId) {
+        arrivalStats.getRateStatusByDevice(pushId, (result) => {
+          res.json(result);
           return next();
         });
       } else {

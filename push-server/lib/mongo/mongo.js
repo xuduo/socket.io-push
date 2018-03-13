@@ -85,6 +85,16 @@ class Mongo {
         type: Date, // 调用时间
         index: true
       },
+      apiIp: String, //调用的api实例ip
+      callerIp: String, //调用者IP
+      devices: { //推送目标pushId
+        type: [String],
+        index: true
+      },
+      uids: { //推送目标uid
+        type: [String],
+        index: true
+      },
       notification: String, //推送title
       ttl: Number, // 调用notification 传的timeToLive参数
       click_android: Number, //安卓点击数 目前统计偏低

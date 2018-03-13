@@ -1,5 +1,5 @@
-module.exports = (deviceService, notificationService, ttlService, batchSize, remoteUrls, stats) => {
-  return new ApiRouter(deviceService, notificationService, ttlService, batchSize, remoteUrls, stats);
+module.exports = (deviceService, notificationService, ttlService, batchSize, remoteUrls, stats, arrivalStats) => {
+  return new ApiRouter(deviceService, notificationService, ttlService, batchSize, remoteUrls, stats, arrivalStats);
 };
 
 const logger = require('winston-proxy')('ApiRouter');
@@ -10,9 +10,10 @@ const versionCompare = require('../util/versionCompare');
 
 class ApiRouter {
 
-  constructor(deviceService, notificationService, ttlService, batchSize, remoteUrls, stats) {
+  constructor(deviceService, notificationService, ttlService, batchSize, remoteUrls, stats, arrivalStats) {
     this.deviceService = deviceService;
     this.stats = stats;
+    this.arrivalStats = arrivalStats;
     this.notificationService = notificationService;
     this.ttlService = ttlService;
     this.batchSize = batchSize || 1000;
@@ -78,6 +79,7 @@ class ApiRouter {
     this.addIdAndTimestamp(params.notification);
     if (params.pushAll) {
       this.notificationService.sendAll(params.notification, params.timeToLive);
+      this.arrivalStats.addPushAll(params.notification, params.timeToLive);
     } else {
       this.doSendNotification(params);
     }
@@ -116,8 +118,9 @@ class ApiRouter {
     if (!devices || devices.length == 0) {
       return;
     }
+    const sendViaTtlService = this.notificationService.sendByDevices(devices, params.timeToLive, params.notification, params.type);
+    this.arrivalStats.addPushMany(params.notification, params.timeToLive, sendViaTtlService, params.type, devices, params.uids, params.remoteAddress);
     this.stats.addSuccess('notificationByDevices', devices.length);
-    this.notificationService.sendByDevices(devices, params.timeToLive, params.notification, params.type);
   }
 
   filterByTag(params, devices) {

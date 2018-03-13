@@ -21,7 +21,7 @@ class Api {
     this.deviceService = require('./service/deviceService')(this.mongo, this.uidStore);
     this.ttlService = require('./service/ttlService')(this.io, this.mongo, this.stats, this.arrivalStats);
 
-    this.notificationService = require('./service/notificationService')(config.apns, this.mongo, this.ttlService, this.arrivalStats);
+    this.notificationService = require('./service/notificationService')(config.apns, this.mongo, this.ttlService);
 
     const providerFactory = require('./service/notificationProviderFactory')(config.pushAllInterval);
     this.notificationService.providerFactory = providerFactory;
@@ -48,7 +48,7 @@ class Api {
       this.fcmProvider = require('./service/fcmProvider')(config.fcm, this.arrivalStats, this.stats);
       providerFactory.addProvider(this.fcmProvider);
     }
-    this.apiRouter = require('./service/apiRouter')(this.deviceService, this.notificationService, this.ttlService, config.notificationBatchSize, config.routerApiUrls, this.stats);
+    this.apiRouter = require('./service/apiRouter')(this.deviceService, this.notificationService, this.ttlService, config.notificationBatchSize, config.routerApiUrls, this.stats, this.arrivalStats);
     this.restApi = require('./api/restApi')(httpServer, spdyServer, this.apiRouter, topicOnline, this.stats, config, this.apnService, config.apiAuth, this.deviceService, this.arrivalStats);
   }
 

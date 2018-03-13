@@ -12,6 +12,8 @@ class ArrivalStats {
     this.topicOnline = topicOnline;
     this.recordKeepTime = 30 * 24 * 3600 * 1000;
     this.incrBuffer = incrBuffer;
+    this.ip = process.env.ip;
+    logger.debug("ip %s", this.ip);
 
     const dummy = {
       trace: (packet, callback) => {
@@ -74,19 +76,27 @@ class ArrivalStats {
     });
   }
 
-  addPushMany(msg, ttl, sentCount, type) {
+  addPushMany(msg, ttl, sentCount, type, devices, uids, remoteAddress) {
     logger.debug('addPushMany, packet: ', msg);
     const data = this.msgToData(msg, ttl);
     data.type = type ? type : 'pushMany';
+    if (devices) {
+      data.devices = devices;
+    }
+    if (uids) {
+      data.uids = uids;
+    }
+    data.apiIp = this.ip;
+    data.callerIp = remoteAddress;
     this.addArrivalInfo(msg.id, {
       'target_android': sentCount
     }, data);
   }
 
-  getRateStatusByType(type, callback) {
-    this.mongo.arrival.find({
-        type: type
-      })
+  getRateStatusBy(field, value, callback) {
+    const query = {};
+    query[field] = value;
+    this.mongo.arrival.find(query)
       .sort({
         'timeStart': -1
       })
@@ -108,6 +118,18 @@ class ArrivalStats {
           callback(result);
         });
       });
+  }
+
+  getRateStatusByType(type, callback) {
+    this.getRateStatusBy("type", type, callback);
+  }
+
+  getRateStatusByUid(uid, callback) {
+    this.getRateStatusBy("uids", uid, callback);
+  }
+
+  getRateStatusByDevice(device, callback) {
+    this.getRateStatusBy("devices", device, callback);
   }
 
   calculateArrivalInfo(packet, callback) {
