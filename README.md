@@ -42,6 +42,21 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * 单机广播速度可以达到[10W条/秒](bench-mark.md)，如果只使用系统通知功能，单机支撑一个10W左右日活的APP，平均1W以上同时在线，几乎不占机器负载
 * 从推送接口调用，到客户端收到回包给服务器，RTT只有280m(线上平均延迟)
 
+### 更新日志
+* 0.9.13 支持按uid,pushId查询推送送达率
+* 0.9.12 支持谷歌的fcm推送
+* 0.9.11 去掉apiRouter中的buffer机制，避免拥堵延迟
+* 0.9.10 更新调用华为新版接口(华为开发者后台需要配置apk的sha256指纹)
+* 0.9.9 修复自动重启进程的问题，更新node-apn版本
+* 0.9.7 修正小米notify_foreground配置未生效
+* 0.9.6 修正 push uid ttl未生效
+* 0.9.5 修正notificationBuffer删错方向bug
+* 0.9.4 修正demo后台bug
+* 0.9.3 notfication加个type用于统计
+* 0.9.3 删除redis-adapter一个指数级的调用
+* 0.9.1 重构redis-adapter，优化批量推送大量uid的性能
+* 0.8.97 接口支持post100mb以上数据
+
 ### 基本功能和实现原理
 
 #### 1. push (在线透传）
