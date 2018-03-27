@@ -103,6 +103,10 @@ class ArrivalStats {
       .limit(50)
       .exec((err, docs) => {
         const result = [];
+        if (err) {
+          logger.error('getRateStatusBy error', field, value, err);
+          return callback(result);
+        }
         async.each(docs, (doc, asynccb) => {
           this.calculateArrivalInfo(doc, (info) => {
             if (info) {

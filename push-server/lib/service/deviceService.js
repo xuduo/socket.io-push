@@ -61,6 +61,10 @@ class DeviceService {
     });
   }
 
+  deleteByPushId(pushId) {
+    this.mongo.device.findByIdAndRemove(pushId, () => {});
+  }
+
   disconnect(socket, callback) {
     this.mongo.device.findByIdAndUpdate(socket.pushId, {
       $unset: {

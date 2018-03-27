@@ -150,19 +150,13 @@ platform -> string(可选), 默认 = "default", pushId所属平台
 
 platformLimit -> int(可选), 默认 = 0, 表示不限制. 不为0时, 表示保留多少该平台的pushId绑定关系, 优先删除最旧的绑定关系
 
-## /api/uid/remove 解除pushId的绑定
+## /api/device/delete 按照pushId删除设备，除非设备重新上报pushId，以后将不会推送给此设备
 
-http://yourip:11001/api/uid/remove?pushId=abc
+http://yourip:11001/api/device/delete?pushId=abc
 
 --- 以下参数2选一,指定推送对象
 
-pushId -> string[], 如 ["abc","def"] 解绑该pushId对应的uid
-
-          或 string, 如 "abc"
-
-uid -> string[],如 ["123","456"] 解绑该uid的所有设备
-
-        或 string, 如 "123"
+pushId -> string[], 如 ["abc","def"] 删除该pushId对应在数据库中的记录
 
 
 ## /api/topicOnline topic在线数查询

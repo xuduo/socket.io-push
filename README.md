@@ -43,6 +43,7 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * 从推送接口调用，到客户端收到回包给服务器，RTT只有280m(线上平均延迟)
 
 ### 更新日志
+* 0.9.14 api增加删除设备的接口
 * 0.9.13 支持按uid,pushId查询推送送达率
 * 0.9.12 支持谷歌的fcm推送
 * 0.9.11 去掉apiRouter中的buffer机制，避免拥堵延迟
@@ -61,28 +62,28 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 
 #### 1. push (在线透传）
 
-###### 目标: 
+###### 目标:
 
 * pushId: 对某个设备
 * topic: 已经订阅了某topic的设备列表，订阅关系在redis和socket.io实例里保存，如socket.io服务重启，会丢失，客户端重连上来会自动重新订阅建立关系
 * uid: 已绑定的设备列表，设备连接后读一次数据库，然后此关系以topic的方式实现
 
    ###### 实现原理:
-       
+
         使用socket.io通道，只针对当时在线，也可以通过制定timeToLive参数实现重传, 无论push给任何目标，只有一次redis pub操作，不走数据库，可靠性，速度非常高
 
 #### 2. notification（手机系统通知栏）
 
 
-###### 目标: 
-   
+###### 目标:
+
 * pushId: 对某个设备
 * uid: 已绑定的设备列表
 * tags: 绑定了某tag的设备列表，存储在数据库持久化
 * pushAll: 推送所有设备
 
 ###### 实现原理:
-   
+
 无论给哪个目标发，都要查一次mongodb，用于确定目标设备的类型和token。
 
 * ios设备，走苹果apn推送。
@@ -136,4 +137,3 @@ socket.io-push [![Build Status](https://travis-ci.org/xuduo/socket.io-push.svg?b
 * `pushId` 某个设备的唯一标识, app安装后生成的随机字符串, 用于服务器单播
 * `uid` 业务服务器用于标识某个用户的id,字符串类型.可以通过push-server的接口进行绑定,通过客户端SDK解除绑定
 * `timeToLive` 过期时间
-

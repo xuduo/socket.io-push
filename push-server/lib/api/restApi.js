@@ -293,6 +293,19 @@ class RestApi {
       return next();
     });
 
+    router.all('/device/delete', (req, res, next) => {
+      const pushIds = paramParser.parseArrayParam(req.p.pushId);
+      if (pushIds) {
+        pushIds.forEach((pushId) => {
+          deviceService.deleteByPushId(pushId);
+        });
+      }
+      res.json({
+        code: "success"
+      });
+      return next();
+    });
+
     router.all('/uid/remove', (req, res, next) => {
       const pushIds = paramParser.parseArrayParam(req.p.pushId);
       const uids = paramParser.parseArrayParam(req.p.uid);
