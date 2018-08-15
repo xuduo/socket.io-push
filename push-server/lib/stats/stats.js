@@ -183,7 +183,7 @@ class Stats {
     logger.debug('onNotificationReply %s', latency);
     if (latency < 10000) {
       this.redisIncrBuffer.incr("noti", {
-        totalSuccess: 1,
+        successCount: 1,
         totalLatency: latency
       });
     }
