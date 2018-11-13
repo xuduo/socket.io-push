@@ -22,7 +22,7 @@ curl -X POST -F 'a=1' -F 'b=2' http://localhost:11001/api/test
 curl -H "Content-Type: application/json" -X POST -d '{"a":"1" , "b":"2"}' http://localhost:11001/api/test
 ```
 
-##数组类型参数
+## 数组类型参数
 
 1. string[]类型, 可以使用http标准的如
    get?uid=123&uid=456
